@@ -38,9 +38,18 @@ A band on its own doesn't tell you whether to be surprised. The app compares the
 weather) and tells you where today sits: *"Stickier than 88% of the hours recorded here around this date
 over the last 10 years. Normally around now: humid."*
 
+It also ranks today against every individual past day in that window — *"stickier than 93% of days"* —
+rather than against a per-year average, which would flatter it: one sticky day clears a smoothed
+fortnight median easily.
+
 The bar underneath is the local climate at a glance — one segment per band, sized by how much of the past
 decade fell in it. Because the segments are sized by share, the marker at today's percentile lands inside
 today's band automatically. Reykjavík's bar is 99% dry; Singapore's is 63% miserable.
+
+The wording has to work when the current band *is* the normal band, which is the common case: saying
+"stickier than usual — normally humid" while it is humid reads as a contradiction. So the band sentence
+describes position within the band ("still the usual humid band, but at the sticky end of it") whenever
+the two agree.
 
 ### When to go out
 

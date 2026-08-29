@@ -12,14 +12,30 @@
     { id: 'miserable',   max: Infinity },
   ];
   const RANK = Object.fromEntries(BANDS.map((b, i) => [b.id, i]));
+  /**
+   * Headline and blurb per band.
+   *
+   * These describe how well sweat evaporates, which is what the dew point
+   * actually measures — never how warm it is. A low dew point happens at 40°
+   * in a desert just as readily as at 2° in winter, so any advice that assumes
+   * a temperature has to read the temperature (see `blurbFor`).
+   */
   const COPY = {
-    dry:         ['Crisp and dry',   'The air is dry. Lips and skin will feel it — drink water, wear the sweater.'],
-    comfortable: ['Perfect air',     'The air is right in the sweet spot. Go outside, you deserve it.'],
-    humid:       ['A little sticky', "The air is a bit humid. You'll notice it, but it's fine. Light layers."],
-    muggy:       ["It's muggy out",  'The air is muggy. Shirts will stick a little — go light and find the shade.'],
-    oppressive:  ['Oppressive',      "The air is heavy. Sweat won't dry — slow down, drink lots, stay near a fan."],
-    miserable:   ['Miserable',       'The air is brutal. Honestly, stay in. Find the AC and wait it out.'],
+    dry:         ['Crisp and dry',   'Sweat evaporates the moment it forms.'],
+    comfortable: ['Perfect air',     'Nothing to plan around — this is about as good as air gets.'],
+    humid:       ['A little sticky', "You'll notice it, but it stays out of your way. Something light and breathable is plenty."],
+    muggy:       ["It's muggy out",  'Shirts start sticking. Keep to the shade and take it slower than usual.'],
+    oppressive:  ['Oppressive',      'Sweat stops evaporating, so you stop cooling down. Slow everything down and keep water on you.'],
+    miserable:   ['Miserable',       'The air cannot hold any more water, so sweating barely works. Stay in and find air conditioning.'],
   };
+
+  /** Dry air says nothing about warmth, so this is the one band that must ask. */
+  function blurbFor(band, tempC) {
+    if (band !== 'dry' || tempC == null) return COPY[band][1];
+    if (tempC < 10) return `${COPY.dry[1]} Cold and dry — the kind that chaps lips. Drink more than you feel like.`;
+    if (tempC > 28) return `${COPY.dry[1]} Dry heat: you will not feel yourself sweating, which is exactly why to keep drinking.`;
+    return `${COPY.dry[1]} Easy air — your skin will notice before you do.`;
+  }
   const DEFAULT_PLACE = { name: 'Tirana', lat: 41.33, lon: 19.82 };
 
   const $ = (id) => document.getElementById(id);
@@ -82,24 +98,53 @@
     const nowBand = levelOf(dp);
     const share = normals.mix[nowBand] || 0;
 
-    const verdict =
+    const cap = (s) => s[0].toUpperCase() + s.slice(1);
+    els.normalVerdict.textContent =
       pct >= 90 ? 'Way stickier than usual'
       : pct >= 70 ? 'Stickier than usual'
       : pct > 30 ? 'About normal'
       : pct > 10 ? 'Drier than usual'
       : 'Way drier than usual';
-    els.normalVerdict.textContent = verdict;
 
-    // Lead with the striking fact when today's air is genuinely rare here.
-    const rarity =
-      share === 0 ? `In ${normals.years} years, ${nowBand} air has never been recorded here around this date.`
-      : share < 0.05 ? `${nowBand} air turns up only about ${Math.round(share * 100)}% of the time here around now.`
-      : `Normally around now: ${normals.medianBand}.`;
-    const sits = pct >= 50
-      ? `Stickier than ${pct}% of the hours`
-      : `Drier than ${100 - pct}% of the hours`;
-    els.normalNote.textContent = `${sits} recorded here around this date over the last ${normals.years} years. ${rarity}`;
-    els.normalSub.textContent = `${normals.years} years of history`;
+    // How unusual, as a count of hours rather than a percentile — "only 21% have
+    // been stickier" lands where "79th percentile" does not.
+    const rarer = 100 - pct;
+    const position =
+      rarer <= 1 ? 'Nothing recorded around this date has been stickier.'
+      : pct <= 1 ? 'Nothing recorded around this date has been drier.'
+      : pct >= 50 ? `Only ${rarer}% of hours around this date have been stickier.`
+      : `Only ${pct}% of hours around this date have been drier.`;
+
+    // The band alone cannot say "normal band, top of it" — which is exactly the
+    // common case, and reads as a contradiction next to "stickier than usual".
+    const context =
+      share === 0 ? `${cap(nowBand)} air has never been recorded here around this date.`
+      : share < 0.05 ? `${cap(nowBand)} air turns up only about ${Math.round(share * 100)}% of the time around now.`
+      : nowBand !== normals.medianBand ? `Usually it is ${normals.medianBand} around now.`
+      : pct >= 65 ? `Still the usual ${nowBand} band — but at the sticky end of it.`
+      : pct <= 35 ? `Still the usual ${nowBand} band — at the easier end of it.`
+      : 'Squarely normal for here.';
+
+    els.normalNote.textContent = `${position} ${context}`;
+
+    // Rank today against every individual past day around this date, so the
+    // claim is day-against-day rather than a day against a smoothed average.
+    const past = normals.days;
+    const todayVals = data.hourly.time
+      .map((t, i) => (t.slice(0, 10) === data.current.time.slice(0, 10) ? data.hourly.dew_point_2m[i] : null))
+      .filter((v) => v != null)
+      .sort((a, b) => a - b);
+    if (past && past.length >= 30 && todayVals.length) {
+      const todayMid = todayVals[Math.floor(todayVals.length / 2)];
+      const frac = past.filter((v) => todayMid > v).length / past.length;
+      els.normalSub.textContent =
+        frac >= 0.98 ? `stickiest in ${normals.years} years`
+        : frac <= 0.02 ? `driest in ${normals.years} years`
+        : frac >= 0.5 ? `stickier than ${Math.round(frac * 100)}% of days`
+        : `drier than ${Math.round((1 - frac) * 100)}% of days`;
+    } else {
+      els.normalSub.textContent = `${normals.years} years of history`;
+    }
 
     // Segments sized by each band's share of past hours, so the marker at the
     // current percentile necessarily lands inside today's band.
@@ -252,7 +297,7 @@
     els.levelName.textContent = now;
     els.timeChip.textContent = `now · ${cur.time.slice(11, 16)}`;
     els.title.textContent = COPY[now][0];
-    els.blurb.textContent = COPY[now][1];
+    els.blurb.textContent = blurbFor(now, cur.temperature_2m);
     els.temp.textContent = fmtTemp(cur.temperature_2m);
     els.hum.textContent = cur.relative_humidity_2m == null ? '–' : `${Math.round(cur.relative_humidity_2m)}%`;
     els.comfort.textContent = now;

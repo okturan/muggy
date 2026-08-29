@@ -129,7 +129,7 @@ async function normals(request, env, ctx) {
   const today = new Date();
   const mm = String(today.getUTCMonth() + 1).padStart(2, '0');
   const dd = String(today.getUTCDate()).padStart(2, '0');
-  const key = `v1:${(Math.round(lat * 2) / 2).toFixed(1)}:${(Math.round(lon * 2) / 2).toFixed(1)}:${mm}-${dd}`;
+  const key = `v3:${(Math.round(lat * 2) / 2).toFixed(1)}:${(Math.round(lon * 2) / 2).toFixed(1)}:${mm}-${dd}`;
 
   if (env.NORMALS) {
     const hit = await env.NORMALS.get(key, 'json').catch(() => null);
@@ -163,13 +163,31 @@ async function normals(request, env, ctx) {
 
   const years = await Promise.all(reqs);
   const vals = [];
+  // A median per past DAY, not per year. Ranking today against ten fortnight-long
+  // medians flatters it — a single sticky day clears a smoothed average easily —
+  // so today gets compared against the ~150 individual days it belongs with.
+  const days = [];
   let got = 0;
   for (const y of years) {
+    const times = y?.hourly?.time;
     const series = y?.hourly?.dew_point_2m;
-    if (!series) continue;
+    if (!times || !series) continue;
     got++;
-    for (const v of series) if (v != null) vals.push(v);
+    const byDay = new Map();
+    for (let i = 0; i < series.length; i++) {
+      const v = series[i];
+      if (v == null) continue;
+      vals.push(v);
+      const d = times[i].slice(0, 10);
+      if (!byDay.has(d)) byDay.set(d, []);
+      byDay.get(d).push(v);
+    }
+    for (const arr of byDay.values()) {
+      arr.sort((a, b) => a - b);
+      days.push(Math.round(arr[Math.floor(arr.length / 2)] * 10) / 10);
+    }
   }
+  days.sort((a, b) => a - b);
   // Too thin to make a claim about "normal" — say so rather than guess.
   if (got < 5 || vals.length < 1000) return json({ error: 'not enough history' }, 503);
 
@@ -186,6 +204,7 @@ async function normals(request, env, ctx) {
   const body = {
     q,
     mix,
+    days,
     medianBand: bandOf(at(50)),
     years: got,
     windowDays: NORMAL_WINDOW_DAYS,
