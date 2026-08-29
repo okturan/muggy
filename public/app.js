@@ -112,9 +112,28 @@
   }
 
   // ---------- when to go out ----------
+  /** Usable daylight hours on one local date, from index `from` onward. */
+  function daylightHours(h, from, dateKey) {
+    const out = [];
+    for (let i = from; i < h.time.length; i++) {
+      const day = h.time[i].slice(0, 10);
+      if (day < dateKey) continue;
+      if (day > dateKey) break;
+      const hr = +h.time[i].slice(11, 13);
+      const dp = h.dew_point_2m[i];
+      if (dp == null || hr < 7 || hr > 21) continue;
+      out.push({ i, t: h.time[i], rank: RANK[levelOf(dp)] });
+    }
+    return out;
+  }
+
   /**
-   * The longest contiguous run of daylight hours at the best comfort band
-   * available in the next 24h. Returns null when there is nothing to say.
+   * The best stretch of daylight to be outside in.
+   *
+   * Today wins by default: being told to wait until tomorrow is useless advice
+   * while there is still daylight left. Only once today is done does it look
+   * ahead. It also reports whether the "window" actually is one — a band that
+   * holds all day is a description of the weather, not a recommendation.
    */
   function bestWindow() {
     const { current: cur, hourly: h } = data;
@@ -122,18 +141,20 @@
     let start = h.time.findIndex((t) => t.slice(0, 13) === curHour);
     if (start < 0) start = 0;
 
-    const cand = [];
-    for (let i = start; i < Math.min(start + 24, h.time.length); i++) {
-      const hr = +h.time[i].slice(11, 13);
-      const dp = h.dew_point_2m[i];
-      if (dp == null || hr < 7 || hr > 21) continue;
-      cand.push({ i, t: h.time[i], rank: RANK[levelOf(dp)] });
+    const todayKey = cur.time.slice(0, 10);
+    let pool = daylightHours(h, start, todayKey);
+    let day = 'today';
+    if (!pool.length) {
+      const nextKey = h.time.map((t) => t.slice(0, 10)).find((d) => d > todayKey);
+      if (!nextKey) return null;
+      pool = daylightHours(h, start, nextKey);
+      day = 'tomorrow';
     }
-    if (!cand.length) return null;
+    if (!pool.length) return null;
 
-    const bestRank = Math.min(...cand.map((c) => c.rank));
+    const bestRank = Math.min(...pool.map((c) => c.rank));
     let run = null; let best = null;
-    for (const c of cand) {
+    for (const c of pool) {
       if (c.rank !== bestRank) { run = null; continue; }
       // Night hours are skipped, so runs must be contiguous by index, not position.
       if (run && c.i === run.endI + 1) { run.endI = c.i; run.len++; }
@@ -141,31 +162,69 @@
       if (!best || run.len > best.len) best = { ...run };
     }
     if (!best) return null;
-    const endTime = h.time[best.endI];
-    return { band: BANDS[bestRank].id, bestRank, start: best.start, end: endTime, len: best.len };
+
+    return {
+      band: BANDS[bestRank].id,
+      bestRank,
+      day,
+      start: best.start,
+      end: h.time[best.endI],
+      len: best.len,
+      startsNow: day === 'today' && best.startI === start,
+      // Nothing to choose between. A band holding most of the day is the weather,
+      // not a window — pointing at "07:00-18:00" is no help to anyone.
+      flat: pool.length <= 2 || best.len >= pool.length * 0.7,
+      curBand: levelOf(cur.dew_point_2m),
+      curRank: RANK[levelOf(cur.dew_point_2m)],
+    };
   }
 
   function renderWindow() {
     const w = bestWindow();
     if (!w) { els.windowCard.hidden = true; return; }
-    const tomorrow = w.start.slice(0, 10) !== data.current.time.slice(0, 10);
-    const when = w.len === 1
-      ? `around ${hourLabel(w.start)}:00`
-      : `${hourLabel(w.start)}:00 – ${String((+hourLabel(w.end) + 1) % 24).padStart(2, '0')}:00`;
-    els.windowWhen.textContent = tomorrow ? `Tomorrow, ${when}` : when;
 
     // Tint the panel with the window's own band, not the current one — this card
     // is about the air you are being sent out into.
     const panel = els.windowCard.querySelector('.panel');
     if (panel) panel.style.background = `var(--c-${w.band})`;
 
+    const when = w.len === 1
+      ? `Around ${hourLabel(w.start)}:00`
+      : `${hourLabel(w.start)}:00 – ${String((+hourLabel(w.end) + 1) % 24).padStart(2, '0')}:00`;
+    const better = w.bestRank < w.curRank;
+
+    if (w.startsNow && w.flat) {
+      els.windowWhen.textContent = 'Right now';
+      els.windowSub.textContent = 'as good as it gets';
+      els.windowNote.textContent = `It stays ${w.band} for the rest of the day — waiting will not help.`;
+    } else if (w.day === 'today' && !w.flat) {
+      els.windowWhen.textContent = when;
+      els.windowSub.textContent = better ? 'best air today' : 'best stretch left';
+      els.windowNote.textContent = better
+        ? `${w.band[0].toUpperCase()}${w.band.slice(1)} — a step better than the ${w.curBand} air right now.`
+        : `Still ${w.band}, but the steadiest stretch left today.`;
+    } else if (w.day === 'today') {
+      els.windowWhen.textContent = `Today looks ${w.band}`;
+      els.windowSub.textContent = 'the whole day';
+      els.windowNote.textContent = `Steadily ${w.band} through the daylight hours — no particular hour to aim for.`;
+    } else if (w.flat) {
+      // A whole day in one band: say what tomorrow is like, do not fake a window.
+      els.windowWhen.textContent = `Tomorrow looks ${w.band}`;
+      els.windowSub.textContent = 'today is done';
+      els.windowNote.textContent = better
+        ? `All day, which beats the ${w.curBand} air tonight — no particular hour to aim for.`
+        : `All day, much like now. No particular hour to aim for.`;
+    } else {
+      els.windowWhen.textContent = `Tomorrow, ${when}`;
+      els.windowSub.textContent = 'today is done';
+      els.windowNote.textContent = `${w.band[0].toUpperCase()}${w.band.slice(1)} — tomorrow's best stretch.`;
+    }
+
+    // Whatever the shape, be honest when the best on offer is still unpleasant.
+    // The band is already named in every note above, so do not repeat it here.
     if (w.bestRank >= RANK.muggy) {
       els.windowSub.textContent = 'no real relief';
-      els.windowNote.textContent = `That is the least sticky it gets, and it is still ${w.band}. Plan around it rather than waiting it out.`;
-    } else {
-      els.windowSub.textContent = tomorrow ? 'best air tomorrow' : 'best air today';
-      const span = w.len >= 8 ? 'most of the day is' : 'the best stretch in the next 24 hours is';
-      els.windowNote.textContent = `${span[0].toUpperCase()}${span.slice(1)} ${w.band}.`;
+      els.windowNote.textContent = `${els.windowNote.textContent} Nothing better is coming.`;
     }
     els.windowCard.hidden = false;
   }

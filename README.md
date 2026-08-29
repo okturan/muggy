@@ -111,5 +111,5 @@ nothing without an API token — but swap it for your own if you fork this.
 ## Credits
 
 Weather data by [Open-Meteo](https://open-meteo.com/) (CC-BY 4.0). Comfort bands after
-[WeatherSpark](https://weatherspark.com). Type is [Pixelify Sans](https://fonts.google.com/specimen/Pixelify+Sans)
+[WeatherSpark](https://weatherspark.com). Type is [Space Grotesk](https://fonts.google.com/specimen/Space+Grotesk)
 and [Nunito](https://fonts.google.com/specimen/Nunito).

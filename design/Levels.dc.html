@@ -7,11 +7,11 @@
 <body>
 <x-dc>
 <helmet>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&family=Nunito:wght@600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Nunito:wght@600;700&display=swap">
   <style>
     body { margin: 0; background: #FBF4E6; font-family: 'Nunito', 'Avenir Next', 'Segoe UI', sans-serif; color: #22262F; }
     a { color: #D9532B; } a:hover { color: #B8401E; }
-    .pixel { font-family: 'Pixelify Sans', 'Courier New', monospace; font-weight: 700; }
+    .display { font-family: 'Space Grotesk', 'Avenir Next', sans-serif; font-weight: 700; }
     .grid { background-image: linear-gradient(#EADFCB 1px, transparent 1px), linear-gradient(90deg, #EADFCB 1px, transparent 1px); background-size: 24px 24px; }
     .card { display: flex; flex-direction: column; align-items: center; gap: 8px; border: 3px solid #22262F; padding: 14px 10px; box-shadow: 6px 6px 0 #22262F; }
     .card img { width: 120px; height: 124px; object-fit: contain; image-rendering: pixelated; }
@@ -19,16 +19,16 @@
 </helmet>
 <div class="grid" style="width: 1180px; height: 420px; background-color: #FBF4E6; box-sizing: border-box; padding: 32px; display: flex; flex-direction: column; gap: 20px;">
   <div style="display: flex; flex-direction: column; gap: 4px;">
-    <span class="pixel" style="font-size: 24px; letter-spacing: 1px;">THE SIX MOODS</span>
+    <span class="display" style="font-size: 24px; letter-spacing: 1px;">THE SIX MOODS</span>
     <span style="font-size: 14px; font-weight: 600; color: #4A4F5C;">Each comfort band has its own paper tint (lifted from the spritesheet rows) and cloud. Dew point picks the band; the app never shows the number.</span>
   </div>
   <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 18px;">
-    <div class="card" style="background: #DCE3EC;"><img src="cloud-dry.png"><span class="pixel" style="font-size: 20px;">DRY</span><span style="font-size: 12px; font-weight: 600; text-align: center; color: #4A4F5C;">Crisp. Skin and lips feel it.</span></div>
-    <div class="card" style="background: #CDE8B8;"><img src="cloud-comfortable.png"><span class="pixel" style="font-size: 20px;">COMFORTABLE</span><span style="font-size: 12px; font-weight: 600; text-align: center; color: #4A4F5C;">The good stuff. Go outside.</span></div>
-    <div class="card" style="background: #F5EFA8;"><img src="cloud-humid.png"><span class="pixel" style="font-size: 20px;">HUMID</span><span style="font-size: 12px; font-weight: 600; text-align: center; color: #4A4F5C;">Noticeable, not a problem.</span></div>
-    <div class="card" style="background: #F6C6A8;"><img src="cloud-muggy.png"><span class="pixel" style="font-size: 20px;">MUGGY</span><span style="font-size: 12px; font-weight: 600; text-align: center; color: #4A4F5C;">Shirts stick. Shade helps.</span></div>
-    <div class="card" style="background: #F79AC0;"><img src="cloud-oppressive.png"><span class="pixel" style="font-size: 20px;">OPPRESSIVE</span><span style="font-size: 12px; font-weight: 600; text-align: center; color: #4A4F5C;">Sweat won't dry. Take it slow.</span></div>
-    <div class="card" style="background: #F0755B;"><img src="cloud-miserable.png"><span class="pixel" style="font-size: 20px;">MISERABLE</span><span style="font-size: 12px; font-weight: 600; text-align: center; color: #22262F;">Stay in. Find the AC.</span></div>
+    <div class="card" style="background: #DCE3EC;"><img src="cloud-dry.png"><span class="display" style="font-size: 20px;">DRY</span><span style="font-size: 12px; font-weight: 600; text-align: center; color: #4A4F5C;">Crisp. Skin and lips feel it.</span></div>
+    <div class="card" style="background: #CDE8B8;"><img src="cloud-comfortable.png"><span class="display" style="font-size: 20px;">COMFORTABLE</span><span style="font-size: 12px; font-weight: 600; text-align: center; color: #4A4F5C;">The good stuff. Go outside.</span></div>
+    <div class="card" style="background: #F5EFA8;"><img src="cloud-humid.png"><span class="display" style="font-size: 20px;">HUMID</span><span style="font-size: 12px; font-weight: 600; text-align: center; color: #4A4F5C;">Noticeable, not a problem.</span></div>
+    <div class="card" style="background: #F6C6A8;"><img src="cloud-muggy.png"><span class="display" style="font-size: 20px;">MUGGY</span><span style="font-size: 12px; font-weight: 600; text-align: center; color: #4A4F5C;">Shirts stick. Shade helps.</span></div>
+    <div class="card" style="background: #F79AC0;"><img src="cloud-oppressive.png"><span class="display" style="font-size: 20px;">OPPRESSIVE</span><span style="font-size: 12px; font-weight: 600; text-align: center; color: #4A4F5C;">Sweat won't dry. Take it slow.</span></div>
+    <div class="card" style="background: #F0755B;"><img src="cloud-miserable.png"><span class="display" style="font-size: 20px;">MISERABLE</span><span style="font-size: 12px; font-weight: 600; text-align: center; color: #22262F;">Stay in. Find the AC.</span></div>
   </div>
 </div>
 </x-dc>
