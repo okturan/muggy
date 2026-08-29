@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "sprites": "python3 tools/slice-sprites.py"
+    "sprites": "python3 tools/slice-sprites.py",
+    "anim": "python3 tools/build-animations.py sheet-cloud-anim.mp4"
   },
   "devDependencies": {
     "wrangler": "^4.97.0"
