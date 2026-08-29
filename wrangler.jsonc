@@ -1,0 +1,13 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "muggy",
+  "main": "src/index.js",
+  "compatibility_date": "2026-08-15",
+  "account_id": "1992595a6b0bebdbb4d076347609333d",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
+  },
+  "observability": { "enabled": true }
+}

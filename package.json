@@ -1,0 +1,14 @@
+{
+  "name": "muggy",
+  "private": true,
+  "version": "0.1.0",
+  "description": "How muggy is it? A cute dew-point weather app on Cloudflare Workers.",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "sprites": "python3 tools/slice-sprites.py"
+  },
+  "devDependencies": {
+    "wrangler": "^4.97.0"
+  }
+}
