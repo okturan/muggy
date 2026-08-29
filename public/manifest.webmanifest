@@ -1,0 +1,14 @@
+{
+  "name": "Muggy",
+  "short_name": "Muggy",
+  "description": "How sticky is it out there? Dew point, sorted into comfort bands, with a buddy who feels it.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#142648",
+  "theme_color": "#142648",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
