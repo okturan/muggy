@@ -1,4 +1,4 @@
-/* Muggy — dew point → comfort band, with a buddy who feels it. */
+/* Muggy — dew point → comfort band, with a cloud who feels it. */
 (() => {
   'use strict';
 
@@ -57,7 +57,6 @@
 
   const qs = new URLSearchParams(location.search);
   let unit = (qs.get('unit') || prefs.unit) === 'f' ? 'f' : 'c';
-  let buddy = (qs.get('buddy') || prefs.buddy) === 'boy' ? 'boy' : 'cloud';
   let data = null;
   let normals = null;   // climatology for this place and date, or null while loading/unavailable
 
@@ -74,9 +73,7 @@
   }
 
   function applyPrefUI() {
-    app.dataset.buddy = buddy;
     document.querySelectorAll('.units button').forEach((b) => b.classList.toggle('is-on', b.dataset.unit === unit));
-    document.querySelectorAll('.buddies button').forEach((b) => b.classList.toggle('is-on', b.dataset.buddy === buddy));
   }
 
   // ---------- is this normal? ----------
@@ -419,9 +416,6 @@
   // ---------- toggles ----------
   document.querySelectorAll('.units button').forEach((b) => b.addEventListener('click', () => {
     unit = b.dataset.unit; prefs.unit = unit; savePrefs(); applyPrefUI(); render();
-  }));
-  document.querySelectorAll('.buddies button').forEach((b) => b.addEventListener('click', () => {
-    buddy = b.dataset.buddy; prefs.buddy = buddy; savePrefs(); applyPrefUI();
   }));
 
   // ---------- boot ----------

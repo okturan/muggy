@@ -78,10 +78,9 @@ upstream never sees end users and repeated lookups are close to free.
 ```
 src/index.js          Worker: /api/forecast, /api/geocode, everything else → static assets
 public/               The app — vanilla HTML/CSS/JS, no framework, no build step
-public/sprites/       Per-level animation strips sliced from the source sheets
-tools/slice-sprites.py Cuts the two 2000×2000 spritesheets into those strips
+public/sprites/       Per-band animation strips sliced from the source sheet
+tools/slice-sprites.py Cuts the spritesheet into those strips
 design/               Design-canvas working files (.dc.html artboards + canvas.json)
-sheet-boy.jpg         Source spritesheet — anime boy, 6 levels × 4 walk frames
 sheet-cloud.jpg       Source spritesheet — pixel cloud, 6 levels × 6 frames, magenta keyed
 ```
 
@@ -100,8 +99,8 @@ day-of-year, and the TTL is under a year so each date naturally refreshes with t
 It returns a 101-point quantile ladder rather than raw hours, which is what lets the client place today's
 reading as a percentile without the dew point ever reaching the screen.
 
-**The character art** is two AI-generated spritesheets laid out as a 6-row grid, one row per comfort
-band. The cloud sheet is shot on magenta, so `tools/slice-sprites.py` lifts the key by requiring red
+**The character art** is an AI-generated spritesheet laid out as a 6-row grid, one row per comfort
+band, shot on magenta, so `tools/slice-sprites.py` lifts the key by requiring red
 *and* blue to sit well above green — which is what keeps the pink and red bodies out of the mask. The
 foreground is then eroded 2px, because JPEG smears the key into sprite edges and a magenta halo is far
 more visible after downscaling than a hair of lost outline. Cells come from gutters in the alpha

@@ -1,12 +1,8 @@
-"""Slice the character spritesheets into per-level animation strips.
+"""Slice the cloud spritesheet into per-band animation strips.
 
-Two sheets, two very different jobs:
-
-* sheet-cloud.jpg — the cloud buddy. Magenta chroma key, 6 rows (one per
-  comfort band) x 6 frames. The key lifts cleanly; the only care needed is
-  eroding the JPEG fringe so no purple halo survives the downscale.
-* sheet-boy.jpg — the alternate buddy. Painted scenes on a black grid, 6 rows
-  x 4 frames, kept whole (the scene is the background).
+sheet-cloud.jpg is shot on magenta: 6 rows (one per comfort band) x 6 frames.
+The key lifts cleanly; the only care needed is eroding the JPEG fringe so no
+magenta halo survives the downscale.
 
 Frames are bottom-aligned on a common ground line and centred on their own
 bounding box, so feet stay planted while accessories overhang.
@@ -40,7 +36,7 @@ def runs(mask):
 
 
 # --------------------------------------------------------------------------
-# Cloud buddy: magenta chroma key
+# Magenta chroma key
 # --------------------------------------------------------------------------
 CLOUD_FRAMES = 6
 CELL_W, CELL_H = 300, 310          # output size per frame
@@ -114,32 +110,6 @@ for ri, level in enumerate(LEVELS):
             cell.resize((96, 99), Image.LANCZOS).save(f'{OUT}/icon-{level}.png', optimize=True)
     strip.save(f'{OUT}/cloud-{level}.webp', quality=90, method=6)
 
-# --------------------------------------------------------------------------
-# Boy buddy: painted scenes, black gridlines, kept whole
-# --------------------------------------------------------------------------
-BOY_FRAMES = 4
-BW, BH = 300, 262
-
-boy = Image.open('sheet-boy.jpg').convert('RGB')
-g = np.asarray(boy.convert('L')).astype(float)
-seps = [(s + 398, e + 398) for s, e in runs(g[:, 398:].mean(axis=0) < 90)]
-xs = [398] + [e + 1 for s, e in seps if s < 1900]
-xe = [s - 1 for s, e in seps]
-bcols = list(zip(xs, xe))
-pitch = 329.0
-brows = [(int(25 + i * pitch + (13 if i else 0)), int(25 + (i + 1) * pitch)) for i in range(6)]
-brows[-1] = (brows[-1][0], 1996)
-
-meta['boy'] = {'frames': BOY_FRAMES, 'w': BW, 'h': BH, 'fps': 6}
-for ri, (y0, y1) in enumerate(brows):
-    strip = Image.new('RGB', (BW * BOY_FRAMES, BH))
-    for ci, (x0, x1) in enumerate(bcols):
-        fr = boy.crop((x0 + 4, y0 + 4, x1 - 4, y1 - 4)).resize((BW, BH), Image.LANCZOS)
-        strip.paste(fr, (ci * BW, 0))
-        if ci == 0:
-            fr.save(f'{DES}/boy-{LEVELS[ri]}.jpg', quality=80)
-    strip.save(f'{OUT}/boy-{LEVELS[ri]}.webp', quality=82, method=6)
-
 json.dump(meta, open(f'{OUT}/meta.json', 'w'), indent=2)
-print(f'cloud cell {src_w}x{src_h} src -> {CELL_W}x{CELL_H}, {CLOUD_FRAMES} frames')
-print('wrote', len(LEVELS) * 2, 'strips')
+print(f'cell {src_w}x{src_h} src -> {CELL_W}x{CELL_H}')
+print(f'wrote {len(LEVELS)} strips, {CLOUD_FRAMES} frames each')
