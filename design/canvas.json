@@ -1,0 +1,11 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "title": "Home", "x": 0, "y": 0, "w": 390, "h": 844 },
+    { "file": "Week.dc.html", "title": "Week", "x": 480, "y": 0, "w": 390, "h": 844 },
+    { "file": "Levels.dc.html", "title": "The six moods", "x": 0, "y": 1000, "w": 1180, "h": 420 }
+  ],
+  "annotations": [
+    { "id": "direction-note", "x": 960, "y": 0, "w": 240, "text": "Chosen direction: pixel & cream. Cloud is the default buddy; the boy stays behind the toggle.\n\nNo dew point shown anywhere — temperature, humidity and the comfort level only. The band still comes from dew point under the hood." }
+  ],
+  "launch": { "view": "canvas" }
+}
