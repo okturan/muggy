@@ -29,6 +29,9 @@
     title: $('title'), blurb: $('blurb'), temp: $('temp'), hum: $('hum'), comfort: $('comfort'),
     hours: $('hours'), hoursSub: $('hoursSub'), week: $('week'), weekSub: $('weekSub'),
     sheet: $('sheet'), q: $('q'), results: $('results'), toast: $('toast'),
+    normalCard: $('normalCard'), normalSub: $('normalSub'), normalVerdict: $('normalVerdict'),
+    normalNote: $('normalNote'), mixBar: $('mixBar'),
+    windowCard: $('windowCard'), windowSub: $('windowSub'), windowWhen: $('windowWhen'), windowNote: $('windowNote'),
   };
 
   const prefs = (() => {
@@ -40,6 +43,7 @@
   let unit = (qs.get('unit') || prefs.unit) === 'f' ? 'f' : 'c';
   let buddy = (qs.get('buddy') || prefs.buddy) === 'boy' ? 'boy' : 'cloud';
   let data = null;
+  let normals = null;   // climatology for this place and date, or null while loading/unavailable
 
   const levelOf = (dpC) => BANDS.find((b) => dpC < b.max).id;
   const fmtTemp = (c) => (c == null ? '–' : `${Math.round(unit === 'f' ? c * 9 / 5 + 32 : c)}°`);
@@ -57,6 +61,126 @@
     app.dataset.buddy = buddy;
     document.querySelectorAll('.units button').forEach((b) => b.classList.toggle('is-on', b.dataset.unit === unit));
     document.querySelectorAll('.buddies button').forEach((b) => b.classList.toggle('is-on', b.dataset.buddy === buddy));
+  }
+
+  // ---------- is this normal? ----------
+  /** Percentile of x within a 101-point quantile ladder. */
+  function pctOf(q, x) {
+    if (!q || !q.length) return null;
+    if (x <= q[0]) return 0;
+    if (x >= q[100]) return 100;
+    let lo = 0, hi = 100;
+    while (lo < hi) { const mid = (lo + hi) >> 1; if (q[mid] < x) lo = mid + 1; else hi = mid; }
+    return lo;
+  }
+
+  function renderNormals() {
+    if (!normals || !data) { els.normalCard.hidden = true; return; }
+    const dp = data.current.dew_point_2m;
+    const pct = pctOf(normals.q, dp);
+    if (pct == null) { els.normalCard.hidden = true; return; }
+    const nowBand = levelOf(dp);
+    const share = normals.mix[nowBand] || 0;
+
+    const verdict =
+      pct >= 90 ? 'Way stickier than usual'
+      : pct >= 70 ? 'Stickier than usual'
+      : pct > 30 ? 'About normal'
+      : pct > 10 ? 'Drier than usual'
+      : 'Way drier than usual';
+    els.normalVerdict.textContent = verdict;
+
+    // Lead with the striking fact when today's air is genuinely rare here.
+    const rarity =
+      share === 0 ? `In ${normals.years} years, ${nowBand} air has never been recorded here around this date.`
+      : share < 0.05 ? `${nowBand} air turns up only about ${Math.round(share * 100)}% of the time here around now.`
+      : `Normally around now: ${normals.medianBand}.`;
+    const sits = pct >= 50
+      ? `Stickier than ${pct}% of the hours`
+      : `Drier than ${100 - pct}% of the hours`;
+    els.normalNote.textContent = `${sits} recorded here around this date over the last ${normals.years} years. ${rarity}`;
+    els.normalSub.textContent = `${normals.years} years of history`;
+
+    // Segments sized by each band's share of past hours, so the marker at the
+    // current percentile necessarily lands inside today's band.
+    const segs = BANDS
+      .filter((b) => (normals.mix[b.id] || 0) > 0)
+      .map((b) => `<i style="flex-grow:${(normals.mix[b.id] * 1000).toFixed(0)};background:var(--c-${b.id})" title="${b.id} ${Math.round(normals.mix[b.id] * 100)}%"></i>`)
+      .join('');
+    els.mixBar.innerHTML = `${segs}<span class="marker" style="left:${pct}%"></span>`;
+    els.normalCard.hidden = false;
+  }
+
+  // ---------- when to go out ----------
+  /**
+   * The longest contiguous run of daylight hours at the best comfort band
+   * available in the next 24h. Returns null when there is nothing to say.
+   */
+  function bestWindow() {
+    const { current: cur, hourly: h } = data;
+    const curHour = cur.time.slice(0, 13);
+    let start = h.time.findIndex((t) => t.slice(0, 13) === curHour);
+    if (start < 0) start = 0;
+
+    const cand = [];
+    for (let i = start; i < Math.min(start + 24, h.time.length); i++) {
+      const hr = +h.time[i].slice(11, 13);
+      const dp = h.dew_point_2m[i];
+      if (dp == null || hr < 7 || hr > 21) continue;
+      cand.push({ i, t: h.time[i], rank: RANK[levelOf(dp)] });
+    }
+    if (!cand.length) return null;
+
+    const bestRank = Math.min(...cand.map((c) => c.rank));
+    let run = null; let best = null;
+    for (const c of cand) {
+      if (c.rank !== bestRank) { run = null; continue; }
+      // Night hours are skipped, so runs must be contiguous by index, not position.
+      if (run && c.i === run.endI + 1) { run.endI = c.i; run.len++; }
+      else run = { startI: c.i, endI: c.i, start: c.t, len: 1 };
+      if (!best || run.len > best.len) best = { ...run };
+    }
+    if (!best) return null;
+    const endTime = h.time[best.endI];
+    return { band: BANDS[bestRank].id, bestRank, start: best.start, end: endTime, len: best.len };
+  }
+
+  function renderWindow() {
+    const w = bestWindow();
+    if (!w) { els.windowCard.hidden = true; return; }
+    const tomorrow = w.start.slice(0, 10) !== data.current.time.slice(0, 10);
+    const when = w.len === 1
+      ? `around ${hourLabel(w.start)}:00`
+      : `${hourLabel(w.start)}:00 – ${String((+hourLabel(w.end) + 1) % 24).padStart(2, '0')}:00`;
+    els.windowWhen.textContent = tomorrow ? `Tomorrow, ${when}` : when;
+
+    // Tint the panel with the window's own band, not the current one — this card
+    // is about the air you are being sent out into.
+    const panel = els.windowCard.querySelector('.panel');
+    if (panel) panel.style.background = `var(--c-${w.band})`;
+
+    if (w.bestRank >= RANK.muggy) {
+      els.windowSub.textContent = 'no real relief';
+      els.windowNote.textContent = `That is the least sticky it gets, and it is still ${w.band}. Plan around it rather than waiting it out.`;
+    } else {
+      els.windowSub.textContent = tomorrow ? 'best air tomorrow' : 'best air today';
+      const span = w.len >= 8 ? 'most of the day is' : 'the best stretch in the next 24 hours is';
+      els.windowNote.textContent = `${span[0].toUpperCase()}${span.slice(1)} ${w.band}.`;
+    }
+    els.windowCard.hidden = false;
+  }
+
+  async function loadNormals(place) {
+    normals = null;
+    els.normalCard.hidden = true;
+    try {
+      const r = await fetch(`/api/normals?lat=${place.lat}&lon=${place.lon}`);
+      if (!r.ok) return;                     // no history for this spot — just leave the card off
+      const j = await r.json();
+      if (!j.q || !j.mix) return;
+      normals = j;
+      renderNormals();
+    } catch { /* the rest of the app is unaffected */ }
   }
 
   // ---------- render ----------
@@ -116,6 +240,9 @@
     els.weekSub.textContent = stickyDays
       ? `${stickyDays} of ${rows.length} day${rows.length === 1 ? '' : 's'} muggy or worse`
       : 'nothing sticky ahead';
+
+    renderWindow();
+    renderNormals();
   }
 
   // ---------- data ----------
@@ -129,6 +256,7 @@
       if (!data.current || data.current.dew_point_2m == null) throw new Error('no dew point');
       prefs.place = place; savePrefs();
       render();
+      loadNormals(place);   // slower and optional; never blocks the main view
     } catch (err) {
       console.error(err);
       app.dataset.state = 'error';

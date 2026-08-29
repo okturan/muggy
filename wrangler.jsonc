@@ -9,5 +9,10 @@
     "binding": "ASSETS",
     "not_found_handling": "single-page-application"
   },
+  // Climatology cache. Ten years of archive data per location never changes,
+  // so it is worth holding globally rather than per edge colo.
+  "kv_namespaces": [
+    { "binding": "NORMALS", "id": "036f4dd2a380465db4779137d5d7d2eb" }
+  ],
   "observability": { "enabled": true }
 }

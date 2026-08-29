@@ -142,6 +142,23 @@ h1, h2, p { margin: 0; }
 .hour .dot { display: none; }
 .hour .d { font-family: var(--pixel); font-size: 17px; font-weight: 700; }
 
+/* "Is this normal?" and "When to go out" panels */
+.panel { border: var(--border); background: var(--panel); padding: 12px 14px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 8px; }
+.panel .verdict { font-size: 22px; line-height: 1.1; letter-spacing: .5px; text-transform: uppercase; }
+.panel .note { font-size: 13px; line-height: 1.45; font-weight: 600; color: var(--ink-2); }
+.panel.window { background: var(--lc); transition: background .3s; }  /* overridden per-window in app.js */
+.panel.window .note { color: var(--ink); }
+
+.mixbar { display: flex; height: 22px; border: 2px solid var(--ink); position: relative; overflow: hidden; margin-top: 2px; }
+.mixbar i { min-width: 3px; }
+/* Marker sits at the current percentile; because segments are sized by their
+   share of past hours, that position lands inside today's band by construction. */
+.mixbar .marker {
+  position: absolute; top: 0; bottom: 0; width: 4px; background: var(--ink);
+  transform: translateX(-2px); box-shadow: 0 0 0 2px var(--paper);
+}
+.mixends { display: flex; justify-content: space-between; font-family: var(--pixel); font-size: 12px; color: var(--muted); }
+
 .week { display: flex; flex-direction: column; gap: 8px; }
 .day {
   display: grid; grid-template-columns: 56px minmax(0, 1fr) 46px; align-items: center; gap: 10px;

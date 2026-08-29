@@ -31,6 +31,24 @@ most people and "muggy" means everything.
 Each band has its own paper tint and its own mood for the character, so the whole screen changes colour
 with the weather.
 
+### Is this normal?
+
+A band on its own doesn't tell you whether to be surprised. The app compares the current reading against
+**ten years of history for this location and this date** (a ±7-day window, so ~3,600 hours of past
+weather) and tells you where today sits: *"Stickier than 88% of the hours recorded here around this date
+over the last 10 years. Normally around now: humid."*
+
+The bar underneath is the local climate at a glance — one segment per band, sized by how much of the past
+decade fell in it. Because the segments are sized by share, the marker at today's percentile lands inside
+today's band automatically. Reykjavík's bar is 99% dry; Singapore's is 63% miserable.
+
+### When to go out
+
+The forecast already knows when the air gets bearable, so the app says it outright: the longest
+continuous run of daylight hours at the best comfort band in the next 24 hours. When nothing is actually
+good it says so — *"that is the least sticky it gets, and it is still muggy"* — rather than dressing up a
+least-bad hour as a recommendation.
+
 ## Where the data comes from
 
 [Open-Meteo](https://open-meteo.com/) — ERA5-based reanalysis and forecast, CC-BY 4.0, no API key needed
@@ -62,8 +80,16 @@ sheet-cloud.jpg       Source spritesheet — pixel cloud, 6 levels × 5 frames
 
 | Route | Cache | Notes |
 |---|---|---|
-| `GET /api/forecast?lat=&lon=` | 15 min | Coordinates snapped to ~1 km so neighbours share a cache entry |
+| `GET /api/forecast?lat=&lon=` | 15 min | Edge cache; coordinates snapped to ~1 km so neighbours share an entry |
 | `GET /api/geocode?q=` | 24 h | City search |
+| `GET /api/normals?lat=&lon=` | 200 d, KV | Ten years of climatology for today's date |
+
+`/api/normals` costs ten upstream archive calls on a miss, so it is cached in **KV** rather than the edge
+cache — the edge cache is per-colo, which would multiply that by the number of data centres your users
+happen to hit. The key is location (snapped to ~55 km, since dew-point climatology varies slowly) plus
+day-of-year, and the TTL is under a year so each date naturally refreshes with the newest year folded in.
+It returns a 101-point quantile ladder rather than raw hours, which is what lets the client place today's
+reading as a percentile without the dew point ever reaching the screen.
 
 **The character art** is two AI-generated spritesheets laid out as a 6-row grid, one row per comfort
 band. `tools/slice-sprites.py` detects the grid, cuts each row into a horizontal strip, and flood-fills
