@@ -73,7 +73,7 @@ public/sprites/       Per-level animation strips sliced from the source sheets
 tools/slice-sprites.py Cuts the two 2000×2000 spritesheets into those strips
 design/               Design-canvas working files (.dc.html artboards + canvas.json)
 sheet-boy.jpg         Source spritesheet — anime boy, 6 levels × 4 walk frames
-sheet-cloud.jpg       Source spritesheet — pixel cloud, 6 levels × 5 frames
+sheet-cloud.jpg       Source spritesheet — pixel cloud, 6 levels × 6 frames, magenta keyed
 ```
 
 **API**
@@ -92,9 +92,17 @@ It returns a 101-point quantile ladder rather than raw hours, which is what lets
 reading as a percentile without the dew point ever reaching the screen.
 
 **The character art** is two AI-generated spritesheets laid out as a 6-row grid, one row per comfort
-band. `tools/slice-sprites.py` detects the grid, cuts each row into a horizontal strip, and flood-fills
-the cloud sheet's cream background to transparency from the border inward (so the white shirt and eyes
-survive). The app animates each strip with `steps()` and a percentage `background-position`.
+band. The cloud sheet is shot on magenta, so `tools/slice-sprites.py` lifts the key by requiring red
+*and* blue to sit well above green — which is what keeps the pink and red bodies out of the mask. The
+foreground is then eroded 2px, because JPEG smears the key into sprite edges and a magenta halo is far
+more visible after downscaling than a hair of lost outline. Cells come from gutters in the alpha
+projection rather than a fixed grid (sun hats and the heatwave sign make the columns uneven), and every
+frame is bottom-aligned on a common ground line so feet stay planted while accessories overhang.
+
+The app animates each strip with `steps(n)` and a percentage `background-position`, which must run to
+`n/(n-1)*100%` — 120% for six frames — so the last step lands on the last frame rather than past it.
+Since each band now has its own body colour, large fills behind the character use a paler variant of
+the band tint; the saturated version stays on chips, hour cells and week bars.
 
 ## Running it
 
