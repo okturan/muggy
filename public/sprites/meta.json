@@ -1,11 +1,9 @@
 {
   "cloud": {
-    "animated": true,
-    "frames": 12,
+    "frames": 6,
     "w": 300,
-    "h": 303,
-    "fps": 12,
-    "loopMs": 1000
+    "h": 310,
+    "fps": 6
   },
   "boy": {
     "frames": 4,

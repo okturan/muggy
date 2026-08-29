@@ -78,12 +78,11 @@ upstream never sees end users and repeated lookups are close to free.
 ```
 src/index.js          Worker: /api/forecast, /api/geocode, everything else → static assets
 public/               The app — vanilla HTML/CSS/JS, no framework, no build step
-public/sprites/       Per-band animations (cloud) and walk strips (boy)
-tools/build-animations.py  Cuts looping animations out of the cloud video
-tools/slice-sprites.py     Cuts the boy spritesheet into walk strips
+public/sprites/       Per-level animation strips sliced from the source sheets
+tools/slice-sprites.py Cuts the two 2000×2000 spritesheets into those strips
 design/               Design-canvas working files (.dc.html artboards + canvas.json)
-sheet-cloud-anim.mp4  Source video — pixel cloud, the whole 6×6 grid animating
 sheet-boy.jpg         Source spritesheet — anime boy, 6 levels × 4 walk frames
+sheet-cloud.jpg       Source spritesheet — pixel cloud, 6 levels × 6 frames, magenta keyed
 ```
 
 **API**
@@ -101,31 +100,18 @@ day-of-year, and the TTL is under a year so each date naturally refreshes with t
 It returns a 101-point quantile ladder rather than raw hours, which is what lets the client place today's
 reading as a percentile without the dew point ever reaching the screen.
 
-**The cloud** comes from a video of the whole 6×6 grid animating at once — rows are comfort bands,
-columns are intensity variants. `tools/build-animations.py` turns it into one looping animated WebP per
-band, which the CSS uses as a plain `background-image`: the file loops itself, so there is no sprite
-stepping at all.
+**The character art** is two AI-generated spritesheets laid out as a 6-row grid, one row per comfort
+band. The cloud sheet is shot on magenta, so `tools/slice-sprites.py` lifts the key by requiring red
+*and* blue to sit well above green — which is what keeps the pink and red bodies out of the mask. The
+foreground is then eroded 2px, because JPEG smears the key into sprite edges and a magenta halo is far
+more visible after downscaling than a hair of lost outline. Cells come from gutters in the alpha
+projection rather than a fixed grid (sun hats and the heatwave sign make the columns uneven), and every
+frame is bottom-aligned on a common ground line so feet stay planted while accessories overhang.
 
-Three things had to be measured rather than assumed:
-
-- **It loops every 24 frames.** Frame 24 matches frame 0 far more closely than frame 12 does (Δ 5.3 vs
-  Δ 19.8), so a 24-frame slice is seamless. Every second frame is kept — 12fps, still a one-second
-  loop, half the bytes.
-- **The plate is not the magenta it starts on.** After a short lead-in the background settles to a
-  washed pink and holds there, while the characters keep their colours. So the key measures the plate
-  and cuts on distance from it, which separates even the pink `oppressive` body (~130 away).
-- **Cell edges are found, not divided.** Even sixths cut into the neighbours: the `oppressive` and
-  `miserable` rows touch outright, with no gutter between one's drips and the other's heat shimmer.
-  Each boundary is placed at its emptiest line within a search window.
-
-All six bands share one frame box, bottom-aligned, so the hero neither resizes nor bobs as the weather
-changes. Since each band has its own body colour, large fills behind the character use a paler variant
-of the band tint; the saturated version stays on chips, hour cells and week bars. CSS cannot pause an
-animated WebP, so `prefers-reduced-motion` swaps in a still frame.
-
-**The boy** is a conventional spritesheet — painted scenes on a grid, kept whole because the scene *is*
-the background — animated with `steps(n)` and a percentage `background-position`, which must run to
-`n/(n-1)*100%` so the last step lands on the last frame rather than past it.
+The app animates each strip with `steps(n)` and a percentage `background-position`, which must run to
+`n/(n-1)*100%` — 120% for six frames — so the last step lands on the last frame rather than past it.
+Since each band now has its own body colour, large fills behind the character use a paler variant of
+the band tint; the saturated version stays on chips, hour cells and week bars.
 
 ## Running it
 
@@ -133,8 +119,7 @@ the background — animated with `steps(n)` and a percentage `background-positio
 npm install
 npm run dev      # wrangler dev → http://localhost:8787
 npm run deploy   # wrangler deploy
-npm run anim     # rebuild the cloud animations from the video (needs Python, Pillow, ffmpeg)
-npm run sprites  # re-slice the boy spritesheet (needs Python + Pillow)
+npm run sprites  # re-slice the spritesheets (needs Python + Pillow)
 ```
 
 `wrangler.jsonc` carries a Cloudflare `account_id`. That's an identifier, not a credential — it does
