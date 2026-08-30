@@ -31,6 +31,26 @@ most people and "muggy" means everything.
 Each band has its own paper tint and its own mood for the character, so the whole screen changes colour
 with the weather.
 
+### Is this normal?
+
+A band on its own doesn't tell you whether to be surprised. The app compares the current reading against
+**ten years of history for this location and this date** (a ±7-day window, so ~3,600 hours of past
+weather) and tells you where today sits: *"Stickier than 88% of the hours recorded here around this date
+over the last 10 years. Normally around now: humid."*
+
+It also ranks today against every individual past day in that window — *"stickier than 93% of days"* —
+rather than against a per-year average, which would flatter it: one sticky day clears a smoothed
+fortnight median easily.
+
+The bar underneath is the local climate at a glance — one segment per band, sized by how much of the past
+decade fell in it. Because the segments are sized by share, the marker at today's percentile lands inside
+today's band automatically. Reykjavík's bar is 99% dry; Singapore's is 63% miserable.
+
+The wording has to work when the current band *is* the normal band, which is the common case: saying
+"stickier than usual — normally humid" while it is humid reads as a contradiction. So the band sentence
+describes position within the band ("still the usual humid band, but at the sticky end of it") whenever
+the two agree.
+
 ### How it lands
 
 A comfort band is deliberately moisture-only, so 20 °C dew point reads *muggy* at four in the afternoon
@@ -52,27 +72,7 @@ Two better-known frameworks were considered and rejected for this app:
 Either would mean showing a precise-looking number that was quietly guessed. The sun is handled
 separately and honestly instead, from `is_day` and the actual `shortwave_radiation`.
 
-### Is this normal?
-
-A band on its own doesn't tell you whether to be surprised. The app compares the current reading against
-**ten years of history for this location and this date** (a ±7-day window, so ~3,600 hours of past
-weather) and tells you where today sits: *"Stickier than 88% of the hours recorded here around this date
-over the last 10 years. Normally around now: humid."*
-
-It also ranks today against every individual past day in that window — *"stickier than 93% of days"* —
-rather than against a per-year average, which would flatter it: one sticky day clears a smoothed
-fortnight median easily.
-
-The bar underneath is the local climate at a glance — one segment per band, sized by how much of the past
-decade fell in it. Because the segments are sized by share, the marker at today's percentile lands inside
-today's band automatically. Reykjavík's bar is 99% dry; Singapore's is 63% miserable.
-
-The wording has to work when the current band *is* the normal band, which is the common case: saying
-"stickier than usual — normally humid" while it is humid reads as a contradiction. So the band sentence
-describes position within the band ("still the usual humid band, but at the sticky end of it") whenever
-the two agree.
-
-### When to go out
+### When will it get better
 
 The forecast already knows when the air gets bearable, so the app says it outright: the first stretch in
 the next 24 hours that is a band better than right now, and where that stretch bottoms out — *"Muggy from
