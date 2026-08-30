@@ -51,7 +51,7 @@ The wording has to work when the current band *is* the normal band, which is the
 describes position within the band ("still the usual humid band, but at the sticky end of it") whenever
 the two agree.
 
-### How it lands
+### What it means
 
 A comfort band is deliberately moisture-only, so 20 °C dew point reads *muggy* at four in the afternoon
 and at midnight alike — while the body plainly disagrees, because the air is ten degrees cooler and the

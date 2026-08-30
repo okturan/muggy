@@ -177,8 +177,25 @@
     const e = 6.11 * Math.exp(5417.753 * (1 / 273.16 - 1 / (273.15 + dewC)));
     return tempC + 0.5555 * (e - 10);
   }
-  const HUMIDEX_BANDS = [[30, 'little discomfort'], [40, 'some discomfort'], [46, 'great discomfort'], [Infinity, 'dangerous']];
-  const humidexBand = (hx) => HUMIDEX_BANDS.find(([max]) => hx < max)[1];
+  /**
+   * Environment Canada's bands, said in plain words.
+   *
+   * "Humidex 36" is exactly as meaningless as "dew point 21" — which the app
+   * refuses to print for that very reason — so the verdict leads and the number
+   * follows quietly, for anyone who already knows the scale. The official band
+   * names (little/some/great discomfort, dangerous) are about exertion, so the
+   * wording is too.
+   */
+  const HUMIDEX_LEVELS = [
+    { max: 30, head: 'Barely registers',
+      body: 'The heat and the stickiness together add up to very little — nothing here will slow you down.' },
+    { max: 40, head: 'Fine unless you push',
+      body: 'Enough heat and stickiness together to notice on a hill or a fast walk, not enough to stop you.' },
+    { max: 46, head: 'Hard on the body',
+      body: 'Heat and stickiness combined are at the level where the official advice is to avoid real exertion.' },
+    { max: Infinity, head: 'Dangerous to exert',
+      body: 'Heat and stickiness combined are in heat-stroke territory. Do not push it.' },
+  ];
 
   function renderStrain() {
     const { current: cur, hourly: h } = data;
@@ -186,8 +203,9 @@
     // Below ~25 the index is just the air temperature wearing a hat.
     if (hx == null || hx < 25) { els.strainCard.hidden = true; return; }
 
-    els.strainValue.textContent = `Humidex ${Math.round(hx)}`;
-    els.strainSub.textContent = humidexBand(hx);
+    const level = HUMIDEX_LEVELS.find((l) => hx < l.max);
+    els.strainValue.textContent = level.head;
+    els.strainSub.textContent = `humidex ${Math.round(hx)}`;
 
     // Today's peak, so "now" has something to be measured against.
     const today = cur.time.slice(0, 10);
@@ -198,7 +216,7 @@
       if (v != null && (!peak || v > peak.v)) peak = { v, t };
     });
 
-    const parts = [];
+    const parts = [level.body];
     if (peak && peak.v - hx >= 3) {
       parts.push(`Today peaked at ${Math.round(peak.v)} around ${hourLabel(peak.t)}:00, so this is ${Math.round(peak.v - hx)} lower.`);
     } else if (peak && hx - peak.v >= -1) {
