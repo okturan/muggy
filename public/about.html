@@ -36,14 +36,14 @@
 
     <section id="dew-point">
       <h2>Why not just temperature?</h2>
-      <p>Because temperature doesn't tell you how the air <em>feels</em>. 30° in dry air is a pleasant day; 27° in soaked air is a slog. The difference is how easily your sweat evaporates — evaporation is how your body cools itself, and wet air slows it down.</p>
-      <p>The honest measure of that is the <strong>dew point</strong>: the temperature the air would have to cool to before its moisture starts condensing. The higher it is, the more water the air is already carrying, and the worse your sweat works. Relative humidity can't tell you this on its own — 100% humidity on a cold morning is fog, not misery.</p>
-      <p>Muggy reads the dew point, sorts it into a comfort band, and shows you the band. The number itself stays backstage, because "dew point 21°" means nothing to most people and "muggy" means everything.</p>
+      <p>Because temperature doesn't tell you how the air feels. 30° in dry air is a nice day. 27° in soaked air is a slog. Your body cools itself by sweating, and sweat only cools you if it can evaporate. Wet air slows that down.</p>
+      <p>The measure of how wet the air really is: the <strong>dew point</strong>, the temperature the air would have to cool to before its moisture starts condensing. The higher it sits, the more water the air already carries and the worse your sweat works. Relative humidity can't tell you this on its own. Fog on a cold morning is 100% humidity, and nobody calls fog muggy.</p>
+      <p>So Muggy reads the dew point and sorts it into one of six bands. You see the band, not the number, because "dew point 21°" tells most people nothing and "muggy" tells them everything.</p>
     </section>
 
     <section id="bands">
       <h2>The six bands</h2>
-      <p>The thresholds are the ones <a href="https://weatherspark.com" rel="noopener">WeatherSpark</a> made familiar, converted to Celsius:</p>
+      <p>The cut-offs are the ones <a href="https://weatherspark.com" rel="noopener">WeatherSpark</a> made familiar, converted from Fahrenheit:</p>
       <table class="bands">
         <tr><th>Band</th><th>Dew point</th><th>How it feels</th></tr>
         <tr><td><span class="swatch" style="background:#DCE3EC"></span>dry</td><td>below 13°</td><td>Crisp. Skin and lips feel it.</td></tr>
@@ -57,8 +57,8 @@
 
     <section id="humidex">
       <h2>What is humidex?</h2>
-      <p>The band tells you how sticky the air is — but sticky air at 34° and the same sticky air at 24° are very different afternoons. <strong>Humidex</strong> puts the two together: it combines the temperature and the dew point into one number that says how heavy the combination actually is on your body.</p>
-      <p>It was created by Canadian meteorologists in 1965 and is what <a href="https://www.canada.ca/en/environment-climate-change/services/seasonal-weather-hazards/warm-season-weather-hazards.html#toc7" rel="noopener">Environment Canada</a> still uses for heat warnings. Read it like a "feels like" temperature in °C: a humidex of 36 means the heat-plus-moisture load on your body is roughly what 36° of dry heat would be.</p>
+      <p>The band says how sticky the air is. It doesn't say how hard that stickiness is working against you: sticky air at 34° and the same sticky air at 24° are different afternoons. <strong>Humidex</strong> joins the two. It folds temperature and dew point into a single number for how heavy the air sits on a body.</p>
+      <p>Canadian meteorologists built it in 1965, and <a href="https://www.canada.ca/en/environment-climate-change/services/seasonal-weather-hazards/warm-season-weather-hazards.html#toc7" rel="noopener">Environment Canada</a> still issues heat warnings with it. Read it like a feels-like temperature in °C: humidex 36 means the load on you is about what 36° of dry heat would be.</p>
       <table class="bands">
         <tr><th>Humidex</th><th>Officially</th><th>Muggy says</th></tr>
         <tr><td>under 30</td><td>little discomfort</td><td>Barely registers</td></tr>
@@ -66,23 +66,24 @@
         <tr><td>40 – 45</td><td>great discomfort; avoid exertion</td><td>Hard on the body</td></tr>
         <tr><td>45 and up</td><td>dangerous; heat stroke possible</td><td>Dangerous to exert</td></tr>
       </table>
-      <div class="callout"><p>This is why the same "muggy" band feels easier in the evening: the moisture hasn't gone anywhere, but the temperature half of the sum has dropped and the sun has stopped adding to it. The card under the score says exactly that.</p></div>
-      <p>Two better-known cousins exist. The US <strong>heat index</strong> answers the same question with different maths (Muggy uses humidex because it is built directly from the dew point). <strong>WBGT</strong>, used for sport and work safety, additionally measures sunlight and wind — it needs instruments a weather API can't fully replace, so Muggy reports the sun separately instead of guessing at a WBGT.</p>
+      <div class="callout"><p>This is also why a muggy evening beats a muggy afternoon. The moisture hasn't gone anywhere; the temperature half of the sum dropped with the sun. One August evening in Tirana the score read 37 at nine o'clock against 42 at one in the afternoon. Same air, one band lighter.</p></div>
+      <p>The US <strong>heat index</strong> answers the same question with different math; humidex gets the job here because it's built straight from the dew point the rest of the app already runs on. <strong>WBGT</strong>, the standard for sport and outdoor work, also measures sun and wind, but it wants instruments a weather API doesn't have. Rather than fake one, Muggy mentions the sun separately, and only when the radiation data says it matters.</p>
     </section>
 
     <section id="normal">
       <h2>"Is this normal?"</h2>
-      <p>A band alone doesn't tell you whether to be surprised. So Muggy compares right now against <strong>ten years of history for this exact place and time of year</strong> — every hour recorded within a week either side of today's date — and tells you where the moment sits: <em>stickier than 93% of days</em>, or squarely normal. The coloured bar is the local climate at a glance: one segment per band, sized by how much of the past decade fell in it.</p>
+      <p>A band alone doesn't tell you whether to be surprised by it. So the app checks right now against ten years of history for the same place and time of year: every hour recorded within a week of today's date, about 3,600 of them. Then it says where this moment sits. Stickier than 93% of days, or squarely normal for here. The coloured bar underneath is the local climate at a glance, one segment per band, each sized by its share of the past decade.</p>
     </section>
 
     <section id="better">
       <h2>"When will it get better?"</h2>
-      <p>The forecast already knows when the air eases off, so Muggy says it outright: the first stretch in the next 24 hours that is a band better than what you're standing in, and where it bottoms out — <em>muggy from 22:00, easing to dry by 03:00</em>. When nothing better is coming, it says that instead of dressing up a least-bad hour as advice.</p>
+      <p>The forecast already knows when the air eases, so the app says it plainly: the first stretch in the next 24 hours that beats the band you're standing in, and where that stretch bottoms out. "Muggy from 22:00, easing to dry by 03:00." When nothing better is coming, it says that instead.</p>
     </section>
 
     <section id="data">
       <h2>Where the data comes from</h2>
       <p>Weather and history come from <a href="https://open-meteo.com/" rel="noopener">Open-Meteo</a> (CC-BY 4.0). Comfort bands follow <a href="https://weatherspark.com" rel="noopener">WeatherSpark</a>'s thresholds. Humidex is <a href="https://en.wikipedia.org/wiki/Humidex" rel="noopener">Environment Canada's index</a>. Muggy itself is <a href="https://github.com/okturan/muggy" rel="noopener">open source</a>.</p>
+      <p>One caveat worth knowing: these numbers describe a weather model's grid cell a few kilometres wide, not your street. A walled courtyard holds damp air after a seafront has cleared. Treat the bands as your neighbourhood's weather, not your balcony's.</p>
     </section>
   </main>
 </body>
