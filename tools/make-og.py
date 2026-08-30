@@ -42,9 +42,11 @@ def base(tint):
         d.line([(x, 0), (x, H)], fill=GRID, width=2)
     for y in range(0, H, 36):
         d.line([(0, y), (W, y)], fill=GRID, width=2)
-    # band-coloured plate behind the character, hard border + offset shadow
+    # The character carries the band colour itself, so the plate behind it is
+    # panel white, same as the app's hero card. A matching tint washed the
+    # pink and red characters out and read as a keying mistake.
     d.rectangle([742, 96, 1116, 536], fill=INK)
-    d.rectangle([730, 84, 1104, 524], fill=tint, outline=INK, width=6)
+    d.rectangle([730, 84, 1104, 524], fill=PANEL, outline=INK, width=6)
     return im, d
 
 
