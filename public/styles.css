@@ -12,25 +12,18 @@
   --c-muggy: #F6C6A8;
   --c-oppressive: #F79AC0;
   --c-miserable: #F0755B;
-  --cs-dry: #E8EEF6;
-  --cs-comfortable: #E2F3D4;
-  --cs-humid: #F8F4CC;
-  --cs-muggy: #FBE0CC;
-  --cs-oppressive: #FBD5E4;
-  --cs-miserable: #FBCBBF;
   --lc: var(--c-comfortable);
-  --ls: var(--cs-comfortable);
   --border: 3px solid var(--ink);
   --shadow: 6px 6px 0 var(--ink);
   --display: 'Space Grotesk', 'Avenir Next', 'Segoe UI', sans-serif;
   --body: 'Nunito', 'Avenir Next', 'Segoe UI', sans-serif;
 }
-[data-level="dry"] { --lc: var(--c-dry); --ls: var(--cs-dry); }
-[data-level="comfortable"] { --lc: var(--c-comfortable); --ls: var(--cs-comfortable); }
-[data-level="humid"] { --lc: var(--c-humid); --ls: var(--cs-humid); }
-[data-level="muggy"] { --lc: var(--c-muggy); --ls: var(--cs-muggy); }
-[data-level="oppressive"] { --lc: var(--c-oppressive); --ls: var(--cs-oppressive); }
-[data-level="miserable"] { --lc: var(--c-miserable); --ls: var(--cs-miserable); }
+[data-level="dry"] { --lc: var(--c-dry); }
+[data-level="comfortable"] { --lc: var(--c-comfortable); }
+[data-level="humid"] { --lc: var(--c-humid); }
+[data-level="muggy"] { --lc: var(--c-muggy); }
+[data-level="oppressive"] { --lc: var(--c-oppressive); }
+[data-level="miserable"] { --lc: var(--c-miserable); }
 
 * { box-sizing: border-box; }
 html { background: var(--paper); -webkit-text-size-adjust: 100%; }
@@ -75,7 +68,7 @@ h1, h2, p { margin: 0; }
 
 /* hero */
 .hero {
-  position: relative; border: 4px solid var(--ink); background: var(--ls);
+  position: relative; border: 4px solid var(--ink); background: var(--panel);
   box-shadow: 8px 8px 0 var(--ink); transition: background .3s;
 }
 /* The hero card's own proportion; the character sits inside it. */

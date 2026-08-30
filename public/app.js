@@ -48,6 +48,7 @@
     normalCard: $('normalCard'), normalSub: $('normalSub'), normalVerdict: $('normalVerdict'),
     normalNote: $('normalNote'), mixBar: $('mixBar'),
     windowCard: $('windowCard'), windowSub: $('windowSub'), windowWhen: $('windowWhen'), windowNote: $('windowNote'),
+    strainCard: $('strainCard'), strainSub: $('strainSub'), strainValue: $('strainValue'), strainNote: $('strainNote'),
   };
 
   const prefs = (() => {
@@ -151,6 +152,70 @@
       .join('');
     els.mixBar.innerHTML = `${segs}<span class="marker" style="left:${pct}%"></span>`;
     els.normalCard.hidden = false;
+  }
+
+  // ---------- how it lands ----------
+  /**
+   * Humidex — Environment Canada's discomfort index, T + 0.5555*(e - 10) with e
+   * the vapour pressure from the dew point.
+   *
+   * This is the second axis the app was missing. A comfort band is deliberately
+   * moisture-only, so 20° dew point reads "muggy" at four in the afternoon and
+   * at midnight alike — while the body plainly disagrees, because the air is
+   * ten degrees cooler and the sun has gone. Humidex is built from the same dew
+   * point the rest of the app runs on, and adds exactly the missing term.
+   *
+   * Chosen over WBGT and UTCI deliberately: both model solar load properly, but
+   * WBGT needs a globe temperature (and a *natural* wet bulb, not the
+   * psychrometric one the API returns) and UTCI needs mean radiant temperature
+   * and a ~200-term polynomial. Approximating either would mean showing a
+   * precise-looking number that is quietly guessed. The sun is handled
+   * separately and honestly, from is_day and the actual radiation.
+   */
+  function humidex(tempC, dewC) {
+    if (tempC == null || dewC == null) return null;
+    const e = 6.11 * Math.exp(5417.753 * (1 / 273.16 - 1 / (273.15 + dewC)));
+    return tempC + 0.5555 * (e - 10);
+  }
+  const HUMIDEX_BANDS = [[30, 'little discomfort'], [40, 'some discomfort'], [46, 'great discomfort'], [Infinity, 'dangerous']];
+  const humidexBand = (hx) => HUMIDEX_BANDS.find(([max]) => hx < max)[1];
+
+  function renderStrain() {
+    const { current: cur, hourly: h } = data;
+    const hx = humidex(cur.temperature_2m, cur.dew_point_2m);
+    // Below ~25 the index is just the air temperature wearing a hat.
+    if (hx == null || hx < 25) { els.strainCard.hidden = true; return; }
+
+    els.strainValue.textContent = `Humidex ${Math.round(hx)}`;
+    els.strainSub.textContent = humidexBand(hx);
+
+    // Today's peak, so "now" has something to be measured against.
+    const today = cur.time.slice(0, 10);
+    let peak = null;
+    h.time.forEach((t, i) => {
+      if (t.slice(0, 10) !== today) return;
+      const v = humidex(h.temperature_2m[i], h.dew_point_2m[i]);
+      if (v != null && (!peak || v > peak.v)) peak = { v, t };
+    });
+
+    const parts = [];
+    if (peak && peak.v - hx >= 3) {
+      parts.push(`Today peaked at ${Math.round(peak.v)} around ${hourLabel(peak.t)}:00, so this is ${Math.round(peak.v - hx)} lower.`);
+    } else if (peak && hx - peak.v >= -1) {
+      parts.push('This is about as heavy as today gets.');
+    }
+
+    // The sun, from the actual radiation rather than the clock.
+    const sun = cur.shortwave_radiation;
+    if (cur.is_day === 0) {
+      parts.push('With the sun down, the same moisture is far easier work.');
+    } else if (sun != null && sun > 450) {
+      parts.push('Full sun on top of it — the shade is a different place.');
+    } else if (sun != null && sun > 120) {
+      parts.push('Some sun on top of it.');
+    }
+    els.strainNote.textContent = parts.join(' ');
+    els.strainCard.hidden = false;
   }
 
   // ---------- when to go out ----------
@@ -319,6 +384,7 @@
       ? `${stickyDays} of ${rows.length} day${rows.length === 1 ? '' : 's'} muggy or worse`
       : 'nothing sticky ahead';
 
+    renderStrain();
     renderWindow();
     renderNormals();
   }

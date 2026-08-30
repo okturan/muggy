@@ -31,6 +31,27 @@ most people and "muggy" means everything.
 Each band has its own paper tint and its own mood for the character, so the whole screen changes colour
 with the weather.
 
+### How it lands
+
+A comfort band is deliberately moisture-only, so 20 °C dew point reads *muggy* at four in the afternoon
+and at midnight alike — while the body plainly disagrees, because the air is ten degrees cooler and the
+sun has gone. So a second axis: **Humidex**, Environment Canada's discomfort index, `T + 0.5555·(e − 10)`
+with `e` the vapour pressure from the dew point. Built from the same dew point everything else runs on,
+adding exactly the missing term. Its bands are official: under 30 little discomfort, 30–39 some, 40–45
+great, 45+ dangerous.
+
+One Tirana evening it read *humidex 37, some discomfort*, against a peak of *42, great discomfort* at
+13:00 — the same sticky air, a whole band easier once the sun was down.
+
+Two better-known frameworks were considered and rejected for this app:
+
+- **WBGT** models solar load properly, but needs a globe temperature and a *natural* wet bulb — not the
+  psychrometric one the API returns. Both would have to be approximated.
+- **UTCI** is the most rigorous of all, and needs mean radiant temperature plus a ~200-term polynomial.
+
+Either would mean showing a precise-looking number that was quietly guessed. The sun is handled
+separately and honestly instead, from `is_day` and the actual `shortwave_radiation`.
+
 ### Is this normal?
 
 A band on its own doesn't tell you whether to be surprised. The app compares the current reading against

@@ -29,6 +29,8 @@ const HOURLY = [
   'apparent_temperature',
   'weather_code',
   'is_day',
+  'shortwave_radiation',
+  'wind_speed_10m',
 ].join(',');
 const CURRENT = HOURLY;
 
