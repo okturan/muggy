@@ -205,14 +205,18 @@
    * names (little/some/great discomfort, dangerous) are about exertion, so the
    * wording is too.
    */
+  // `felt` is how each level reads inside a sentence, so comparisons against
+  // the day's peak can be said in words. The card exists to translate the
+  // index; quoting its raw numbers back ("peaked at 42, so this is 6 lower")
+  // would defeat the point.
   const HUMIDEX_LEVELS = [
-    { max: 30, head: 'Barely registers',
+    { max: 30, head: 'Barely registers', felt: 'barely anything',
       body: 'The heat and the stickiness together add up to very little. Nothing here will slow you down.' },
-    { max: 40, head: 'Fine unless you push',
+    { max: 40, head: 'Fine unless you push', felt: 'noticeable',
       body: 'Enough heat and stickiness together to notice on a hill or a fast walk, not enough to stop you.' },
-    { max: 46, head: 'Hard on the body',
+    { max: 46, head: 'Hard on the body', felt: 'genuinely hard',
       body: 'Heat and stickiness combined are at the level where the official advice is to avoid real exertion.' },
-    { max: Infinity, head: 'Dangerous to exert',
+    { max: Infinity, head: 'Dangerous to exert', felt: 'dangerous',
       body: 'Heat and stickiness combined are in heat-stroke territory. Do not push it.' },
   ];
 
@@ -237,7 +241,10 @@
 
     const parts = [level.body];
     if (peak && peak.v - hx >= 3) {
-      parts.push(`Today peaked at ${Math.round(peak.v)} around ${hourLabel(peak.t)}:00, so this is ${Math.round(peak.v - hx)} lower.`);
+      const peakLevel = HUMIDEX_LEVELS.find((l) => peak.v < l.max);
+      parts.push(peakLevel === level
+        ? `The heaviest stretch was around ${hourLabel(peak.t)}:00, and it has eased since.`
+        : `Around ${hourLabel(peak.t)}:00 it was ${peakLevel.felt} out there. It has eased since.`);
     } else if (peak && hx - peak.v >= -1) {
       parts.push('This is about as heavy as today gets.');
     }
