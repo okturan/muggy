@@ -32,7 +32,7 @@ def face(size):
     f.set_variation_by_axes([700])   # variable font: dial the weight to Bold
     return f
 
-big, mid, small = face(92), face(44), face(36)
+big, mid, small, tiny = face(92), face(44), face(36), face(30)
 
 
 def base(tint):
@@ -87,7 +87,7 @@ character(im, 'muggy')
 d.text((60, 140), 'HOW STICKY', font=big, fill=INK)
 d.text((60, 244), 'IS IT OUT', font=big, fill=INK)
 d.text((60, 348), 'THERE?', font=big, fill=INK)
-d.text((64, 470), 'Comfort level · is it normal · when it gets better', font=small, fill=(74, 79, 92))
+d.text((64, 474), 'The band, the odds, and when it eases', font=tiny, fill=(74, 79, 92))
 wordmark(d)
 im.save('public/og/default.png', optimize=True)
 
