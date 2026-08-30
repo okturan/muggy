@@ -58,6 +58,14 @@ h1, h2, p { margin: 0; }
 .place .chev { color: var(--muted); }
 .place-name { font-size: 24px; letter-spacing: .5px; text-transform: uppercase; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.share {
+  width: 42px; height: 42px; display: grid; place-items: center;
+  border: var(--border); background: var(--panel); color: var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+.share:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+
 .seg { display: flex; border: var(--border); background: var(--panel); }
 .seg button {
   font-family: var(--display); font-weight: 700; font-size: 15px; padding: 7px 14px; min-height: 38px; color: var(--ink);
@@ -119,6 +127,7 @@ h1, h2, p { margin: 0; }
 .block-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .block-head h2 { font-size: 20px; letter-spacing: 1px; text-transform: uppercase; }
 .block-head .sub { font-size: 13px; font-weight: 700; color: var(--muted); text-align: right; }
+.block-head .sub a { color: var(--accent); }
 
 .hours { display: flex; overflow-x: auto; scroll-snap-type: x proximity; border: var(--border); background: var(--panel); scrollbar-width: none; box-shadow: var(--shadow); }
 .hours::-webkit-scrollbar { display: none; }

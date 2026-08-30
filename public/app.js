@@ -13,30 +13,49 @@
   ];
   const RANK = Object.fromEntries(BANDS.map((b, i) => [b.id, i]));
   /**
-   * Headline and blurb per band.
+   * Headline and blurbs per band: [headline, day blurb, night blurb].
    *
-   * These describe how well sweat evaporates, which is what the dew point
-   * actually measures — never how warm it is. A low dew point happens at 40°
-   * in a desert just as readily as at 2° in winter, so any advice that assumes
-   * a temperature has to read the temperature (see `blurbFor`).
+   * Blurbs describe how well sweat evaporates — what the dew point measures —
+   * never how warm it is. And the advice must know whether the sun is up:
+   * "keep to the shade" at 23:00 is meaningless, and the sticky bands are a
+   * different problem at night, when the question becomes sleep.
    */
   const COPY = {
-    dry:         ['Crisp and dry',   'Sweat evaporates the moment it forms.'],
-    comfortable: ['Perfect air',     'Nothing to plan around — this is about as good as air gets.'],
-    humid:       ['A little sticky', "You'll notice it, but it stays out of your way. Something light and breathable is plenty."],
-    muggy:       ["It's muggy out",  'Shirts start sticking. Keep to the shade and take it slower than usual.'],
-    oppressive:  ['Oppressive',      'Sweat stops evaporating, so you stop cooling down. Slow everything down and keep water on you.'],
-    miserable:   ['Miserable',       'The air cannot hold any more water, so sweating barely works. Stay in and find air conditioning.'],
+    dry:         ['Crisp and dry',
+                  'Sweat evaporates the moment it forms.',
+                  'Sweat evaporates the moment it forms.'],
+    comfortable: ['Perfect air',
+                  'Nothing to plan around — this is about as good as air gets.',
+                  'Nothing to plan around — as good as a night gets.'],
+    humid:       ['A little sticky',
+                  "You'll notice it, but it stays out of your way. Something light and breathable is plenty.",
+                  "You'll notice it, but it stays out of your way. Sleep should be fine."],
+    muggy:       ["It's muggy out",
+                  'Shirts start sticking. Keep to the shade and take it slower than usual.',
+                  'Shirts stick even without the sun. A sticky night — moving air helps sleep.'],
+    oppressive:  ['Oppressive',
+                  'Sweat stops evaporating, so you stop cooling down. Slow everything down and keep water on you.',
+                  "Sweat won't dry even with the sun long gone. A fan pointed at the bed is the move."],
+    miserable:   ['Miserable',
+                  'The air cannot hold any more water, so sweating barely works. Stay in and find air conditioning.',
+                  'The air cannot hold any more water, even at night. This is what AC was invented for.'],
   };
 
-  /** Dry air says nothing about warmth, so this is the one band that must ask. */
-  function blurbFor(band, tempC) {
-    if (band !== 'dry' || tempC == null) return COPY[band][1];
-    if (tempC < 10) return `${COPY.dry[1]} Cold and dry — the kind that chaps lips. Drink more than you feel like.`;
-    if (tempC > 28) return `${COPY.dry[1]} Dry heat: you will not feel yourself sweating, which is exactly why to keep drinking.`;
-    return `${COPY.dry[1]} Easy air — your skin will notice before you do.`;
+  /** Pick the blurb for the moment: dry asks the temperature, the rest ask the sun. */
+  function blurbFor(band, cur) {
+    const night = cur.is_day === 0;
+    if (band === 'dry' && cur.temperature_2m != null) {
+      const t = cur.temperature_2m;
+      if (t < 10) return `${COPY.dry[1]} Cold and dry — the kind that chaps lips. Drink more than you feel like.`;
+      if (t > 28) return `${COPY.dry[1]} Dry heat: you will not feel yourself sweating, which is exactly why to keep drinking.`;
+      return `${COPY.dry[1]} Easy air — your skin will notice before you do.`;
+    }
+    return COPY[band][night ? 2 : 1];
   }
   const DEFAULT_PLACE = { name: 'Tirana', lat: 41.33, lon: 19.82 };
+
+  const slugify = (s) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
   const $ = (id) => document.getElementById(id);
   const app = $('app');
@@ -205,7 +224,7 @@
 
     const level = HUMIDEX_LEVELS.find((l) => hx < l.max);
     els.strainValue.textContent = level.head;
-    els.strainSub.textContent = `humidex ${Math.round(hx)}`;
+    els.strainSub.innerHTML = `<a href="/about#humidex">humidex ${Math.round(hx)} · what's this?</a>`;
 
     // Today's peak, so "now" has something to be measured against.
     const today = cur.time.slice(0, 10);
@@ -354,7 +373,7 @@
     els.levelName.textContent = now;
     els.timeChip.textContent = `now · ${cur.time.slice(11, 16)}`;
     els.title.textContent = COPY[now][0];
-    els.blurb.textContent = blurbFor(now, cur.temperature_2m);
+    els.blurb.textContent = blurbFor(now, cur);
     els.temp.textContent = fmtTemp(cur.temperature_2m);
     els.hum.textContent = cur.relative_humidity_2m == null ? '–' : `${Math.round(cur.relative_humidity_2m)}%`;
     els.comfort.textContent = now;
@@ -408,9 +427,19 @@
   }
 
   // ---------- data ----------
-  async function load(place) {
+  function syncUrl(place, push) {
+    // Geolocation stays at "/" — coordinates do not belong in a shareable URL.
+    const path = place.geo ? '/' : `/${slugify(place.name)}`;
+    try {
+      if (push) history.pushState({}, '', path);
+      else history.replaceState({}, '', path);
+    } catch { /* sandboxed contexts */ }
+  }
+
+  async function load(place, { push } = {}) {
     app.dataset.state = 'loading';
     els.placeName.textContent = place.name;
+    syncUrl(place, push);
     try {
       const r = await fetch(`/api/forecast?lat=${place.lat}&lon=${place.lon}`);
       if (!r.ok) throw new Error(`forecast ${r.status}`);
@@ -452,7 +481,7 @@
     els.results.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
       const p = list[+b.dataset.i];
       els.sheet.close();
-      load({ name: p.name, lat: p.lat, lon: p.lon });
+      load({ name: p.name, lat: p.lat, lon: p.lon }, { push: true });
     }));
   }
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -480,8 +509,41 @@
   }));
 
   // ---------- boot ----------
+  async function loadFromSlug(slug) {
+    try {
+      const r = await fetch(`/api/geocode?q=${encodeURIComponent(slug.replace(/-/g, ' '))}`);
+      const j = await r.json();
+      const p = (j.results || [])[0];
+      if (!p) return false;
+      load({ name: p.name, lat: p.lat, lon: p.lon });
+      return true;
+    } catch { return false; }
+  }
+
+  window.addEventListener('popstate', () => {
+    const slug = location.pathname.replace(/^\/+|\/+$/g, '');
+    if (slug) loadFromSlug(slug);
+    else if (prefs.place) load(prefs.place);
+  });
+
+  $('shareBtn').addEventListener('click', async () => {
+    const url = location.origin + location.pathname;
+    const title = document.title;
+    const text = data ? `${els.title.textContent} in ${els.placeName.textContent} — ${els.blurb.textContent}` : title;
+    if (navigator.share) {
+      try { await navigator.share({ title, text, url }); return; } catch { /* dismissed */ }
+    } else {
+      try { await navigator.clipboard.writeText(url); toast('Link copied'); } catch { toast(url); }
+    }
+  });
+
   applyPrefUI();
   (async () => {
+    const slug = location.pathname.replace(/^\/+|\/+$/g, '');
+    if (/^[a-z0-9-]{2,60}$/i.test(slug)) {
+      if (await loadFromSlug(slug)) return;
+      toast('Could not find that place');
+    }
     if (prefs.place && Number.isFinite(prefs.place.lat)) {
       load(prefs.place);
       if (prefs.place.geo) locate({ silent: true }); // refresh silently if they were on GPS

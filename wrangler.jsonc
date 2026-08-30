@@ -4,15 +4,29 @@
   "main": "src/index.js",
   "compatibility_date": "2026-08-15",
   "account_id": "1992595a6b0bebdbb4d076347609333d",
+  "workers_dev": true,
+  "routes": [
+    { "pattern": "muggy.fyi", "custom_domain": true },
+    { "pattern": "www.muggy.fyi", "custom_domain": true }
+  ],
   "assets": {
     "directory": "./public",
     "binding": "ASSETS",
-    "not_found_handling": "single-page-application"
+    "not_found_handling": "single-page-application",
+    // Pages go through the worker (canonical-host redirect, OG injection,
+    // analytics); real files skip it and serve straight from the asset layer.
+    "run_worker_first": ["/*", "!/sprites/*", "!/og/*", "!/icons/*", "!/*.css", "!/*.js", "!/*.png", "!/*.webmanifest", "!/*.html"]
   },
-  // Climatology cache. Ten years of archive data per location never changes,
-  // so it is worth holding globally rather than per edge colo.
+  // One namespace for everything cached: climatology (v3:*), forecasts (f:*),
+  // geocoding (g:*). KV is global where the edge cache is per-colo, which is
+  // what actually protects the upstream API.
   "kv_namespaces": [
-    { "binding": "NORMALS", "id": "036f4dd2a380465db4779137d5d7d2eb" }
+    { "binding": "KV", "id": "036f4dd2a380465db4779137d5d7d2eb" }
+  ],
+  // Basic analytics: one data point per page view / API call, queryable with
+  // SQL from the dashboard (Analytics Engine) — no client-side tracker.
+  "analytics_engine_datasets": [
+    { "binding": "TRACK", "dataset": "muggy_events" }
   ],
   "observability": { "enabled": true }
 }

@@ -4,8 +4,21 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Muggy — how sticky is it out there?</title>
-  <meta name="description" content="A cute little weather app that tells you how muggy it feels: temperature, humidity and a comfort level.">
+  <meta name="description" content="Not how hot. How sticky. Comfort level, whether it is normal, and when it will get better.">
   <meta name="theme-color" content="#FBF4E6">
+  <link rel="canonical" href="https://muggy.fyi/">
+  <meta property="og:site_name" content="Muggy">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Muggy — how sticky is it out there?">
+  <meta property="og:description" content="Not how hot. How sticky. Comfort level, whether it is normal, and when it will get better.">
+  <meta property="og:url" content="https://muggy.fyi/">
+  <meta property="og:image" content="https://muggy.fyi/og/default.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Muggy — how sticky is it out there?">
+  <meta name="twitter:description" content="Not how hot. How sticky. Comfort level, whether it is normal, and when it will get better.">
+  <meta name="twitter:image" content="https://muggy.fyi/og/default.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Muggy">
@@ -26,9 +39,14 @@
         <span class="place-name display" id="placeName">Finding you…</span>
         <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
       </button>
-      <div class="seg units" role="group" aria-label="Temperature unit">
-        <button type="button" data-unit="c" class="is-on">°C</button>
-        <button type="button" data-unit="f">°F</button>
+      <div class="topbar-right">
+        <button type="button" class="share" id="shareBtn" aria-label="Share this place">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="12" r="2.6"/><circle cx="17.5" cy="5.5" r="2.6"/><circle cx="17.5" cy="18.5" r="2.6"/><path d="M8.4 10.8l6.8-4M8.4 13.2l6.8 4"/></svg>
+        </button>
+        <div class="seg units" role="group" aria-label="Temperature unit">
+          <button type="button" data-unit="c" class="is-on">°C</button>
+          <button type="button" data-unit="f">°F</button>
+        </div>
       </div>
     </header>
 
@@ -114,7 +132,7 @@
     </section>
 
     <footer class="foot">
-      <p>Comfort level comes from the dew point, sorted into <a href="https://weatherspark.com" rel="noopener">WeatherSpark's</a> comfort bands. Weather data by <a href="https://open-meteo.com/" rel="noopener">Open-Meteo</a>.</p>
+      <p><a href="/about">How Muggy works</a> · Comfort level comes from the dew point, sorted into <a href="https://weatherspark.com" rel="noopener">WeatherSpark's</a> comfort bands. Weather data by <a href="https://open-meteo.com/" rel="noopener">Open-Meteo</a>.</p>
     </footer>
 
     <div class="toast" id="toast" role="status"></div>

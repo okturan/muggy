@@ -4,7 +4,7 @@
 weather apps bury: not how hot it is, but how *unpleasant* the air feels — and it puts a pixel cloud
 in a jacket on the front of it.
 
-🌦️ **Live: [muggy.okan.workers.dev](https://muggy.okan.workers.dev)**
+🌦️ **Live: [muggy.fyi](https://muggy.fyi)** — share a city as `muggy.fyi/tirana`
 
 <img src="design/cloud-muggy.png" width="120" alt="the muggy cloud">
 
@@ -97,10 +97,33 @@ are used, which is a description of how humid air feels rather than anything pro
 > Note: Open-Meteo's free tier is non-commercial. Adding ads or subscriptions would mean getting an API
 > key from them — a one-line change in the Worker.
 
+### Sharing
+
+Every named city is a URL — `muggy.fyi/tirana`, `muggy.fyi/kuala-lumpur` — and the share button uses the
+native share sheet. Link unfurlers run no JavaScript, so the Worker resolves the slug server-side and
+injects live Open Graph tags: a WhatsApp preview of `muggy.fyi/tirana` says *"It's muggy out in Tirana
+right now — 27°C · 68% humidity"* over a banner matching the current band (seven pre-rendered 1200×630
+images, `tools/make-og.py`). Geolocation stays at `/` — coordinates don't belong in a shareable URL.
+
 ## How it's built
 
-A single Cloudflare Worker serving static assets, with a thin cached proxy in front of Open-Meteo so the
-upstream never sees end users and repeated lookups are close to free.
+A single Cloudflare Worker on `muggy.fyi` serving static assets, with Open-Meteo behind a two-layer
+cache:
+
+```
+edge cache (per colo, minutes) → KV (global, stale-while-revalidate) → upstream
+```
+
+The KV layer is what protects the upstream API. A forecast younger than 10 minutes serves as fresh;
+up to 3 hours old it serves instantly *and* refreshes in the background, so worldwide traffic costs
+Open-Meteo at most about one fetch per city per 10 minutes; and if the upstream is down or rate-limiting,
+stale data keeps serving for a day rather than erroring. Geocoding is cached 30 days — cities don't
+move. Pages run through the Worker (`run_worker_first`) for the canonical-host redirect, OG injection
+and analytics; sprites, banners and static files skip it and serve straight from the asset layer.
+
+Analytics is one [Analytics Engine](https://developers.cloudflare.com/analytics/analytics-engine/) data
+point per page view and API call — type, slug, country, colo, cache state — queryable with SQL from the
+dashboard, no client-side tracker, nothing personal stored.
 
 ```
 src/index.js          Worker: /api/forecast, /api/geocode, everything else → static assets
@@ -115,8 +138,8 @@ sheet-cloud.jpg       Source spritesheet — pixel cloud, 6 levels × 6 frames, 
 
 | Route | Cache | Notes |
 |---|---|---|
-| `GET /api/forecast?lat=&lon=` | 15 min | Edge cache; coordinates snapped to ~1 km so neighbours share an entry |
-| `GET /api/geocode?q=` | 24 h | City search |
+| `GET /api/forecast?lat=&lon=` | KV SWR (10 min fresh / 3 h stale / 24 h emergency) | `x-muggy-cache` header says which |
+| `GET /api/geocode?q=` | KV 30 d | City search |
 | `GET /api/normals?lat=&lon=` | 200 d, KV | Ten years of climatology for today's date |
 
 `/api/normals` costs ten upstream archive calls on a miss, so it is cached in **KV** rather than the edge
