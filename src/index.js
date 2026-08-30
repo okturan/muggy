@@ -265,6 +265,34 @@ async function normals(request, env, ctx) {
 // HTML: per-city share previews
 // ---------------------------------------------------------------------------
 
+/**
+ * The model's "current" is a 15-minute step; the app interpolates the
+ * minutely series to the actual minute, so the share preview must too, or the
+ * page and its card disagree at every band boundary.
+ */
+function interpNow(data) {
+  const cur = { ...(data.current || {}) };
+  const m = data.minutely_15;
+  const off = data.utc_offset_seconds || 0;
+  const iso = new Date(Date.now() + off * 1000).toISOString().slice(0, 16);
+  if (m && m.time && m.time.length > 1 && iso >= m.time[0]) {
+    let i = 0;
+    while (i + 1 < m.time.length && m.time[i + 1] <= iso) i++;
+    const j = Math.min(i + 1, m.time.length - 1);
+    const t0 = Date.parse(`${m.time[i]}:00Z`);
+    const t1 = Date.parse(`${m.time[j]}:00Z`);
+    const frac = t1 > t0 ? Math.min(1, (Date.parse(`${iso}:00Z`) - t0) / (t1 - t0)) : 0;
+    for (const k of ['temperature_2m', 'relative_humidity_2m', 'dew_point_2m']) {
+      const a = m[k] && m[k][i];
+      const b = m[k] && m[k][j];
+      if (a != null && b != null) cur[k] = a + (b - a) * frac;
+      else if (a != null) cur[k] = a;
+    }
+    cur.time = iso;
+  }
+  return cur;
+}
+
 const slugify = (s) =>
   s.normalize('NFD').replace(/[̀-ͯ]/g, '')
     .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -285,7 +313,7 @@ async function htmlFor(request, env, ctx, slug) {
       const place = geo?.results?.[0];
       if (place) {
         const { data } = await forecastCached(env, ctx, place.lat, place.lon);
-        const cur = data?.current;
+        const cur = data ? interpNow(data) : null;
         if (cur && cur.dew_point_2m != null) {
           const band = bandOf(cur.dew_point_2m);
           og = {
