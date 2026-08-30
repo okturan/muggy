@@ -273,20 +273,46 @@
       if (v != null && (!peak || v > peak.v)) peak = { v, t };
     });
 
-    const parts = [level.body];
+    // The official 30-39 bracket is ten points wide, which froze the card
+    // while an evening visibly eased from 36 to 32. Position within the
+    // bracket and the last hour's direction keep it honest between
+    // thresholds.
+    let body = level.body;
+    if (hx >= 30 && hx < 33) body = 'Only just into the range where you feel it. A stroll is nothing; a hill will remind you.';
+    else if (hx >= 37 && hx < 40) body = 'Near the hard end of the middle range. Keep the pace easy.';
+    const parts = [body];
+
+    const m = data.minutely_15;
+    let trend = 0;
+    if (m && m.time && m.time.length) {
+      const off = data.utc_offset_seconds || 0;
+      const agoIso = new Date(Date.now() + off * 1000 - 3600000).toISOString().slice(0, 16);
+      let i = 0;
+      while (i + 1 < m.time.length && m.time[i + 1] <= agoIso) i++;
+      if (m.time[i] <= agoIso) {
+        const ago = humidex(m.temperature_2m && m.temperature_2m[i], m.dew_point_2m && m.dew_point_2m[i]);
+        if (ago != null) trend = hx - ago;
+      }
+    }
+
     if (peak && peak.v - hx >= 3) {
       const peakLevel = HUMIDEX_LEVELS.find((l) => peak.v < l.max);
       parts.push(peakLevel === level
         ? `The heaviest stretch was around ${hourLabel(peak.t)}:00, and it has eased since.`
         : `Around ${hourLabel(peak.t)}:00 it was ${peakLevel.felt} out there. It has eased since.`);
+      if (trend >= 1.5) parts.push('It is climbing again.');
     } else if (peak && hx - peak.v >= -1) {
       parts.push('This is about as heavy as today gets.');
+    } else if (trend <= -1.5) {
+      parts.push('It has been easing over the past hour.');
+    } else if (trend >= 1.5) {
+      parts.push('It is still climbing.');
     }
 
     // The sun, from the actual radiation rather than the clock.
     const sun = cur.shortwave_radiation;
     if (cur.is_day === 0) {
-      parts.push('With the sun down, the same moisture is far easier work.');
+      parts.push('And the sun is down, so nothing is piling on top of that.');
     } else if (sun != null && sun > 450) {
       parts.push('Full sun on top of it. The shade is a different place.');
     } else if (sun != null && sun > 120) {
