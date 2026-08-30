@@ -298,7 +298,7 @@ async function htmlFor(request, env, ctx, slug) {
   }
   if (!og) {
     og = {
-      title: 'Muggy — how sticky is it out there?',
+      title: 'Muggy · how sticky is it out there?',
       desc: 'Not how hot. How sticky. Comfort level, whether it is normal, and when it will get better.',
       image: `https://${CANONICAL_HOST}/og/default.png`,
       url: `https://${CANONICAL_HOST}/${slug || ''}`,

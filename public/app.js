@@ -25,14 +25,14 @@
                   'Sweat evaporates the moment it forms.',
                   'Sweat evaporates the moment it forms.'],
     comfortable: ['Perfect air',
-                  'Nothing to plan around — this is about as good as air gets.',
-                  'Nothing to plan around — as good as a night gets.'],
+                  'Nothing to plan around. This is about as good as air gets.',
+                  'Nothing to plan around. As good as a night gets.'],
     humid:       ['A little sticky',
                   "You'll notice it, but it stays out of your way. Something light and breathable is plenty.",
                   "You'll notice it, but it stays out of your way. Sleep should be fine."],
     muggy:       ["It's muggy out",
                   'Shirts start sticking. Keep to the shade and take it slower than usual.',
-                  'Shirts stick even without the sun. A sticky night — moving air helps sleep.'],
+                  'Shirts stick even without the sun. Sleeping is easier with moving air.'],
     oppressive:  ['Oppressive',
                   'Sweat stops evaporating, so you stop cooling down. Slow everything down and keep water on you.',
                   "Sweat won't dry even with the sun long gone. A fan pointed at the bed is the move."],
@@ -46,9 +46,9 @@
     const night = cur.is_day === 0;
     if (band === 'dry' && cur.temperature_2m != null) {
       const t = cur.temperature_2m;
-      if (t < 10) return `${COPY.dry[1]} Cold and dry — the kind that chaps lips. Drink more than you feel like.`;
+      if (t < 10) return `${COPY.dry[1]} Cold and dry, the kind that chaps lips. Drink more than you feel like.`;
       if (t > 28) return `${COPY.dry[1]} Dry heat: you will not feel yourself sweating, which is exactly why to keep drinking.`;
-      return `${COPY.dry[1]} Easy air — your skin will notice before you do.`;
+      return `${COPY.dry[1]} Easy air. Your skin will notice before you do.`;
     }
     return COPY[band][night ? 2 : 1];
   }
@@ -138,8 +138,8 @@
       share === 0 ? `${cap(nowBand)} air has never been recorded here around this date.`
       : share < 0.05 ? `${cap(nowBand)} air turns up only about ${Math.round(share * 100)}% of the time around now.`
       : nowBand !== normals.medianBand ? `Usually it is ${normals.medianBand} around now.`
-      : pct >= 65 ? `Still the usual ${nowBand} band — but at the sticky end of it.`
-      : pct <= 35 ? `Still the usual ${nowBand} band — at the easier end of it.`
+      : pct >= 65 ? `Still the usual ${nowBand} band, just at the sticky end of it.`
+      : pct <= 35 ? `Still the usual ${nowBand} band, at the easier end of it.`
       : 'Squarely normal for here.';
 
     els.normalNote.textContent = `${position} ${context}`;
@@ -207,7 +207,7 @@
    */
   const HUMIDEX_LEVELS = [
     { max: 30, head: 'Barely registers',
-      body: 'The heat and the stickiness together add up to very little — nothing here will slow you down.' },
+      body: 'The heat and the stickiness together add up to very little. Nothing here will slow you down.' },
     { max: 40, head: 'Fine unless you push',
       body: 'Enough heat and stickiness together to notice on a hill or a fast walk, not enough to stop you.' },
     { max: 46, head: 'Hard on the body',
@@ -247,7 +247,7 @@
     if (cur.is_day === 0) {
       parts.push('With the sun down, the same moisture is far easier work.');
     } else if (sun != null && sun > 450) {
-      parts.push('Full sun on top of it — the shade is a different place.');
+      parts.push('Full sun on top of it. The shade is a different place.');
     } else if (sun != null && sun > 120) {
       parts.push('Some sun on top of it.');
     }
@@ -346,7 +346,7 @@
     els.windowSub.textContent = w.bestRank >= RANK.muggy && !w.deepens ? 'a little relief' : 'first relief';
     els.windowNote.textContent = w.deepens
       ? `${cap(w.band)} from ${from}, easing to ${w.bestBand} by ${hourLabel(w.bestTime)}:00.`
-      : `${cap(w.band)} — a step better than the ${w.curBand} air right now.`;
+      : `${cap(w.band)}, a step better than the ${w.curBand} air right now.`;
     els.windowCard.hidden = false;
   }
 
@@ -495,7 +495,7 @@
         const r = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`);
         const j = await r.json();
         if (els.q.value.trim() !== q) return;
-        renderResults(j.results || [], 'No matches — try a bigger town nearby.');
+        renderResults(j.results || [], 'No matches. Try a bigger town nearby.');
       } catch { renderResults([], 'Search is unavailable right now.'); }
     }, 280);
   });
@@ -529,7 +529,7 @@
   $('shareBtn').addEventListener('click', async () => {
     const url = location.origin + location.pathname;
     const title = document.title;
-    const text = data ? `${els.title.textContent} in ${els.placeName.textContent} — ${els.blurb.textContent}` : title;
+    const text = data ? `${els.title.textContent} in ${els.placeName.textContent}. ${els.blurb.textContent}` : title;
     if (navigator.share) {
       try { await navigator.share({ title, text, url }); return; } catch { /* dismissed */ }
     } else {
@@ -550,7 +550,7 @@
       return;
     }
     const ok = await locate({ silent: true });
-    if (!ok) { load(DEFAULT_PLACE); toast('Showing Tirana — tap the name to change'); }
+    if (!ok) { load(DEFAULT_PLACE); toast('Showing Tirana. Tap the name to change.'); }
   })();
 
   // Refresh when coming back to the tab after a while.
