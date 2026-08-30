@@ -461,7 +461,7 @@
     els.hours.innerHTML = slice.map((x, i) => {
       const lv = x.dp == null ? 'comfortable' : levelOf(x.dp);
       return `<div class="hour${i === 0 ? ' is-now' : ''}" data-level="${lv}" title="${lv}">
-        <span class="t">${i === 0 ? 'now' : hourLabel(x.t)}</span><span class="dot"></span><span class="d">${fmtTemp(x.temp)}</span></div>`;
+        <span class="t">${i === 0 ? 'now' : `${hourLabel(x.t)}:00`}</span><span class="dot"></span><span class="d">${fmtTemp(x.temp)}</span></div>`;
     }).join('');
     els.hoursSub.textContent = peak ? `stickiest around ${hourLabel(peak.t)}:00 (${levelOf(peak.dp)})` : '';
 
