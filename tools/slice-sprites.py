@@ -44,13 +44,19 @@ PAD = 18                           # breathing room inside the cell (source px)
 
 src = Image.open('sheet-cloud.jpg').convert('RGB')
 a = np.asarray(src).astype(int)
-R, G, B = a[..., 0], a[..., 1], a[..., 2]
 
-# The key is ~(244, 8, 240). Requiring BOTH red and blue to sit far above green
-# is what keeps the pink "oppressive" and red "miserable" bodies out of the
-# mask — they are red-dominant but nothing like as blue as the background.
-bg = (R > 140) & (B > 140) & (G < 120) & ((R - G) > 60) & ((B - G) > 60)
-fg = ~bg
+# Key on distance from the measured plate colour, NOT on a hue rule.
+#
+# A hue rule ("red and blue both well above green") looks like it separates the
+# plate from the characters, and does not: the saturated pink of the oppressive
+# body is (240, 59, 163), which clears every one of those thresholds and gets
+# erased along with the background, hollowing the character out. Distance sees
+# it correctly — that pink sits ~115 from the plate, while the plate itself
+# clusters under 40, with almost nothing in between.
+BG = np.median(np.concatenate([a[0:8].reshape(-1, 3), a[-8:].reshape(-1, 3),
+                               a[:, 0:8].reshape(-1, 3), a[:, -8:].reshape(-1, 3)]), axis=0)
+fg = np.linalg.norm(a - BG, axis=2) > 60
+print(f'plate {tuple(int(v) for v in BG)}')
 
 # Cells come from the gutters in the alpha projection rather than a fixed grid:
 # accessories (sun hats, wind lines, the heatwave sign) make the columns uneven.

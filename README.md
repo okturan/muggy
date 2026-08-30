@@ -53,10 +53,16 @@ the two agree.
 
 ### When to go out
 
-The forecast already knows when the air gets bearable, so the app says it outright: the longest
-continuous run of daylight hours at the best comfort band in the next 24 hours. When nothing is actually
-good it says so — *"that is the least sticky it gets, and it is still muggy"* — rather than dressing up a
+The forecast already knows when the air gets bearable, so the app says it outright: the first stretch in
+the next 24 hours that is a band better than right now, and where that stretch bottoms out — *"Muggy from
+22:00, easing to dry by 03:00."* When nothing is actually better it says so rather than dressing up a
 least-bad hour as a recommendation.
+
+Evenings and nights count, which took two goes to get right. Searching only daylight hours told someone
+at 20:30 that nothing better was coming, while 23:00 was humid and midnight was comfortable — two bands
+down and visible in the hours strip directly below the claim. Night hours can no longer *open* a window,
+since nobody plans around 03:00, but they can extend one, which is what lets the card follow the air down
+past midnight.
 
 ## Where the data comes from
 
@@ -100,8 +106,11 @@ It returns a 101-point quantile ladder rather than raw hours, which is what lets
 reading as a percentile without the dew point ever reaching the screen.
 
 **The character art** is an AI-generated spritesheet laid out as a 6-row grid, one row per comfort
-band, shot on magenta, so `tools/slice-sprites.py` lifts the key by requiring red
-*and* blue to sit well above green — which is what keeps the pink and red bodies out of the mask. The
+band, shot on magenta. `tools/slice-sprites.py` keys it on **distance from the measured plate colour**,
+not on a hue rule. A hue rule looks like it works and does not: the saturated pink of the `oppressive`
+body is (240, 59, 163), which clears every "red and blue well above green" threshold you would write, so
+it gets erased with the background and the character comes out hollow. Distance sees it correctly — that
+pink sits ~115 from the plate while the plate clusters under 40, with almost nothing in between. The
 foreground is then eroded 2px, because JPEG smears the key into sprite edges and a magenta halo is far
 more visible after downscaling than a hair of lost outline. Cells come from gutters in the alpha
 projection rather than a fixed grid (sun hats and the heatwave sign make the columns uneven), and every
