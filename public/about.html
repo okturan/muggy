@@ -17,7 +17,9 @@
     .page h1 { font-size: 32px; letter-spacing: .5px; text-transform: uppercase; line-height: 1.1; }
     .page h2 { font-size: 21px; letter-spacing: .5px; text-transform: uppercase; scroll-margin-top: 24px; }
     .page p { font-size: 15.5px; line-height: 1.6; font-weight: 600; color: var(--ink-2); }
-    .page section { display: flex; flex-direction: column; gap: 10px; }
+    .page section { display: flex; flex-direction: column; gap: 14px; }
+    /* boxed elements carry a 6px drop shadow, so they need extra clearance below */
+    .page table.bands, .page .callout { margin-bottom: 8px; }
     .back { display: inline-flex; align-items: center; gap: 8px; font-family: var(--display); font-weight: 700; font-size: 15px; color: var(--ink); border: var(--border); background: var(--panel); padding: 8px 14px; box-shadow: 3px 3px 0 var(--ink); align-self: flex-start; }
     .back:hover { text-decoration: none; color: var(--ink); }
     table.bands { border-collapse: collapse; width: 100%; border: var(--border); background: var(--panel); box-shadow: var(--shadow); font-size: 14px; }
@@ -66,7 +68,7 @@
         <tr><td>40 – 45</td><td>great discomfort; avoid exertion</td><td>Hard on the body</td></tr>
         <tr><td>45 and up</td><td>dangerous; heat stroke possible</td><td>Dangerous to exert</td></tr>
       </table>
-      <div class="callout"><p>This is also why a muggy evening beats a muggy afternoon. The moisture hasn't gone anywhere; the temperature half of the sum dropped with the sun. One August evening in Tirana the score read 37 at nine o'clock against 42 at one in the afternoon. Same air, one band lighter.</p></div>
+      <div class="callout"><p>This is also why evenings feel easier than afternoons when the air is just as damp: night takes away the heat, not the moisture. On the August evening this page was written, Tirana's humidex was 42 at lunchtime and 37 by nine at night. The same sticky air had become a whole level easier to be out in.</p></div>
       <p>The US <strong>heat index</strong> answers the same question with different math; humidex gets the job here because it's built straight from the dew point the rest of the app already runs on. <strong>WBGT</strong>, the standard for sport and outdoor work, also measures sun and wind, but it wants instruments a weather API doesn't have. Rather than fake one, Muggy mentions the sun separately, and only when the radiation data says it matters.</p>
     </section>
 
