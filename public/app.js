@@ -97,6 +97,39 @@
     document.querySelectorAll('.units button').forEach((b) => b.classList.toggle('is-on', b.dataset.unit === unit));
   }
 
+  /**
+   * "Current" from the model is a 15-minute step; the app promises the minute.
+   * So the 15-minutely series is interpolated to the wall clock in the city's
+   * own timezone, and a once-a-minute tick keeps it moving while the tab is
+   * open. This is interpolation, not invention: dew point and temperature move
+   * smoothly at this scale, and upstream itself interpolates from hourly data
+   * outside central Europe.
+   */
+  function synthesize() {
+    if (!data || !data.current) return;
+    if (!data._model) data._model = { ...data.current };   // the pristine model step
+    const cur = { ...data._model };
+    const off = data.utc_offset_seconds || 0;
+    const iso = new Date(Date.now() + off * 1000).toISOString().slice(0, 16);
+    const m = data.minutely_15;
+    if (m && m.time && m.time.length > 1 && iso >= m.time[0]) {
+      let i = 0;
+      while (i + 1 < m.time.length && m.time[i + 1] <= iso) i++;
+      const j = Math.min(i + 1, m.time.length - 1);
+      const t0 = Date.parse(`${m.time[i]}:00Z`);
+      const t1 = Date.parse(`${m.time[j]}:00Z`);
+      const frac = t1 > t0 ? Math.min(1, (Date.parse(`${iso}:00Z`) - t0) / (t1 - t0)) : 0;
+      for (const k of ['temperature_2m', 'relative_humidity_2m', 'dew_point_2m', 'apparent_temperature', 'shortwave_radiation']) {
+        const a = m[k] && m[k][i];
+        const b = m[k] && m[k][j];
+        if (a != null && b != null) cur[k] = a + (b - a) * frac;
+        else if (a != null) cur[k] = a;
+      }
+      cur.time = iso;
+    }
+    data.current = cur;
+  }
+
   // ---------- is this normal? ----------
   /** Percentile of x within a 101-point quantile ladder. */
   function pctOf(q, x) {
@@ -382,7 +415,7 @@
     document.title = currentPlace && !currentPlace.geo
       ? `${COPY[now][0]} in ${currentPlace.name} · muggy.fyi`
       : `Muggy · ${COPY[now][0]}`;
-    els.timeChip.textContent = `as of ${cur.time.slice(11, 16)}`;
+    els.timeChip.textContent = `now · ${cur.time.slice(11, 16)}`;
     els.title.textContent = COPY[now][0];
     els.blurb.textContent = blurbFor(now, cur);
     els.temp.textContent = fmtTemp(cur.temperature_2m);
@@ -458,6 +491,7 @@
       if (!data.current || data.current.dew_point_2m == null) throw new Error('no dew point');
       currentPlace = place;
       prefs.place = place; savePrefs();
+      synthesize();
       render();
       // A stale hit means the worker is refreshing KV behind this response.
       // Pick the fresh copy up once, quietly, without flashing the UI.
@@ -467,7 +501,7 @@
             const r2 = await fetch(`/api/forecast?lat=${place.lat}&lon=${place.lon}`, { cache: 'reload' });
             if (!r2.ok) return;
             const d2 = await r2.json();
-            if (d2.current && d2.current.dew_point_2m != null) { data = d2; render(); }
+            if (d2.current && d2.current.dew_point_2m != null) { data = d2; synthesize(); render(); }
           } catch { /* the stale data stays; it was good enough to render */ }
         }, 6000);
       }
@@ -577,6 +611,21 @@
     const ok = await locate({ silent: true });
     if (!ok) { load(DEFAULT_PLACE); toast('Showing Tirana. Tap the name to change.'); }
   })();
+
+  // The minute tick moves the interpolated reading; the five-minute fetch
+  // brings a fresh model step behind it.
+  setInterval(() => {
+    if (data && !document.hidden) { synthesize(); render(); }
+  }, 60000);
+  setInterval(async () => {
+    if (!currentPlace || document.hidden) return;
+    try {
+      const r = await fetch(`/api/forecast?lat=${currentPlace.lat}&lon=${currentPlace.lon}`, { cache: 'reload' });
+      if (!r.ok) return;
+      const d = await r.json();
+      if (d.current && d.current.dew_point_2m != null) { data = d; synthesize(); render(); }
+    } catch { /* keep what we have */ }
+  }, 300000);
 
   // Refresh when coming back to the tab after a while.
   let hidden = 0;

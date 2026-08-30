@@ -40,7 +40,7 @@ def runs(mask):
 # --------------------------------------------------------------------------
 CLOUD_FRAMES = 6
 CELL_W, CELL_H = 300, 310          # output size per frame
-PAD = 18                           # breathing room inside the cell (source px)
+PAD = 28                           # breathing room, and slack for body-centring (source px)
 
 src = Image.open('sheet-cloud.jpg').convert('RGB')
 a = np.asarray(src).astype(int)
@@ -106,9 +106,17 @@ for ri, level in enumerate(LEVELS):
             continue
         cell = Image.new('RGBA', (src_w, src_h), (0, 0, 0, 0))
         frame = keyed.crop((box[0], box[1], box[2] + 1, box[3] + 1))
-        # Centred horizontally, sitting on the floor of the cell: feet stay put
-        # across the walk cycle while hats and wind lines overhang upward.
-        cell.paste(frame, ((src_w - frame.width) // 2, src_h - PAD - frame.height), frame)
+        # Centre on the BODY, not the bounding box. Sun hats, wind puffs and
+        # the heatwave sign widen the box on one side and drag the character
+        # off-centre; the lower half of the sprite is always just body and
+        # feet, so its centre of mass is the honest anchor.
+        fa = np.asarray(frame)[..., 3] > 0
+        lower = fa[int(fa.shape[0] * 0.55):, :]
+        xs_body = np.where(lower)[1]
+        cx = xs_body.mean() if len(xs_body) else frame.width / 2
+        x = int(round(src_w / 2 - cx))
+        x = max(0, min(src_w - frame.width, x))
+        cell.paste(frame, (x, src_h - PAD - frame.height), frame)
         cell = cell.resize((CELL_W, CELL_H), Image.LANCZOS)
         strip.paste(cell, (ci * CELL_W, 0))
         if ci == 0:

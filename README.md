@@ -114,10 +114,12 @@ cache:
 edge cache (per colo, minutes) → KV (global, stale-while-revalidate) → upstream
 ```
 
-The KV layer is what protects the upstream API. A forecast younger than 10 minutes serves as fresh;
-up to 3 hours old it serves instantly *and* refreshes in the background, so worldwide traffic costs
-Open-Meteo at most about one fetch per city per 10 minutes; and if the upstream is down or rate-limiting,
-stale data keeps serving for a day rather than erroring. Geocoding is cached 30 days — cities don't
+The KV layer is what protects the upstream API. A forecast younger than 5 minutes serves as fresh;
+up to 30 minutes old it serves instantly *and* refreshes in the background, so worldwide traffic costs
+Open-Meteo at most about one fetch per city per 5 minutes; and if the upstream is down or rate-limiting,
+stale data keeps serving for a day rather than erroring. The model's "current" is a 15-minute step, so
+the client interpolates the 15-minutely series to the actual minute in the city's timezone, re-renders
+every minute, and refetches every 5 — the reading tracks the wall clock instead of stepping. Geocoding is cached 30 days — cities don't
 move. Pages run through the Worker (`run_worker_first`) for the canonical-host redirect, OG injection
 and analytics; sprites, banners and static files skip it and serve straight from the asset layer.
 
@@ -138,7 +140,7 @@ sheet-cloud.jpg       Source spritesheet — pixel cloud, 6 levels × 6 frames, 
 
 | Route | Cache | Notes |
 |---|---|---|
-| `GET /api/forecast?lat=&lon=` | KV SWR (10 min fresh / 3 h stale / 24 h emergency) | `x-muggy-cache` header says which |
+| `GET /api/forecast?lat=&lon=` | KV SWR (5 min fresh / 30 min stale / 24 h emergency) | `x-muggy-cache` header says which |
 | `GET /api/geocode?q=` | KV 30 d | City search |
 | `GET /api/normals?lat=&lon=` | 200 d, KV | Ten years of climatology for today's date |
 

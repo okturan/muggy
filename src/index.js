@@ -39,7 +39,7 @@ const OG_LINE = {
 // Forecast freshness. FRESH is what users see; STALE_SERVE is how long stale
 // data is acceptable while a background refresh runs; STALE_MAX is the
 // upstream-is-down emergency ration.
-const FRESH_S = 600;
+const FRESH_S = 300;
 const STALE_SERVE_S = 1800;
 const STALE_MAX_S = 24 * 3600;
 
@@ -83,6 +83,8 @@ async function fetchUpstreamForecast(lat, lon) {
   up.searchParams.set('longitude', lon.toFixed(2));
   up.searchParams.set('hourly', HOURLY);
   up.searchParams.set('current', CURRENT);
+  up.searchParams.set('minutely_15', 'temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,shortwave_radiation');
+  up.searchParams.set('forecast_minutely_15', '96');
   up.searchParams.set('timezone', 'auto');
   up.searchParams.set('forecast_days', '7');
   const r = await fetch(up, { headers: { 'user-agent': 'muggy.fyi (Cloudflare Worker)' } });
@@ -165,7 +167,7 @@ async function forecast(request, env, ctx) {
   track(env, request, 'api:forecast', coordKey(c.lat, c.lon), state);
   if (!data) return json({ error: 'weather service unavailable' }, 503);
   // Short edge/browser TTL in front of the KV layer.
-  return json(data, 200, { 'cache-control': 'public, max-age=300', 'x-muggy-cache': state });
+  return json(data, 200, { 'cache-control': 'public, max-age=120', 'x-muggy-cache': state });
 }
 
 async function geocode(request, env, ctx) {
