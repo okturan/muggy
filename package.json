@@ -9,6 +9,7 @@
     "sprites": "python3 tools/slice-sprites.py"
   },
   "devDependencies": {
+    "puppeteer-core": "^25.9.0",
     "wrangler": "^4.97.0"
   }
 }

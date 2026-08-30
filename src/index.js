@@ -40,7 +40,7 @@ const OG_LINE = {
 // data is acceptable while a background refresh runs; STALE_MAX is the
 // upstream-is-down emergency ration.
 const FRESH_S = 600;
-const STALE_SERVE_S = 3 * 3600;
+const STALE_SERVE_S = 1800;
 const STALE_MAX_S = 24 * 3600;
 
 const NORMAL_YEARS = 10;

@@ -78,7 +78,8 @@
   const qs = new URLSearchParams(location.search);
   let unit = (qs.get('unit') || prefs.unit) === 'f' ? 'f' : 'c';
   let data = null;
-  let normals = null;   // climatology for this place and date, or null while loading/unavailable
+  let normals = null;
+  let currentPlace = null;   // the place on screen; share and title derive from this, never from the URL bar   // climatology for this place and date, or null while loading/unavailable
 
   const levelOf = (dpC) => BANDS.find((b) => dpC < b.max).id;
   const fmtTemp = (c) => (c == null ? '–' : `${Math.round(unit === 'f' ? c * 9 / 5 + 32 : c)}°`);
@@ -378,7 +379,10 @@
     app.dataset.level = now;
     app.dataset.state = 'ready';
     els.levelName.textContent = now;
-    els.timeChip.textContent = `now · ${cur.time.slice(11, 16)}`;
+    document.title = currentPlace && !currentPlace.geo
+      ? `${COPY[now][0]} in ${currentPlace.name} · muggy.fyi`
+      : `Muggy · ${COPY[now][0]}`;
+    els.timeChip.textContent = `as of ${cur.time.slice(11, 16)}`;
     els.title.textContent = COPY[now][0];
     els.blurb.textContent = blurbFor(now, cur);
     els.temp.textContent = fmtTemp(cur.temperature_2m);
@@ -452,8 +456,21 @@
       if (!r.ok) throw new Error(`forecast ${r.status}`);
       data = await r.json();
       if (!data.current || data.current.dew_point_2m == null) throw new Error('no dew point');
+      currentPlace = place;
       prefs.place = place; savePrefs();
       render();
+      // A stale hit means the worker is refreshing KV behind this response.
+      // Pick the fresh copy up once, quietly, without flashing the UI.
+      if (r.headers.get('x-muggy-cache') === 'stale') {
+        setTimeout(async () => {
+          try {
+            const r2 = await fetch(`/api/forecast?lat=${place.lat}&lon=${place.lon}`, { cache: 'reload' });
+            if (!r2.ok) return;
+            const d2 = await r2.json();
+            if (d2.current && d2.current.dew_point_2m != null) { data = d2; render(); }
+          } catch { /* the stale data stays; it was good enough to render */ }
+        }, 6000);
+      }
       loadNormals(place);   // slower and optional; never blocks the main view
     } catch (err) {
       console.error(err);
@@ -534,7 +551,8 @@
   });
 
   $('shareBtn').addEventListener('click', async () => {
-    const url = location.origin + location.pathname;
+    const slug = currentPlace && !currentPlace.geo ? slugify(currentPlace.name) : '';
+    const url = `https://muggy.fyi/${slug}`;
     const title = document.title;
     const text = data ? `${els.title.textContent} in ${els.placeName.textContent}. ${els.blurb.textContent}` : title;
     if (navigator.share) {
