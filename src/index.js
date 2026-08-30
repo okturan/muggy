@@ -328,8 +328,10 @@ export default {
     const url = new URL(request.url);
     const { pathname } = url;
 
-    // One canonical host: workers.dev and www redirect to the domain.
-    if (url.hostname === `www.${CANONICAL_HOST}` || url.hostname.endsWith('.workers.dev')) {
+    // One canonical origin: https on the apex. Plain http must redirect —
+    // geolocation and the share sheet only exist in secure contexts.
+    if (url.protocol === 'http:' || url.hostname === `www.${CANONICAL_HOST}` || url.hostname.endsWith('.workers.dev')) {
+      url.protocol = 'https:';
       url.hostname = CANONICAL_HOST;
       return Response.redirect(url.toString(), 301);
     }
