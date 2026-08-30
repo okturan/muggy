@@ -583,6 +583,14 @@
       } catch { renderResults([], 'Search is unavailable right now.'); }
     }, 280);
   });
+  // Enter in the search box submits the dialog form and closes the sheet with
+  // nothing chosen. People type a city and hit Enter; give them the top match.
+  els.q.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    const first = els.results.querySelector('button');
+    if (first) first.click();
+  });
   $('placeBtn').addEventListener('click', () => { els.sheet.showModal(); els.q.value = ''; renderResults([]); setTimeout(() => els.q.focus(), 50); });
   $('geoBtn').addEventListener('click', async () => { els.sheet.close(); locate(); });
   els.sheet.addEventListener('click', (e) => { if (e.target === els.sheet) els.sheet.close(); });
