@@ -266,7 +266,6 @@
     if (hx == null || hx < 25) { els.strainCard.hidden = true; return; }
 
     const level = HUMIDEX_LEVELS.find((l) => hx < l.max);
-    els.strainValue.textContent = level.head;
     els.strainSub.innerHTML = `<a href="/about#humidex">humidex ${Math.round(hx)} · what's this?</a>`;
 
     // Today's peak, so "now" has something to be measured against.
@@ -282,9 +281,18 @@
     // while an evening visibly eased from 36 to 32. Position within the
     // bracket and the last hour's direction keep it honest between
     // thresholds.
+    // The verdict itself grades within the wide official bracket: humidex 38
+    // is two points from Environment Canada's avoid-exertion line, and a
+    // headline that starts with "fine" there is wrong even when the small
+    // print hedges. Verdicts must not need their own small print.
+    let head = level.head;
     let body = level.body;
     if (hx >= 30 && hx < 33) body = 'Only just into the range where you feel it. A stroll is nothing; a hill will remind you.';
-    else if (hx >= 37 && hx < 40) body = 'Near the hard end of the middle range. Keep the pace easy.';
+    else if (hx >= 37 && hx < 40) {
+      head = 'Verging on hard';
+      body = 'Two points shy of the level where the official advice is to avoid exertion. Keep the pace easy and the water close.';
+    }
+    els.strainValue.textContent = head;
     const parts = [body];
 
     const m = data.minutely_15;
