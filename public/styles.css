@@ -121,6 +121,9 @@ h1, h2, p { margin: 0; }
 .stat.comfort { background: var(--lc); transition: background .3s; }
 .stat.comfort .k { color: var(--ink-2); }
 .stat.comfort .v { font-size: 18px; letter-spacing: .5px; }
+/* "comfortable" and friends: eleven characters must not burst a tile sized
+   for "muggy". The long class is set from the band name's length. */
+.stat.comfort .v.long { font-size: 13px; letter-spacing: .2px; }
 
 /* blocks */
 .block { display: flex; flex-direction: column; gap: 10px; }

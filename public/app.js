@@ -459,6 +459,7 @@
     els.temp.textContent = fmtTemp(cur.temperature_2m);
     els.hum.textContent = cur.relative_humidity_2m == null ? '–' : `${Math.round(cur.relative_humidity_2m)}%`;
     els.comfort.textContent = now;
+    els.comfort.classList.toggle('long', now.length > 8);
 
     // Hours: from the current hour, next 24.
     const curHour = cur.time.slice(0, 13);
