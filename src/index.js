@@ -408,6 +408,18 @@ export default {
           return json({ error: 'slow down' }, 429, { 'retry-after': '60' });
         }
       }
+      if (pathname === '/api/whereami') {
+        // Cloudflare's IP geolocation: city-level, no permission prompt, no
+        // third party. The instant first paint for in-app browsers that
+        // swallow the real geolocation API without ever answering.
+        const cf = request.cf || {};
+        track(env, request, 'api:whereami', cf.city || '');
+        return json({
+          city: cf.city || '',
+          lat: cf.latitude != null ? Number(cf.latitude) : null,
+          lon: cf.longitude != null ? Number(cf.longitude) : null,
+        }, 200, { 'cache-control': 'no-store' });
+      }
       if (pathname === '/api/forecast') return forecast(request, env, ctx);
       if (pathname === '/api/geocode') return geocode(request, env, ctx);
       if (pathname === '/api/normals') return normals(request, env, ctx);

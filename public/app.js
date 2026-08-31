@@ -559,50 +559,70 @@
     }
   }
 
-  function locate({ silent } = {}) {
-    if (!navigator.geolocation) { if (!silent) toast('Location is not available here'); return Promise.resolve(false); }
-    return new Promise((resolve) => {
-      navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          const lat = +pos.coords.latitude.toFixed(3);
-          const lon = +pos.coords.longitude.toFixed(3);
-          // Name the place. The forecast still uses the exact coordinates and
-          // the URL stays at "/", but the header should say "Tirana", not the
-          // non-answer "My location". BigDataCloud's client API is free,
-          // keyless, and built for exactly this browser-side call.
-          let name = 'My location';
-          try {
-            const r = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
-            const j = r.ok ? await r.json() : null;
-            if (j) name = j.city || j.locality || j.principalSubdivision || name;
-            // The reverse geocoder buries the human name in a different field
-            // every time: central Tirana's city is "Bashkia e Tiranes" with
-            // "Tirana" in the admin chain; Bursa's city is its district with
-            // "Bursa" in locality. So every field is a candidate, and the
-            // winner is the closest geocoder match with the largest
-            // population: the biggest real city that agrees on where we are.
-            const fields = j ? [j.city, j.locality, j.principalSubdivision,
-              ...(((j.localityInfo || {}).administrative) || []).map((a) => a.name)].filter(Boolean) : [];
-            const cands = [...new Set(fields.map((f) => f.trim()))].slice(0, 7);
-            const near = await Promise.all(cands.map(async (q2) => {
-              try {
-                const g = await fetch(`/api/geocode?q=${encodeURIComponent(q2)}`);
-                if (!g.ok) return null;
-                const c = ((await g.json()).results || [])[0];
-                if (!c || /^PCL/.test(c.fc || '')) return null;   // a country is never the answer here
-                return Math.abs(c.lat - lat) < 0.7 && Math.abs(c.lon - lon) < 0.7 ? c : null;
-              } catch { return null; }
-            }));
-            const best = near.filter(Boolean).sort((a2, b2) => (b2.population || 0) - (a2.population || 0))[0];
-            if (best) name = best.name;
-          } catch { /* the generic label is a fine fallback */ }
-          load({ name, lat, lon, geo: true });
-          resolve(true);
-        },
-        () => { if (!silent) toast('Could not get your location'); resolve(false); },
-        { timeout: 8000, maximumAge: 600000 },
-      );
-    });
+  /**
+   * getCurrentPosition with a cap WE enforce. In-app browsers (LinkedIn,
+   * Instagram) often neither prompt nor call the error callback — the spec's
+   * own timeout only starts after permission resolves, so the call can hang
+   * forever. This one always answers.
+   */
+  const gps = (ms) => new Promise((resolve) => {
+    let done = false;
+    const finish = (v) => { if (!done) { done = true; resolve(v); } };
+    if (!navigator.geolocation) return finish(null);
+    try {
+      navigator.geolocation.getCurrentPosition((p) => finish(p), () => finish(null),
+        { timeout: Math.max(1000, ms - 500), maximumAge: 600000 });
+    } catch { finish(null); }
+    setTimeout(() => finish(null), ms);
+  });
+
+  /** Coordinates → the name of the biggest real city that agrees on where we are. */
+  async function nameFor(lat, lon) {
+    let name = 'My location';
+    try {
+      const r = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
+      const j = r.ok ? await r.json() : null;
+      if (j) name = j.city || j.locality || j.principalSubdivision || name;
+      const fields = j ? [j.city, j.locality, j.principalSubdivision,
+        ...(((j.localityInfo || {}).administrative) || []).map((a) => a.name)].filter(Boolean) : [];
+      const cands = [...new Set(fields.map((f) => f.trim()))].slice(0, 7);
+      const near = await Promise.all(cands.map(async (q2) => {
+        try {
+          const g = await fetch(`/api/geocode?q=${encodeURIComponent(q2)}`);
+          if (!g.ok) return null;
+          const c = ((await g.json()).results || [])[0];
+          if (!c || /^PCL/.test(c.fc || '')) return null;
+          return Math.abs(c.lat - lat) < 0.7 && Math.abs(c.lon - lon) < 0.7 ? c : null;
+        } catch { return null; }
+      }));
+      const best = near.filter(Boolean).sort((a2, b2) => (b2.population || 0) - (a2.population || 0))[0];
+      if (best) name = best.name;
+    } catch { /* the generic label is a fine fallback */ }
+    return name;
+  }
+
+  async function locate({ silent } = {}) {
+    const pos = await gps(6000);
+    if (!pos) { if (!silent) toast('Could not get your location'); return false; }
+    const lat = +pos.coords.latitude.toFixed(3);
+    const lon = +pos.coords.longitude.toFixed(3);
+    const name = await nameFor(lat, lon);
+    load({ name, lat, lon, geo: true });
+    return true;
+  }
+
+  /** IP-level location from our own worker: instant, promptless, city-close. */
+  async function ipLocate() {
+    try {
+      const r = await fetch('/api/whereami');
+      if (!r.ok) return false;
+      const j = await r.json();
+      if (j.lat == null || j.lon == null) return false;
+      const lat = +(+j.lat).toFixed(2);
+      const lon = +(+j.lon).toFixed(2);
+      load({ name: j.city || await nameFor(lat, lon), lat, lon, geo: true });
+      return true;
+    } catch { return false; }
   }
 
   // ---------- search sheet ----------
@@ -651,7 +671,12 @@
     }));
   }
   $('placeBtn').addEventListener('click', () => { els.sheet.showModal(); els.q.value = ''; renderResults([]); renderRecents(); setTimeout(() => els.q.focus(), 50); });
-  $('geoBtn').addEventListener('click', async () => { els.sheet.close(); locate(); });
+  $('geoBtn').addEventListener('click', async () => {
+    els.sheet.close();
+    if (!(await locate())) {
+      if (await ipLocate()) toast('Using your rough location');
+    }
+  });
   els.sheet.addEventListener('click', (e) => { if (e.target === els.sheet) els.sheet.close(); });
 
   // ---------- toggles ----------
@@ -699,6 +724,10 @@
     if (prefs.place && Number.isFinite(prefs.place.lat)) {
       load(prefs.place);
       if (prefs.place.geo) locate({ silent: true }); // refresh silently if they were on GPS
+      return;
+    }
+    if (await ipLocate()) {
+      locate({ silent: true });   // background upgrade to real GPS, if the browser allows it
       return;
     }
     const ok = await locate({ silent: true });
