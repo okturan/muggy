@@ -76,7 +76,12 @@
   const savePrefs = () => { try { localStorage.setItem('muggy:prefs', JSON.stringify(prefs)); } catch {} };
 
   const qs = new URLSearchParams(location.search);
-  let unit = (qs.get('unit') || prefs.unit) === 'f' ? 'f' : 'c';
+  const savedUnit = qs.get('unit') || prefs.unit;
+  // First visit with no saved choice: Fahrenheit for the handful of locales
+  // that live in it, Celsius for everyone else. The toggle always wins after.
+  let unit = savedUnit === 'f' || savedUnit === 'c'
+    ? savedUnit
+    : (/(^|-)(US|BS|BZ|KY|LR)$/i.test(navigator.language || '') ? 'f' : 'c');
   let data = null;
   let normals = null;
   let currentPlace = null;   // the place on screen; share and title derive from this, never from the URL bar   // climatology for this place and date, or null while loading/unavailable
@@ -318,6 +323,13 @@
     } else if (sun != null && sun > 120) {
       parts.push('Some sun on top of it.');
     }
+    // Wind is the one thing that genuinely helps sticky air: it is why WBGT
+    // measures it. Mention it only when it is doing real work.
+    const wind = cur.wind_speed_10m;
+    if (wind != null && wind >= 15 && hx >= 30) {
+      const w = unit === 'f' ? `${Math.round(wind * 0.621)} mph` : `${Math.round(wind)} km/h`;
+      parts.push(`A ${w} breeze is helping sweat do its job.`);
+    }
     els.strainNote.textContent = parts.join(' ');
     els.strainCard.hidden = false;
   }
@@ -516,6 +528,11 @@
       data = await r.json();
       if (!data.current || data.current.dew_point_2m == null) throw new Error('no dew point');
       currentPlace = place;
+      if (!place.geo) {
+        const rec = (prefs.recents || []).filter((r2) => r2.name !== place.name);
+        rec.unshift({ name: place.name, lat: place.lat, lon: place.lon });
+        prefs.recents = rec.slice(0, 5);
+      }
       prefs.place = place; savePrefs();
       synthesize();
       render();
@@ -591,7 +608,17 @@
     const first = els.results.querySelector('button');
     if (first) first.click();
   });
-  $('placeBtn').addEventListener('click', () => { els.sheet.showModal(); els.q.value = ''; renderResults([]); setTimeout(() => els.q.focus(), 50); });
+  function renderRecents() {
+    const rec = prefs.recents || [];
+    const box = $('recents');
+    box.innerHTML = rec.map((r2, i) => `<button type="button" data-i="${i}">${esc(r2.name)}</button>`).join('');
+    box.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
+      const r2 = rec[+b.dataset.i];
+      els.sheet.close();
+      load({ name: r2.name, lat: r2.lat, lon: r2.lon }, { push: true });
+    }));
+  }
+  $('placeBtn').addEventListener('click', () => { els.sheet.showModal(); els.q.value = ''; renderResults([]); renderRecents(); setTimeout(() => els.q.focus(), 50); });
   $('geoBtn').addEventListener('click', async () => { els.sheet.close(); locate(); });
   els.sheet.addEventListener('click', (e) => { if (e.target === els.sheet) els.sheet.close(); });
 
@@ -660,6 +687,8 @@
       if (d.current && d.current.dew_point_2m != null) { data = d; synthesize(); render(); }
     } catch { /* keep what we have */ }
   }, 300000);
+
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
 
   // Refresh when coming back to the tab after a while.
   let hidden = 0;

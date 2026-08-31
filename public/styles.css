@@ -204,6 +204,15 @@ h1, h2, p { margin: 0; }
 .search input { flex: 1; background: none; border: 0; outline: 0; color: var(--ink); font: inherit; font-size: 17px; font-weight: 600; min-width: 0; }
 .search input::placeholder { color: var(--muted); }
 .geo { display: flex; align-items: center; gap: 8px; color: var(--accent); font-family: var(--display); font-size: 16px; min-height: 44px; padding: 0 4px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chips:empty { display: none; }
+.chips button {
+  font-family: var(--display); font-weight: 700; font-size: 14px;
+  border: var(--border); background: var(--panel); padding: 8px 14px;
+  box-shadow: 2px 2px 0 var(--ink); min-height: 40px;
+}
+.chips button:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--ink); }
+
 .results {
   list-style: none; margin: 0; padding: 2px 2px 45dvh;   /* deep tail: the last hits scroll clear of the keyboard */
   display: flex; flex-direction: column; gap: 8px;

@@ -127,6 +127,10 @@ Analytics is one [Analytics Engine](https://developers.cloudflare.com/analytics/
 point per page view and API call — type, slug, country, colo, cache state — queryable with SQL from the
 dashboard, no client-side tracker, nothing personal stored.
 
+A service worker makes it installable and offline-capable: network-first (a deploy is never masked by a
+stale cache), with the cache as fallback, so the shell and the last-seen forecast render with no signal.
+Recently viewed cities sit in the search sheet, and first-time visitors from Fahrenheit locales get °F.
+
 ```
 src/index.js          Worker: /api/forecast, /api/geocode, everything else → static assets
 public/               The app — vanilla HTML/CSS/JS, no framework, no build step
