@@ -36,5 +36,9 @@
       { "name": "LIMITER", "type": "ratelimit", "namespace_id": "1001", "simple": { "limit": 60, "period": 60 } }
     ]
   },
+  // KV pre-warmer: every 10 minutes, refresh the most recently active cities
+  // so nobody gets a stale-then-refresh first paint. Capped at 4 per run to
+  // stay far inside the free plan's 1,000 KV writes/day.
+  "triggers": { "crons": ["*/10 * * * *"] },
   "observability": { "enabled": true }
 }

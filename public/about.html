@@ -30,6 +30,12 @@
     .callout p { margin: 0; }
     .swatch { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--ink); vertical-align: -1px; margin-right: 6px; }
   </style>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+    {"@type":"Question","name":"Why does Muggy use dew point instead of temperature or humidity?","acceptedAnswer":{"@type":"Answer","text":"Temperature does not say how the air feels: 30\u00b0 in dry air is pleasant, 27\u00b0 in soaked air is a slog. The dew point measures how much water the air already carries, which decides how well sweat can evaporate and cool you. Relative humidity alone cannot tell you this: fog on a cold morning is 100% humidity and nobody calls it muggy."}},
+    {"@type":"Question","name":"What are the six comfort bands?","acceptedAnswer":{"@type":"Answer","text":"Dry (dew point below 13\u00b0C), comfortable (13-16), humid (16-18), muggy (18-21), oppressive (21-24) and miserable (24 and up). These are the thresholds WeatherSpark made familiar, converted from Fahrenheit."}},
+    {"@type":"Question","name":"What is humidex?","acceptedAnswer":{"@type":"Answer","text":"Environment Canada's discomfort index from 1965. It folds temperature and dew point into one number read like a feels-like temperature in \u00b0C: humidex 36 means the load on your body is about what 36\u00b0 of dry heat would be. Under 30 is little discomfort, 30-39 some, 40-45 great, above 45 dangerous."}},
+    {"@type":"Question","name":"How does Muggy decide whether the air is normal for the date?","acceptedAnswer":{"@type":"Answer","text":"It compares right now against ten years of history for the same place and time of year, every recorded hour within a week of today's date, about 3,600 of them, and reports where the moment sits, such as stickier than 93% of days."}}
+  ]}</script>
 </head>
 <body>
   <main class="page">

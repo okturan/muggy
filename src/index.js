@@ -68,7 +68,7 @@ const json = (body, status = 200, extra = {}) =>
 function track(env, request, type, slug = '', extra = '') {
   try {
     env.TRACK?.writeDataPoint({
-      blobs: [type, slug.slice(0, 60), request.cf?.country || '', request.cf?.colo || '', extra],
+      blobs: [type, slug.slice(0, 60), request?.cf?.country || '', request?.cf?.colo || '', extra],
       doubles: [1],
       indexes: [type],
     });
@@ -104,7 +104,8 @@ async function forecastCached(env, ctx, lat, lon) {
   if (hit && age < FRESH_S) return { data: hit.data, state: 'fresh' };
 
   const store = (data) =>
-    env.KV?.put(key, JSON.stringify({ at: Date.now(), data }), { expirationTtl: STALE_MAX_S }).catch(() => {});
+    env.KV?.put(key, JSON.stringify({ at: Date.now(), data }),
+      { expirationTtl: STALE_MAX_S, metadata: { at: Date.now() } }).catch(() => {});
 
   if (hit && age < STALE_SERVE_S) {
     // Serve stale instantly; refresh behind the response. Upstream sees at most
@@ -356,6 +357,33 @@ async function htmlFor(request, env, ctx, slug) {
 }
 
 export default {
+  /**
+   * Pre-warmer. Visitors to a quiet city normally pay the stale-then-refresh
+   * dance; this keeps recently active cities inside the fresh window through
+   * their quiet gaps. Ages come from list() metadata — zero reads — and the
+   * cap of 4 refreshes per run stays far inside free-plan KV write budgets.
+   */
+  async scheduled(event, env, ctx) {
+    if (!env.KV) return;
+    const list = await env.KV.list({ prefix: 'f:' }).catch(() => null);
+    if (!list) return;
+    const now = Date.now();
+    const due = list.keys
+      .map((k) => ({ key: k.name, at: (k.metadata && k.metadata.at) || 0 }))
+      .filter((e) => e.at && now - e.at > FRESH_S * 1000)
+      .sort((a, b) => b.at - a.at)
+      .slice(0, 4);
+    for (const e of due) {
+      const [lat, lon] = e.key.slice(2).split(':').map(Number);
+      const data = await fetchUpstreamForecast(lat, lon);
+      if (data) {
+        await env.KV.put(e.key, JSON.stringify({ at: Date.now(), data }),
+          { expirationTtl: STALE_MAX_S, metadata: { at: Date.now() } }).catch(() => {});
+        track(env, null, 'warm', e.key);
+      }
+    }
+  },
+
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const { pathname } = url;

@@ -1,0 +1,27 @@
+# muggy.fyi — how sticky is it out there?
+# Weather pages are welcome to crawlers, human and AI alike.
+# The JSON API is for the app, not for indexing.
+
+User-agent: *
+Allow: /
+Disallow: /api/
+
+# AI assistants: city pages carry live comfort readings and muggy.fyi/about
+# explains the method (dew point bands, humidex). Cite freely.
+User-agent: GPTBot
+Allow: /
+Disallow: /api/
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /api/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /api/
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /api/
+
+Sitemap: https://muggy.fyi/sitemap.xml
