@@ -450,7 +450,7 @@
     app.dataset.level = now;
     app.dataset.state = 'ready';
     els.levelName.textContent = now;
-    document.title = currentPlace && !currentPlace.geo
+    document.title = currentPlace && currentPlace.name && currentPlace.name !== 'My location'
       ? `${COPY[now][0]} in ${currentPlace.name} · muggy.fyi`
       : `Muggy · ${COPY[now][0]}`;
     els.timeChip.textContent = `now · ${cur.time.slice(11, 16)}`;
@@ -562,9 +562,32 @@
     if (!navigator.geolocation) { if (!silent) toast('Location is not available here'); return Promise.resolve(false); }
     return new Promise((resolve) => {
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const { latitude: lat, longitude: lon } = pos.coords;
-          load({ name: 'My location', lat: +lat.toFixed(3), lon: +lon.toFixed(3), geo: true });
+        async (pos) => {
+          const lat = +pos.coords.latitude.toFixed(3);
+          const lon = +pos.coords.longitude.toFixed(3);
+          // Name the place. The forecast still uses the exact coordinates and
+          // the URL stays at "/", but the header should say "Tirana", not the
+          // non-answer "My location". BigDataCloud's client API is free,
+          // keyless, and built for exactly this browser-side call.
+          let name = 'My location';
+          try {
+            const r = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
+            if (r.ok) {
+              const j = await r.json();
+              name = j.city || j.locality || j.principalSubdivision || name;
+            }
+            // The reverse geocoder speaks administratese ("Bashkia e Tiranes").
+            // Our own geocoder knows what the city is actually called — use its
+            // canonical name when it agrees on where we are.
+            if (name !== 'My location') {
+              const g = await fetch(`/api/geocode?q=${encodeURIComponent(name)}`);
+              if (g.ok) {
+                const cand = ((await g.json()).results || [])[0];
+                if (cand && Math.abs(cand.lat - lat) < 0.7 && Math.abs(cand.lon - lon) < 0.7) name = cand.name;
+              }
+            }
+          } catch { /* the generic label is a fine fallback */ }
+          load({ name, lat, lon, geo: true });
           resolve(true);
         },
         () => { if (!silent) toast('Could not get your location'); resolve(false); },
@@ -646,8 +669,8 @@
   });
 
   $('shareBtn').addEventListener('click', async () => {
-    const slug = currentPlace && !currentPlace.geo ? slugify(currentPlace.name) : '';
-    const url = `https://muggy.fyi/${slug}`;
+    const named = currentPlace && currentPlace.name && currentPlace.name !== 'My location';
+    const url = `https://muggy.fyi/${named ? slugify(currentPlace.name) : ''}`;
     const title = document.title;
     const text = data ? `${els.title.textContent} in ${els.placeName.textContent}. ${els.blurb.textContent}` : title;
     if (navigator.share) {
