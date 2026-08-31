@@ -125,7 +125,7 @@ async function forecastCached(env, ctx, lat, lon) {
 
 /** Geocode with a long KV memory — city coordinates do not move. */
 async function geocodeCached(env, ctx, q) {
-  const key = `g:${q.toLowerCase()}`;
+  const key = `g3:${q.toLowerCase()}`;   // g3: adds population + feature code
   const hit = env.KV ? await env.KV.get(key, 'json').catch(() => null) : null;
   if (hit) return hit;
   const up = new URL(UPSTREAM_GEOCODE);
@@ -144,6 +144,8 @@ async function geocodeCached(env, ctx, q) {
     cc: p.country_code || '',
     lat: p.latitude,
     lon: p.longitude,
+    population: p.population || 0,
+    fc: p.feature_code || '',
   }));
   ctx.waitUntil(env.KV?.put(key, JSON.stringify({ results }), { expirationTtl: 30 * 86400 }).catch(() => {}));
   return { results };

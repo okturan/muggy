@@ -572,20 +572,28 @@
           let name = 'My location';
           try {
             const r = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
-            if (r.ok) {
-              const j = await r.json();
-              name = j.city || j.locality || j.principalSubdivision || name;
-            }
-            // The reverse geocoder speaks administratese ("Bashkia e Tiranes").
-            // Our own geocoder knows what the city is actually called — use its
-            // canonical name when it agrees on where we are.
-            if (name !== 'My location') {
-              const g = await fetch(`/api/geocode?q=${encodeURIComponent(name)}`);
-              if (g.ok) {
-                const cand = ((await g.json()).results || [])[0];
-                if (cand && Math.abs(cand.lat - lat) < 0.7 && Math.abs(cand.lon - lon) < 0.7) name = cand.name;
-              }
-            }
+            const j = r.ok ? await r.json() : null;
+            if (j) name = j.city || j.locality || j.principalSubdivision || name;
+            // The reverse geocoder buries the human name in a different field
+            // every time: central Tirana's city is "Bashkia e Tiranes" with
+            // "Tirana" in the admin chain; Bursa's city is its district with
+            // "Bursa" in locality. So every field is a candidate, and the
+            // winner is the closest geocoder match with the largest
+            // population: the biggest real city that agrees on where we are.
+            const fields = j ? [j.city, j.locality, j.principalSubdivision,
+              ...(((j.localityInfo || {}).administrative) || []).map((a) => a.name)].filter(Boolean) : [];
+            const cands = [...new Set(fields.map((f) => f.trim()))].slice(0, 7);
+            const near = await Promise.all(cands.map(async (q2) => {
+              try {
+                const g = await fetch(`/api/geocode?q=${encodeURIComponent(q2)}`);
+                if (!g.ok) return null;
+                const c = ((await g.json()).results || [])[0];
+                if (!c || /^PCL/.test(c.fc || '')) return null;   // a country is never the answer here
+                return Math.abs(c.lat - lat) < 0.7 && Math.abs(c.lon - lon) < 0.7 ? c : null;
+              } catch { return null; }
+            }));
+            const best = near.filter(Boolean).sort((a2, b2) => (b2.population || 0) - (a2.population || 0))[0];
+            if (best) name = best.name;
           } catch { /* the generic label is a fine fallback */ }
           load({ name, lat, lon, geo: true });
           resolve(true);
