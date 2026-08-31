@@ -28,5 +28,13 @@
   "analytics_engine_datasets": [
     { "binding": "TRACK", "dataset": "muggy_events" }
   ],
+  // Workers-native per-IP rate limit for /api/*. Second layer behind the WAF
+  // rule: the WAF blocks at the edge before the worker runs; this catches
+  // whatever slips past.
+  "unsafe": {
+    "bindings": [
+      { "name": "LIMITER", "type": "ratelimit", "namespace_id": "1001", "simple": { "limit": 60, "period": 60 } }
+    ]
+  },
   "observability": { "enabled": true }
 }

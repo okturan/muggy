@@ -370,6 +370,16 @@ export default {
 
     if (pathname.startsWith('/api/')) {
       if (request.method !== 'GET') return json({ error: 'method not allowed' }, 405);
+      // 60 req/min per IP. The app itself uses a handful per load plus one
+      // refresh every five minutes; only scripts ever hit this.
+      if (env.LIMITER) {
+        const ip = request.headers.get('cf-connecting-ip') || 'unknown';
+        const { success } = await env.LIMITER.limit({ key: ip }).catch(() => ({ success: true }));
+        if (!success) {
+          track(env, request, 'ratelimited', pathname);
+          return json({ error: 'slow down' }, 429, { 'retry-after': '60' });
+        }
+      }
       if (pathname === '/api/forecast') return forecast(request, env, ctx);
       if (pathname === '/api/geocode') return geocode(request, env, ctx);
       if (pathname === '/api/normals') return normals(request, env, ctx);
