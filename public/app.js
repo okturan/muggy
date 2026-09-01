@@ -477,6 +477,10 @@
     for (let i = start; i < Math.min(start + 24, h.time.length); i++) {
       slice.push({ t: h.time[i], dp: h.dew_point_2m[i], temp: h.temperature_2m[i] });
     }
+    // The "now" cell must be the same now as every card above it. Left on the
+    // top-of-the-hour model step, it can sit a band apart from the
+    // interpolated reading and make the relief card look like a liar.
+    if (slice.length) slice[0] = { t: cur.time, dp: cur.dew_point_2m, temp: cur.temperature_2m };
     const valid = slice.filter((x) => x.dp != null);
     const peak = valid.reduce((a, b) => (b.dp > a.dp ? b : a), valid[0]);
     els.hours.innerHTML = slice.map((x, i) => {
