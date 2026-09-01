@@ -1,13 +1,17 @@
 """Slice the cloud spritesheet into per-band animation strips.
 
-sheet-cloud.jpg is shot on magenta: 6 rows (one per comfort band) x 6 frames.
-The key lifts cleanly; the only care needed is eroding the JPEG fringe so no
-magenta halo survives the downscale.
+sheet-cloud.jpg: 6 rows (one per comfort band) x 6 frames. The key strategy
+depends on the plate. A saturated plate (magenta) separates by colour
+distance. A white plate cannot: sweat drops, hats and the palest bodies sit
+within touching distance of white, so instead background is whatever is
+white-ish AND connected to the border — interior whites survive because the
+characters' outlines seal them in.
 
-Frames are bottom-aligned on a common ground line and centred on their own
-bounding box, so feet stay planted while accessories overhang.
+Frames are bottom-aligned on a common ground line and centred on the body,
+so feet stay planted while accessories overhang.
 """
 from PIL import Image, ImageFilter
+from scipy import ndimage
 import numpy as np
 import json
 import os
@@ -55,8 +59,17 @@ a = np.asarray(src).astype(int)
 # clusters under 40, with almost nothing in between.
 BG = np.median(np.concatenate([a[0:8].reshape(-1, 3), a[-8:].reshape(-1, 3),
                                a[:, 0:8].reshape(-1, 3), a[:, -8:].reshape(-1, 3)]), axis=0)
-fg = np.linalg.norm(a - BG, axis=2) > 60
-print(f'plate {tuple(int(v) for v in BG)}')
+if BG.min() > 235:
+    # White plate: key by connectivity, not colour alone.
+    bgish = np.linalg.norm(a - BG, axis=2) < 30
+    labels, _ = ndimage.label(bgish)
+    border = np.unique(np.concatenate([labels[0], labels[-1], labels[:, 0], labels[:, -1]]))
+    border = border[border != 0]
+    fg = ~np.isin(labels, border)
+    print(f'plate {tuple(int(v) for v in BG)} (white → border flood fill)')
+else:
+    fg = np.linalg.norm(a - BG, axis=2) > 60
+    print(f'plate {tuple(int(v) for v in BG)} (chroma key)')
 
 # Cells come from the gutters in the alpha projection rather than a fixed grid:
 # accessories (sun hats, wind lines, the heatwave sign) make the columns uneven.
