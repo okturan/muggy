@@ -1,0 +1,8 @@
+# Muggy (muggy.fyi) is a small open-source weather app.
+# If you find a security problem, please tell the maker directly.
+Contact: https://okanerturan.com
+Contact: https://github.com/okturan/muggy/issues
+Expires: 2027-09-01T00:00:00.000Z
+Preferred-Languages: en, sq, tr
+Canonical: https://muggy.fyi/.well-known/security.txt
+Policy: https://github.com/okturan/muggy
