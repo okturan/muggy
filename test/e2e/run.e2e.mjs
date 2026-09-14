@@ -67,7 +67,7 @@ const snapshot = (page) => page.evaluate(async () => {
   const out = {
     headline: text('title'), blurb: text('blurb'), air: text('comfort'), airLabel: document.querySelector('.stat.comfort .k').textContent,
     strainVisible: visible('strainCard'), strainSub: text('strainSub'), strainNote: text('strainNote'),
-    factorsText: text('factorsText'),
+    factorsText: text('factorsText'), doors: visible('doors') ? `${text('doorShade')} / ${text('doorSun')}` : null,
     normalVisible: visible('normalCard'), normalSub: text('normalSub'), normalNote: text('normalNote'), normalVerdict: text('normalVerdict'),
     reliefVisible: visible('windowCard'), reliefWhen: text('windowWhen'), reliefSub: text('windowSub'), reliefNote: text('windowNote'),
     hoursSub: text('hoursSub'), weekSub: text('weekSub'), whyVisible: visible('whyBtn'), docTitle: document.title,
@@ -137,6 +137,7 @@ try {
       check(fx.name, 'split headline names shade and sun', /in the shade/.test(s.headline) && /in the sun/.test(s.headline), s.headline);
       check(fx.name, 'small print gives shade and sun WBGT', /shade/.test(s.strainSub) && /sun/.test(s.strainSub), s.strainSub);
       check(fx.name, 'the sun is named as the cause', /sun/.test(s.factorsText), s.factorsText);
+      check(fx.name, 'two doors show the held shade and sun levels', s.doors === `${e.shadeLevel === 'realWork' ? 'real work' : e.shadeLevel} / ${e.sunLevel === 'realWork' ? 'real work' : e.sunLevel}`, s.doors);
       const w = await whySheet(page);
       check(fx.name, 'why sheet opens with focus inside', w.open.open && w.open.active === 'whyClose', JSON.stringify(w.open.active));
       check(fx.name, 'why sheet explains shade and sun', w.open.sections.includes('Shade and sun'), w.open.sections.join(', '));
@@ -152,6 +153,7 @@ try {
     }
     if (fx.name === 'missing-radiation') {
       check(fx.name, 'no split and no sun small print', !/in the sun/.test(s.headline) && !/sun/.test(s.strainSub), `${s.headline} | ${s.strainSub}`);
+      check(fx.name, 'no doors without a known sun', s.doors === null, s.doors);
     }
     if (fx.name === 'no-temperature') {
       check(fx.name, 'texture-only; Out in it and Why hidden', !s.strainVisible && !s.whyVisible, `${s.strainVisible} ${s.whyVisible}`);

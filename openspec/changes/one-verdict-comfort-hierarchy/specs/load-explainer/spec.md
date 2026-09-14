@@ -21,7 +21,7 @@ The card SHALL be hidden when the load level is None or the load is unavailable.
 - **THEN** the "Why it feels like this" card is not shown
 
 ### Requirement: Factor breakdown adds up
-The breakdown SHALL attribute the difference between the displayed WBGT and a reference WBGT to three factors: **damp**, **sun** and **breeze**. The reference is the same air temperature in dry, shaded air with a light breeze. The attribution SHALL be order-independent, and the three contributions SHALL sum to the total difference within 0.05 °C. The card SHALL state the breakdown as one or two plain sentences, naming the largest cause first and leaving out factors that make no difference; the "Why this verdict?" sheet gives a sentence per factor. When the sun is down, the sun factor SHALL be omitted.
+The breakdown SHALL attribute the difference between the displayed WBGT and a reference WBGT to three factors: **damp**, **sun** and **breeze**. The reference is the same air temperature in dry, shaded air with a light breeze. The attribution SHALL be order-independent, and the three contributions SHALL sum to the total difference within 0.05 °C. When the sun is in play the card SHALL first show two labelled boxes, "In the shade" and "In the sun", each with its held level. It SHALL then state the breakdown as one or two plain sentences, naming the largest cause first and leaving out factors that make no difference; the "Why this verdict?" sheet gives a sentence per factor. When the sun is down, the sun factor SHALL be omitted.
 
 #### Scenario: Contributions sum to the total
 - **WHEN** the breakdown is computed for any reachable input

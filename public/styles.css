@@ -236,7 +236,14 @@ h1, h2, p { margin: 0; }
 }
 .why:focus-visible, .close:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
-/* "Why it feels like this": what the load is made of */
+/* "Why it feels like this": the two doors, then the cause in a sentence */
+.doors { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.door { border: 2px solid var(--ink); padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; color: #22262F; }
+.door.shade { background: #DCE3EC; }
+.door.sun { background: #F0B36B; }
+.door .k { font-family: var(--display); font-size: 11px; letter-spacing: .6px; text-transform: uppercase; opacity: .75; }
+.door .v { font-size: 19px; text-transform: uppercase; }
+.panel .txt { font-size: 15px; line-height: 1.45; font-weight: 700; color: var(--ink); }
 .panel.outin { gap: 10px; }
 .factors-lead { font-size: 13px; font-weight: 700; color: var(--muted); }
 .factors { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }

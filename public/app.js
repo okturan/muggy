@@ -25,7 +25,7 @@ const els = {
   normalNote: $('normalNote'), mixBar: $('mixBar'),
   windowCard: $('windowCard'), windowSub: $('windowSub'), windowWhen: $('windowWhen'), windowNote: $('windowNote'),
   strainCard: $('strainCard'), strainSub: $('strainSub'), strainNote: $('strainNote'),
-  factorsText: $('factorsText'),
+  factorsText: $('factorsText'), doors: $('doors'), doorShade: $('doorShade'), doorSun: $('doorSun'),
   whyBtn: $('whyBtn'), whyCardBtn: $('whyCardBtn'), whySheet: $('whySheet'), whyBody: $('whyBody'), whyClose: $('whyClose'),
 };
 
@@ -217,6 +217,12 @@ function renderOutInIt() {
   const worst = n.verdict.worst;
   if (!n.load || !worst || worst === 'none') { els.strainCard.hidden = true; return; }
 
+  // The two doors: the choice you actually make outside. Only when the sun is in play.
+  els.doors.hidden = !n.sunInPlay;
+  if (n.sunInPlay) {
+    els.doorShade.textContent = phrase(n.shadeLevel);
+    els.doorSun.textContent = phrase(n.sunLevel);
+  }
   const { a } = factorsFor(n);
   els.factorsText.textContent = factorSummary(a.factors, { windKnown: n.load.windKnown });
 
