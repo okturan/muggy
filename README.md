@@ -101,7 +101,7 @@ minimum wind 0.13 m/s.
 ## The screen
 
 - **Headline and blurb**: the verdict, at most three sentences: air, body, then shade/sun or night.
-- **Out in it**: damp, sun and breeze as signed bars with words; where the day is heading ("It gets to
+- **Why it feels like this**: damp, sun and breeze as signed bars with words; where the day is heading ("It gets to
   real work by 12:00"); the WBGT numbers in small print. **Why this verdict?** opens a plain-language sheet.
 - **Is this normal?**: the current dew point against ten years of past hours at the **same time of day**
   (±2 h) within a week of today's date. One statistic: *"stickier than 78% of mornings"*.

@@ -4,8 +4,8 @@ Explains what is behind the verdict in plain words: how much the damp, the sun a
 
 ## ADDED Requirements
 
-### Requirement: "Out in it" card
-The card formerly titled "What it means" SHALL be titled "Out in it". It SHALL contain, in order:
+### Requirement: "Why it feels like this" card
+The card formerly titled "What it means" SHALL be titled "Why it feels like this". It SHALL contain, in order:
 1. A factor breakdown.
 2. At most two sentences about today's peak and the recent trend.
 3. A small-print line with the rounded shade WBGT, and the rounded sun WBGT when the sun is up, linking to the explanation of WBGT on the About page.
@@ -18,10 +18,10 @@ The card SHALL be hidden when the load level is None or the load is unavailable.
 
 #### Scenario: Hidden at None
 - **WHEN** the worst load level is None
-- **THEN** the "Out in it" card is not shown
+- **THEN** the "Why it feels like this" card is not shown
 
 ### Requirement: Factor breakdown adds up
-The breakdown SHALL attribute the difference between the displayed WBGT and a reference WBGT to three factors: **damp**, **sun** and **breeze**. The reference is the same air temperature in dry, shaded air with a light breeze. The attribution SHALL be order-independent, and the three contributions SHALL sum to the total difference within 0.05 °C. Each factor SHALL be shown as a signed bar and a word bucket (nothing, a little, some, a lot, or takes some off) rather than a raw number. When the sun is down, the sun factor SHALL be omitted.
+The breakdown SHALL attribute the difference between the displayed WBGT and a reference WBGT to three factors: **damp**, **sun** and **breeze**. The reference is the same air temperature in dry, shaded air with a light breeze. The attribution SHALL be order-independent, and the three contributions SHALL sum to the total difference within 0.05 °C. Each factor SHALL be shown as a signed bar and a word bucket that reads as a sentence after the factor name (for example "no difference", "a bit worse", "much hotter", "helps") rather than a raw number. When the sun is down, the sun factor SHALL be omitted.
 
 #### Scenario: Contributions sum to the total
 - **WHEN** the breakdown is computed for any reachable input
@@ -45,7 +45,7 @@ The breakdown SHALL attribute the difference between the displayed WBGT and a re
 - **THEN** the card does not say this is as heavy as today gets
 
 ### Requirement: "Why this verdict?" sheet
-Tapping the headline or a "Why?" control on the "Out in it" card SHALL open a sheet explaining, in plain language and without jargon before the final section:
+Tapping the headline or a "Why?" control on the "Why it feels like this" card SHALL open a sheet explaining, in plain language and without jargon before the final section:
 1. The verdict in one sentence.
 2. What the air is (texture) and what that does to sweat.
 3. The factor breakdown with a sentence per factor.

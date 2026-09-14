@@ -38,18 +38,18 @@ test('damp and sun add load on a humid sunny day; a strong breeze takes some off
 test('38 °C with strong wind: the breeze is only called helpful when its share is negative', () => {
   for (const sw of [0, 900]) {
     const a = attribute(base({ tair: 38, rh: 30, wind10: 12, sw, direct: 0.8 * sw }), 'sun');
-    if (a.factors.breeze > 0) assert.notEqual(a.words.breeze, 'takes some off');
-    if (a.words.breeze === 'takes some off') assert.ok(a.factors.breeze <= -0.5);
+    if (a.factors.breeze > 0) assert.notEqual(a.words.breeze, 'helps');
+    if (a.words.breeze === 'helps') assert.ok(a.factors.breeze <= -0.5);
   }
 });
 
 test('word buckets', () => {
-  assert.equal(wordFor(0.2), 'nothing');
-  assert.equal(wordFor(-0.2), 'nothing');
-  assert.equal(wordFor(1), 'a little');
-  assert.equal(wordFor(2), 'some');
-  assert.equal(wordFor(3.5), 'a lot');
-  assert.equal(wordFor(-0.8), 'takes some off');
+  assert.equal(wordFor(0.2), 'no difference');
+  assert.equal(wordFor(1), 'a bit worse');
+  assert.equal(wordFor(2, 'sun'), 'hotter');
+  assert.equal(wordFor(3.5, 'sun'), 'much hotter');
+  assert.equal(wordFor(-0.8), 'makes it easier');
+  assert.equal(wordFor(-0.8, 'breeze'), 'helps');
 });
 
 test('in cool air the reference is still dry, so damp cannot "take some off" against a saturated baseline', () => {

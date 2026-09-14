@@ -34,28 +34,28 @@ export const HEADLINES = {
 /** What the moisture does. Skin, sweat, the feel of the air; at night, sleep. Never what to do. */
 export const TEXTURE_SENTENCE = {
   dry: {
-    day: 'Dry air: sweat vanishes as it forms, so you lose water without feeling it; keep drinking.',
-    night: 'Dry air: skin and lips will feel it by morning.',
+    day: 'Dry air. Sweat dries before you notice it, so keep drinking.',
+    night: 'Dry air. Your lips will feel it by morning.',
   },
   comfortable: {
-    day: 'Fresh air: sweat dries as fast as it comes.',
-    night: 'Fresh air: sweat dries as fast as it comes, even after dark.',
+    day: 'Fresh air. Sweat dries as fast as it comes.',
+    night: 'Fresh air, even after dark.',
   },
   humid: {
-    day: "A little damp: you'll notice it on your skin.",
-    night: 'A little damp on the skin after dark.',
+    day: 'A little damp. You feel it on your skin.',
+    night: 'A little damp after dark.',
   },
   muggy: {
-    day: 'Shirts start sticking, and sweat is slow to dry.',
-    night: 'Sheets feel damp and sweat is slow to dry.',
+    day: 'Shirts stick and sweat is slow to dry.',
+    night: 'The sheets feel damp and sweat is slow to dry.',
   },
   oppressive: {
     day: 'Sweat barely dries, so it stops cooling you.',
-    night: "Sweat won't dry even after dark, so sleep comes slowly.",
+    night: "Sweat won't dry even after dark. Sleep comes slowly.",
   },
   miserable: {
-    day: 'The air is saturated: sweat pours and does almost nothing.',
-    night: "The air is saturated; sweat won't dry at all tonight.",
+    day: 'The air is soaked. Sweat pours and does almost nothing.',
+    night: "The air is soaked. Sweat won't dry at all tonight.",
   },
 };
 
@@ -63,20 +63,20 @@ export const TEXTURE_SENTENCE = {
 export const LOAD_SENTENCE = {
   none: { day: null, night: null },
   easy: {
-    day: 'The heat itself adds up to little.',
+    day: 'The heat adds up to little.',
     night: 'The warmth adds up to little tonight.',
   },
   noticeable: {
-    day: 'A hill or a fast walk will remind you, so keep the pace easy.',
-    night: 'Warm enough to notice tonight; moving air helps with sleep.',
+    day: 'A hill or a fast walk will remind you. Keep the pace easy.',
+    night: 'Warm enough to notice tonight. Moving air helps with sleep.',
   },
   realWork: {
-    day: 'Effort costs more than usual: take regular breaks and keep water close.',
-    night: 'A heavy night: effort costs more than usual, so keep water close.',
+    day: 'Anything strenuous costs more than usual. Take regular breaks and keep water close.',
+    night: 'A heavy night. Keep water close and take it easy.',
   },
   hard: {
-    day: 'Avoid hard effort; this is where heat illness starts. Find somewhere cooler when you can.',
-    night: 'A hard night to be out: avoid effort, keep water close, and sleep somewhere cooler if you can.',
+    day: 'Avoid hard effort. This is where heat illness starts. Find somewhere cooler when you can.',
+    night: 'A hard night to be out. Avoid effort, keep water close, and sleep somewhere cooler if you can.',
   },
   dangerous: {
     day: 'Heat illness can come on even at rest, especially for older people. Stop hard activity and get somewhere cool.',
@@ -86,10 +86,10 @@ export const LOAD_SENTENCE = {
 
 /** The load in the sun, when it is worse than in the shade (daytime only). */
 export const LOAD_SUN_SENTENCE = {
-  noticeable: 'In full sun, a hill or a fast walk will remind you; keep the pace easy there.',
-  realWork: 'In the sun, effort costs more than usual: take regular breaks and keep water close.',
-  hard: 'In the sun, avoid hard effort and avoid direct sun where you can.',
-  dangerous: 'In the sun it is dangerous: stop hard activity and get somewhere cool.',
+  noticeable: 'In full sun a hill or a fast walk will remind you. Keep the pace easy there.',
+  realWork: 'In the sun anything strenuous costs more than usual. Take regular breaks and keep water close.',
+  hard: 'In the sun avoid hard effort, and stay out of direct sun where you can.',
+  dangerous: 'In the sun it is dangerous. Stop hard activity and get somewhere cool.',
 };
 
 /** The load under cover, when the sun makes it worse. */
@@ -111,22 +111,22 @@ export const LEVEL_GUIDE = {
   easy: 'Little heat stress. Long sessions of sport still go better with regular drinks.',
   noticeable: 'Low risk in daily life. During sport or heavy work, drink regularly.',
   realWork: 'Errands are fine. Moderate or heavy activity needs regular rest and water.',
-  hard: 'It counts for everyone: avoid direct sun outdoors, skip heavy exercise, and keep an eye on indoor temperatures too.',
-  dangerous: 'Avoid outdoor activity. Older people are at risk even at rest; stay somewhere cool, ideally air-conditioned.',
+  hard: 'This one counts for everyone. Avoid direct sun outdoors, skip heavy exercise, and watch indoor temperatures too.',
+  dangerous: 'Avoid outdoor activity. Older people are at risk even at rest. Stay somewhere cool, ideally with air conditioning.',
 };
 
 /** One sentence per factor in the breakdown; c is its share in °C, w its word bucket. */
 export function factorSentence(name, c, w, { wind10 = 2 } = {}) {
-  if (w === 'nothing') {
-    return { damp: 'The humidity changes little here.', sun: 'The sun adds little right now.', breeze: 'The wind changes little here.' }[name];
+  if (w === 'no difference') {
+    return { damp: 'The humidity makes no real difference here.', sun: 'The sun adds little right now.', breeze: 'The wind makes no real difference.' }[name];
   }
-  if (name === 'damp') return c > 0 ? `The damp adds ${w}: sweat can't dry fast enough to cool you.` : 'The dry air takes some off: sweat dries quickly.';
-  if (name === 'sun') return c > 0 ? `The sun adds ${w}: direct light heats you the way it heats a black globe.` : 'The sun takes nothing off.';
+  if (name === 'damp') return c > 0 ? `The damp makes it ${w}. Sweat can't dry fast enough to cool you.` : 'The dry air makes it easier. Sweat dries quickly.';
+  if (name === 'sun') return `The sun makes it ${w}. Direct light heats you the way it heats a black globe.`;
   // breeze
-  if (c < 0) return 'The breeze takes some off by carrying heat away from you.';
+  if (c < 0) return 'The breeze helps by carrying heat away from you.';
   return wind10 < 2
-    ? `Still air adds ${w}: there is little breeze to carry heat away.`
-    : `The wind adds ${w}: the air it brings is close to skin temperature.`;
+    ? `Still air makes it ${w}. There is little breeze to carry heat away.`
+    : `The wind makes it ${w}. The air it brings is close to skin temperature.`;
 }
 
 /** Japan MOE's alert marks within Dangerous. */

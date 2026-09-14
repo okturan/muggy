@@ -236,7 +236,7 @@ h1, h2, p { margin: 0; }
 }
 .why:focus-visible, .close:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
-/* "Out in it": what the load is made of */
+/* "Why it feels like this": what the load is made of */
 .panel.outin { gap: 10px; }
 .factors-lead { font-size: 13px; font-weight: 700; color: var(--muted); }
 .factors { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }

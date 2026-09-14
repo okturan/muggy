@@ -60,18 +60,19 @@ export function attribute(i, scope = 'sun', cfg = CALIBRATION) {
     factors[name] = phi;
   });
 
-  const words = Object.fromEntries(Object.entries(factors).map(([k, c]) => [k, wordFor(c)]));
+  const words = Object.fromEntries(Object.entries(factors).map(([k, c]) => [k, wordFor(c, k)]));
   return { value: value(full), reference: value(0), factors, words };
 }
 
-/** How much, in words. Negative means the factor takes load away. */
-export function wordFor(c) {
-  if (c <= -0.5) return 'takes some off';
-  const a = Math.abs(c);
-  if (a < 0.5) return 'nothing';
-  if (a < 1.5) return 'a little';
-  if (a < 3) return 'some';
-  return 'a lot';
+/** How much, in words that read as a sentence after the factor's name. */
+export function wordFor(c, name = 'damp') {
+  if (name === 'breeze') return c <= -0.5 ? 'helps' : c < 0.5 ? 'no difference' : c < 1.5 ? 'a bit worse' : 'makes it worse';
+  if (c <= -0.5) return name === 'sun' ? 'no difference' : 'makes it easier';
+  const hot = name === 'sun';
+  if (c < 0.5) return 'no difference';
+  if (c < 1.5) return hot ? 'a bit hotter' : 'a bit worse';
+  if (c < 3) return hot ? 'hotter' : 'worse';
+  return hot ? 'much hotter' : 'much worse';
 }
 
 const LEVEL_ORDER = ['none', 'easy', 'noticeable', 'realWork', 'hard', 'dangerous'];

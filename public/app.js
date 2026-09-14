@@ -220,7 +220,7 @@ function renderOutInIt() {
 
   const { a, entries } = factorsFor(n);
   const scale = Math.max(3, ...entries.map(([, c]) => Math.abs(c)));
-  els.factorsLead.textContent = `Against the same ${fmtTemp(n.cur.temperature_2m)} in dry, shaded air with a light breeze:`;
+  els.factorsLead.textContent = `Compared with a dry, shady ${fmtTemp(n.cur.temperature_2m)} in a light wind`;
   els.factors.innerHTML = entries.map(([name, c]) => {
     const word = a.words[name];
     const width = Math.min(50, (Math.abs(c) / scale) * 50);
@@ -305,7 +305,7 @@ function openWhy(opener) {
     if (verdict.worst !== 'none') {
       const { a, entries, inputs } = factorsFor(n);
       const lines = entries.map(([name, c]) => `<p>${esc(factorSentence(name, c, a.words[name], { wind10: inputs.wind10 }))}</p>`).join('');
-      parts.push(section('What it is made of', `<p>Compared with the same ${esc(fmtTemp(n.cur.temperature_2m))} in dry, shaded air with a light breeze:</p>${lines}`));
+      parts.push(section('Why it feels like this', `<p>Compared with a dry, shady ${esc(fmtTemp(n.cur.temperature_2m))} in a light wind.</p>${lines}`));
     }
     if (verdict.split) {
       parts.push(section('Shade and sun', `<p>Under cover it is <strong>${esc(phrase(n.shadeLevel))}</strong>. Standing in the sun it is <strong>${esc(phrase(n.sunLevel))}</strong>: the sun heats you directly, the way it heats a black globe.</p>`));

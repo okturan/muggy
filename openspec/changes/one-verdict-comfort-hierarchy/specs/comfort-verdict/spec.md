@@ -9,7 +9,7 @@ The app SHALL answer these questions in this order, each in exactly one place:
 1. How is it out there for a body? (headline and blurb)
 2. What kind of air is it? (a qualifier inside the verdict; the Air tile)
 3. Do shade, sun or night change it? (a qualifier inside the verdict)
-4. What is driving it and where is it heading? ("Out in it" card)
+4. What is driving it and where is it heading? ("Why it feels like this" card)
 5. Is this unusual here? ("Is this normal?" card)
 6. When does it change? ("When will it get better?" card)
 
@@ -113,7 +113,7 @@ Any element other than the headline that names a load level different from the h
 
 #### Scenario: A time-tagged peak is allowed
 - **WHEN** the headline level is Easy and today's peak is Real work at 15:00
-- **THEN** the "Out in it" card may say the load reaches Real work around 15:00
+- **THEN** the "Why it feels like this" card may say the load reaches Real work around 15:00
 - **AND** it does not say "real work" without the time
 
 ### Requirement: Printed numbers agree with their labels
@@ -146,7 +146,7 @@ During a session, a displayed load level SHALL change only once the unrounded WB
 - **THEN** the small print shows WBGT 20, and the "Why this verdict?" sheet shows 20.7 °C and says the reading is on the line between two levels
 
 ### Requirement: Same moment everywhere
-The headline, blurb, stat tiles, "Out in it" card, relief window and the "now" cell of the hours strip SHALL all use the same interpolated current reading and the same level ranking.
+The headline, blurb, stat tiles, "Why it feels like this" card, relief window and the "now" cell of the hours strip SHALL all use the same interpolated current reading and the same level ranking.
 
 #### Scenario: One now
 - **WHEN** the minute tick updates the reading
@@ -160,8 +160,8 @@ The document title, the share-sheet text and the server-rendered link preview fo
 - **THEN** the preview title uses the same composed headline the app shows
 
 ### Requirement: Load unavailable
-When the load cannot be calculated because air temperature is missing, the app SHALL show the texture headline and blurb without any load, shade/sun or severity claims, and SHALL hide the "Out in it" card.
+When the load cannot be calculated because air temperature is missing, the app SHALL show the texture headline and blurb without any load, shade/sun or severity claims, and SHALL hide the "Why it feels like this" card.
 
 #### Scenario: Missing temperature
 - **WHEN** the forecast has a dew point but no air temperature
-- **THEN** the headline is texture-only and the "Out in it" card is hidden
+- **THEN** the headline is texture-only and the "Why it feels like this" card is hidden
