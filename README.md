@@ -1,190 +1,201 @@
 # Muggy
 
-**How sticky is it out there?** A small mobile-first weather app that answers the one question ordinary
-weather apps bury: not how hot it is, but how *unpleasant* the air feels — and it puts a pixel cloud
+**How sticky is it out there?** A small mobile-first weather app that answers the question ordinary
+weather apps bury: not how hot it is, but how the outside air actually treats you. It puts a pixel cloud
 in a jacket on the front of it.
 
-🌦️ **Live: [muggy.fyi](https://muggy.fyi)** — share a city as `muggy.fyi/tirana`
+🌦️ **Live: [muggy.fyi](https://muggy.fyi)**. Share a city as `muggy.fyi/tirana`.
 
 <img src="design/cloud-muggy.png" width="120" alt="the muggy cloud">
 
-## What it actually tells you
+## One verdict, two readings
 
-Temperature and humidity on their own are a bad guide to how the air feels. 30 °C at 30% humidity is
-pleasant; 27 °C at 80% is miserable. The honest measure is the **dew point**, and it sorts cleanly into
-six comfort bands:
+Muggy reads the air two ways and turns them into **one** verdict:
 
-| Band | Dew point | How it feels |
+- **What kind of air it is**: the dew point, sorted into six bands. It describes skin and sweat, never
+  what to do.
+- **How heavily it sits on a body**: WBGT (wet-bulb globe temperature), in the shade and in the sun.
+  This is the part that decides pace, breaks and when to stop.
+
+The heat load leads the headline and the air qualifies it. So a humid morning can honestly be
+**"Muggy but mild"**, and a noon can be **"Easy in the shade, noticeable in the sun"**. An earlier
+version printed the two readings as rival verdicts: *"It's muggy out. Take it slower than usual"* sat
+directly above *"Barely registers. Nothing here will slow you down."* That can't happen any more. Copy
+lives as data, and a test sweeps every combination the engine can produce (186 of them) against gating
+rules. Reassurance appears only when both shade and sun are easy, severity only when the level has earned
+it, sun wording only in known daylight, and no activity advice in the air's description.
+
+### The six air bands
+
+| Band | Dew point | What the air does |
 |---|---|---|
-| dry | below 12.8 °C | Crisp. Skin and lips feel it. |
-| comfortable | 12.8 – 15.6 °C | The good stuff. Go outside. |
-| humid | 15.6 – 18.3 °C | Noticeable, not a problem. |
-| muggy | 18.3 – 21.1 °C | Shirts stick. Shade helps. |
-| oppressive | 21.1 – 23.9 °C | Sweat won't dry. Take it slow. |
-| miserable | 23.9 °C and up | Stay in. Find the AC. |
+| dry | below 12.8 °C | Sweat vanishes the moment it forms. |
+| comfortable | 12.8 – 15.6 °C | Sweat dries as fast as it comes. |
+| humid | 15.6 – 18.3 °C | You notice it on your skin, not much more. |
+| muggy | 18.3 – 21.1 °C | Shirts stick; sweat is slow to dry. |
+| oppressive | 21.1 – 23.9 °C | Sweat barely dries, so it stops cooling you. |
+| miserable | 23.9 °C and up | Saturated: sweat pours and does almost nothing. |
 
-These are the comfort thresholds [WeatherSpark](https://weatherspark.com) popularised (55/60/65/70/75 °F),
-converted to Celsius. The app shows you **temperature, humidity and the band** — the dew point itself
-does the work behind the scenes and is never put on screen, because "21° dew point" means nothing to
-most people and "muggy" means everything.
+The thresholds are the ones [WeatherSpark](https://weatherspark.com) popularised (55/60/65/70/75 °F).
+The dew point number never reaches the screen; the band does. The band also sets the character, the
+screen tint and the link-preview banner.
 
-Each band has its own paper tint and its own mood for the character, so the whole screen changes colour
-with the weather.
+### The six load levels
 
-### Is this normal?
+| Level | WBGT (rounded) | Anchor |
+|---|---|---|
+| None | below 18 | no heat-load claims |
+| Easy | 18 – 20 | MOE "almost safe" |
+| Noticeable | 21 – 24 | MOE "caution" |
+| Real work | 25 – 27 | JSBM/MOE "warning": regular rest during labour and sport |
+| Hard | 28 – 30 | JSBM/MOE "severe warning": avoid direct sun, avoid heavy exercise |
+| Dangerous | 31 and up | JSBM/MOE "danger"; 33+ and 35+ carry Japan's heat-stroke alert marks |
 
-A band on its own doesn't tell you whether to be surprised. The app compares the current reading against
-**ten years of history for this location and this date** (a ±7-day window, so ~3,600 hours of past
-weather) and tells you where today sits: *"Stickier than 88% of the hours recorded here around this date
-over the last 10 years. Normally around now: humid."*
+Level changes need a clear crossing (0.3 °C past the rounding line), so a reading on a boundary doesn't
+flip the verdict every minute.
 
-It also ranks today against every individual past day in that window — *"stickier than 93% of days"* —
-rather than against a per-year average, which would flatter it: one sticky day clears a smoothed
-fortnight median easily.
+## The heat-load engine
 
-The bar underneath is the local climate at a glance — one segment per band, sized by how much of the past
-decade fell in it. Because the segments are sized by share, the marker at today's percentile lands inside
-today's band automatically. Reykjavík's bar is 99% dry; Singapore's is 63% miserable.
+WBGT follows the definition behind those levels: Japan's Ministry of the Environment computes its
+published measured WBGT as
 
-The wording has to work when the current band *is* the normal band, which is the common case: saying
-"stickier than usual — normally humid" while it is humid reads as a contradiction. So the band sentence
-describes position within the band ("still the usual humid band, but at the sticky end of it") whenever
-the two agree.
+```
+WBGT = 0.7 · Tw + 0.2 · Tg + 0.1 · Ta
+```
 
-### What it means
+with **Tw** a psychrometric wet bulb (MOE's Iribarne–Godson method, `public/lib/psychro.js`) and **Tg** a
+150 mm black globe. Muggy models the globe from the forecast:
 
-A comfort band is deliberately moisture-only, so 20 °C dew point reads *muggy* at four in the afternoon
-and at midnight alike — while the body plainly disagrees, because the air is ten degrees cooler and the
-sun has gone. So a second axis: **Humidex**, Environment Canada's discomfort index, `T + 0.5555·(e − 10)`
-with `e` the vapour pressure from the dew point. Built from the same dew point everything else runs on,
-adding exactly the missing term. Its bands are official: under 30 little discomfort, 30–39 some, 40–45
-great, 45+ dangerous.
+- **Energy balance**: [Liljegren et al. (2008)](https://doi.org/10.1080/15459620802310770), ported line by
+  line from Argonne National Laboratory's C source (`public/lib/wbgt.js`). The port matches the original,
+  compiled locally as an oracle, to 0.02 °C over 17,621 cases (`tools/wbgt-oracle/`).
+- **Globe convection**: ISO 7726, the standard for 150 mm globes (`public/lib/globe.js`). Liljegren's own
+  forced-only correlation, validated for 2-inch globes, left the globe 6 °C too warm in strong sun.
+- **The sun**: the forecast's direct/diffuse split, averaged over the **sunlit part** of each data interval
+  (Hogan & Hirahara 2016; ECMWF Tech Memo 895). Placing the sun at an interval's midpoint was off by up to
+  2.7 °C in sunrise and sunset hours. The engine is within 0.39 °C of minute-by-minute physics for hourly
+  data and 0.17 °C for 15-minute data.
+- **Wind**: one 2 m wind for shade and sun, from town stability classes; a stable night is assumed.
 
-One Tirana evening it read *humidex 37, some discomfort*, against a peak of *42, great discomfort* at
-13:00 — the same sticky air, a whole band easier once the sun was down.
+### Validated against measured WBGT
 
-Two better-known frameworks were considered and rejected for this app:
+`tools/wbgt-validation/` compares the engine with **Japan MOE's measured stations** (6-inch globes), using
+Open-Meteo historical forecasts as inputs, exactly what the app sees. Two physical parameters are
+calibrated: surface albedo and a minimum 2 m wind. They are chosen by a fixed rule in
+**leave-one-station-out** cross-validation: every station is predicted with parameters chosen without it.
 
-- **WBGT** models solar load properly, but needs a globe temperature and a *natural* wet bulb — not the
-  psychrometric one the API returns. Both would have to be approximated.
-- **UTCI** is the most rigorous of all, and needs mean radiant temperature plus a ~200-term polynomial.
+Over 47 stations and 434,405 measured hours (May–September, 2022–2026), out of fold:
 
-Either would mean showing a precise-looking number that was quietly guessed. The sun is handled
-separately and honestly instead, from `is_day` and the actual `shortwave_radiation`.
+| | MAE | bias | within one level | severe under-warning |
+|---|---|---|---|---|
+| **Muggy** | **0.79 °C** | −0.16 °C | 99.8 % | 0.13 % |
+| Ono–Tonouchi (MOE's own estimator), same inputs | 0.77 °C | +0.02 °C | 99.8 % | 0.1 % |
+| Liljegren ISO WBGT, same inputs | 1.18 °C | +0.53 °C | 98.1 % | 0.0 % |
 
-### When will it get better
+Muggy matches MOE's regression on accuracy and adds what a regression can't give: a shade/sun split and a
+breakdown into damp, sun and breeze that adds up exactly (Shapley attribution). Every run is kept,
+including the two that failed before the protocol and globe convection were fixed. See
+[`tools/wbgt-validation/RESULTS.md`](tools/wbgt-validation/RESULTS.md). Shipped parameters: albedo 0.20,
+minimum wind 0.13 m/s.
 
-The forecast already knows when the air gets bearable, so the app says it outright: the first stretch in
-the next 24 hours that is a band better than right now, and where that stretch bottoms out — *"Muggy from
-22:00, easing to dry by 03:00."* When nothing is actually better it says so rather than dressing up a
-least-bad hour as a recommendation.
+## The screen
 
-Evenings and nights count, which took two goes to get right. Searching only daylight hours told someone
-at 20:30 that nothing better was coming, while 23:00 was humid and midnight was comfortable — two bands
-down and visible in the hours strip directly below the claim. Night hours can no longer *open* a window,
-since nobody plans around 03:00, but they can extend one, which is what lets the card follow the air down
-past midnight.
+- **Headline and blurb**: the verdict, at most three sentences: air, body, then shade/sun or night.
+- **Out in it**: damp, sun and breeze as signed bars with words; where the day is heading ("It gets to
+  real work by 12:00"); the WBGT numbers in small print. **Why this verdict?** opens a plain-language sheet.
+- **Is this normal?**: the current dew point against ten years of past hours at the **same time of day**
+  (±2 h) within a week of today's date. One statistic: *"stickier than 78% of mornings"*.
+- **When will it get better?**: ranked like the verdict, load first and air second, so sunset counts as
+  relief: *"Easy from 21:00, once the sun is down."*
+- **Next hours / This week**: stickiness timelines by band.
 
 ## Where the data comes from
 
-[Open-Meteo](https://open-meteo.com/) — ERA5-based reanalysis and forecast, CC-BY 4.0, no API key needed
-for non-commercial use.
+[Open-Meteo](https://open-meteo.com/) forecasts, archive and historical forecasts, CC-BY 4.0, no API key
+for non-commercial use. Validation data: Japan Ministry of the Environment, Heat Illness Prevention
+Information (wbgt.env.go.jp).
 
-WeatherSpark is **not** used as a data source. They have no public API, and their terms prohibit
-automated access to their underlying data and its redistribution. Only their published band thresholds
-are used, which is a description of how humid air feels rather than anything proprietary.
+WeatherSpark is **not** used as a data source; only its published band thresholds are.
 
 > Note: Open-Meteo's free tier is non-commercial. Adding ads or subscriptions would mean getting an API
-> key from them — a one-line change in the Worker.
+> key from them, a one-line change in the Worker.
 
 ### Sharing
 
-Every named city is a URL — `muggy.fyi/tirana`, `muggy.fyi/kuala-lumpur` — and the share button uses the
+Every named city is a URL (`muggy.fyi/tirana`, `muggy.fyi/kuala-lumpur`), and the share button uses the
 native share sheet. Link unfurlers run no JavaScript, so the Worker resolves the slug server-side and
-injects live Open Graph tags: a WhatsApp preview of `muggy.fyi/tirana` says *"It's muggy out in Tirana
-right now — 27°C · 68% humidity"* over a banner matching the current band (seven pre-rendered 1200×630
-images, `tools/make-og.py`). Geolocation stays at `/` — coordinates don't belong in a shareable URL.
+writes the live verdict into the Open Graph tags, using **the same modules as the page**, so the preview
+and the page can't disagree. The banner matches the air band (`tools/make-og.py`).
 
 ## How it's built
 
-A single Cloudflare Worker on `muggy.fyi` serving static assets, with Open-Meteo behind a two-layer
-cache:
+A single Cloudflare Worker on `muggy.fyi` serving static assets, with Open-Meteo behind a two-layer cache:
 
 ```
 edge cache (per colo, minutes) → KV (global, stale-while-revalidate) → upstream
 ```
 
-The KV layer is what protects the upstream API. A forecast younger than 5 minutes serves as fresh;
-up to 30 minutes old it serves instantly *and* refreshes in the background, so worldwide traffic costs
-Open-Meteo at most about one fetch per city per 5 minutes; and if the upstream is down or rate-limiting,
-stale data keeps serving for a day rather than erroring. The model's "current" is a 15-minute step, so
-the client interpolates the 15-minutely series to the actual minute in the city's timezone, re-renders
-every minute, and refetches every 5 — the reading tracks the wall clock instead of stepping. Geocoding is cached 30 days — cities don't
-move. Pages run through the Worker (`run_worker_first`) for the canonical-host redirect, OG injection
-and analytics; sprites, banners and static files skip it and serve straight from the asset layer.
-
-Analytics is one [Analytics Engine](https://developers.cloudflare.com/analytics/analytics-engine/) data
-point per page view and API call — type, slug, country, colo, cache state — queryable with SQL from the
-dashboard, no client-side tracker, nothing personal stored.
-
-A service worker makes it installable and offline-capable: network-first (a deploy is never masked by a
-stale cache), with the cache as fallback, so the shell and the last-seen forecast render with no signal.
-Recently viewed cities sit in the search sheet, and first-time visitors from Fahrenheit locales get °F.
+A forecast younger than 5 minutes serves as fresh; up to 30 minutes old it serves instantly and refreshes
+in the background; if the upstream is down, stale data serves for a day. The client interpolates the
+15-minutely series to the actual minute and re-renders every minute. The heat-load series is memoised, so
+only the current minute recomputes.
 
 ```
-src/index.js          Worker: /api/forecast, /api/geocode, everything else → static assets
-public/               The app — vanilla HTML/CSS/JS, no framework, no build step
-public/sprites/       Per-band animation strips sliced from the source sheet
-tools/slice-sprites.py Cuts the spritesheet into those strips
-design/               Design-canvas working files (.dc.html artboards + canvas.json)
-sheet-cloud.jpg       Source spritesheet — pixel cloud, 6 levels × 6 frames, magenta keyed
+src/index.js               Worker: /api/forecast, /api/geocode, /api/normals, OG previews
+public/app.js              The screen (ES module; no framework, no build step)
+public/lib/                Pure modules shared by the page and the Worker
+  wbgt.js globe.js psychro.js sun.js load.js calibration.js   heat-load engine
+  texture.js levels.js interp.js                               readings
+  copy.js lexicon.js verdict.js explain.js relief.js normals.js explorer.js   words
+tools/wbgt-oracle/         Argonne reference build and fixture generator
+tools/wbgt-validation/     Measured-WBGT download, cross-validation, published results
+tools/reachability.mjs     Every verdict combination the engine can produce
+tools/e2e-fixtures.mjs     Named browser-test scenarios, confirmed against the engine
+test/                      node --test suites; test/e2e/ Puppeteer checks
 ```
 
 **API**
 
 | Route | Cache | Notes |
 |---|---|---|
-| `GET /api/forecast?lat=&lon=` | KV SWR (5 min fresh / 30 min stale / 24 h emergency) | `x-muggy-cache` header says which |
+| `GET /api/forecast?lat=&lon=` | KV SWR under `f2:` (5 min fresh / 30 min stale / 24 h emergency) | includes direct/diffuse radiation and surface pressure |
 | `GET /api/geocode?q=` | KV 30 d | City search |
-| `GET /api/normals?lat=&lon=` | 200 d, KV | Ten years of climatology for today's date |
+| `GET /api/normals?lat=&lon=` | KV 200 d under `v4:` | For each local hour: a 101-point dew-point ladder over ±2 h and ±7 days of ten years, band shares, sample count |
 
-`/api/normals` costs ten upstream archive calls on a miss, so it is cached in **KV** rather than the edge
-cache — the edge cache is per-colo, which would multiply that by the number of data centres your users
-happen to hit. The key is location (snapped to ~55 km, since dew-point climatology varies slowly) plus
-day-of-year, and the TTL is under a year so each date naturally refreshes with the newest year folded in.
-It returns a 101-point quantile ladder rather than raw hours, which is what lets the client place today's
-reading as a percentile without the dew point ever reaching the screen.
-
-**The character art** is an AI-generated spritesheet laid out as a 6-row grid, one row per comfort
-band, shot on magenta. `tools/slice-sprites.py` keys it on **distance from the measured plate colour**,
-not on a hue rule. A hue rule looks like it works and does not: the saturated pink of the `oppressive`
-body is (240, 59, 163), which clears every "red and blue well above green" threshold you would write, so
-it gets erased with the background and the character comes out hollow. Distance sees it correctly — that
-pink sits ~115 from the plate while the plate clusters under 40, with almost nothing in between. The
-foreground is then eroded 2px, because JPEG smears the key into sprite edges and a magenta halo is far
-more visible after downscaling than a hair of lost outline. Cells come from gutters in the alpha
-projection rather than a fixed grid (sun hats and the heatwave sign make the columns uneven), and every
-frame is bottom-aligned on a common ground line so feet stay planted while accessories overhang.
-
-The app animates each strip with `steps(n)` and a percentage `background-position`, which must run to
-`n/(n-1)*100%` — 120% for six frames — so the last step lands on the last frame rather than past it.
-Since each band now has its own body colour, large fills behind the character use a paler variant of
-the band tint; the saturated version stays on chips, hour cells and week bars.
+**The character art** is an AI-generated spritesheet laid out as a 6-row grid, one row per band, shot
+on magenta. `tools/slice-sprites.py` keys it on **distance from the measured plate colour**, not on a
+hue rule. A hue rule erases the saturated pink `oppressive` body along with the background. The foreground
+is then eroded 2px against JPEG halo, cells come from gutters in the alpha projection, and every frame is
+bottom-aligned on a common ground line. Strips animate with `steps(n)` to `n/(n-1)*100%`.
 
 ## Running it
 
 ```bash
 npm install
-npm run dev      # wrangler dev → http://localhost:8787
-npm run deploy   # wrangler deploy
-npm run sprites  # re-slice the spritesheets (needs Python + Pillow)
+npm run dev        # wrangler dev → http://localhost:8787
+npm test           # unit, engine, validation and copy-gating suites
+npm run test:e2e   # browser checks (needs: npx wrangler dev --local-protocol https)
+MUGGY_BASE=https://muggy.fyi node test/e2e/live.e2e.mjs   # real-data smoke against a deployment
+npm run deploy     # wrangler deploy
+npm run sprites    # re-slice the spritesheets (needs Python + Pillow)
 ```
 
-`wrangler.jsonc` carries a Cloudflare `account_id`. That's an identifier, not a credential — it does
-nothing without an API token — but swap it for your own if you fork this.
+Rebuild the engine evidence: `sh tools/wbgt-oracle/make-fixtures.sh` (needs a C compiler), then
+`node tools/wbgt-validation/fetch.mjs && node tools/wbgt-validation/dataset.mjs &&
+node tools/wbgt-validation/crossval.mjs && node tools/wbgt-validation/validate.mjs`.
+
+`wrangler.jsonc` carries a Cloudflare `account_id`. That's an identifier, not a credential; swap it for
+your own if you fork this.
 
 ## Credits
 
-Weather data by [Open-Meteo](https://open-meteo.com/) (CC-BY 4.0). Comfort bands after
-[WeatherSpark](https://weatherspark.com). Type is [Space Grotesk](https://fonts.google.com/specimen/Space+Grotesk)
-and [Nunito](https://fonts.google.com/specimen/Nunito).
+Weather data by [Open-Meteo](https://open-meteo.com/) (CC-BY 4.0). Measured WBGT for validation from
+Japan's Ministry of the Environment. Air bands after [WeatherSpark](https://weatherspark.com). Level
+guidance after the Japanese Society of Biometeorology and Japan's Ministry of the Environment. WBGT model
+by James C. Liljegren, Argonne National Laboratory.
+
+This product includes software produced by UChicago Argonne, LLC under Contract No. DE-AC02-06CH11357 with
+the Department of Energy.
+
+Type is [Space Grotesk](https://fonts.google.com/specimen/Space+Grotesk) and
+[Nunito](https://fonts.google.com/specimen/Nunito).

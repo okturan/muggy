@@ -1,0 +1,2561 @@
+{
+ "evaluations": 158800,
+ "tuples": [
+  {
+   "texture": "comfortable",
+   "shadeLevel": "dangerous",
+   "sunLevel": "dangerous",
+   "isDay": false,
+   "sunKnown": true,
+   "example": {
+    "moment": "night",
+    "T": 46,
+    "td": 15,
+    "wind10": 1.5,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "comfortable",
+   "shadeLevel": "dangerous",
+   "sunLevel": "dangerous",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 46,
+    "td": 15,
+    "wind10": 1.5,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "comfortable",
+   "shadeLevel": "dangerous",
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "moment": "night",
+    "T": 46,
+    "td": 15,
+    "wind10": 1.5,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "comfortable",
+   "shadeLevel": "dangerous",
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "moment": "noon",
+    "T": 46,
+    "td": 15,
+    "wind10": 1.5,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "comfortable",
+   "shadeLevel": "easy",
+   "sunLevel": "easy",
+   "isDay": false,
+   "sunKnown": true,
+   "example": {
+    "moment": "night",
+    "T": 20,
+    "td": 15,
+    "wind10": 4,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "comfortable",
+   "shadeLevel": "easy",
+   "sunLevel": "easy",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 20,
+    "td": 15,
+    "wind10": 4,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "comfortable",
+   "shadeLevel": "easy",
+   "sunLevel": "noticeable",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 21,
+    "td": 14,
+    "wind10": 1.5,
+    "sw": 800
+   }
+  },
+  {
+   "texture": "comfortable",
+   "shadeLevel": "easy",
+   "sunLevel": "realWork",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 22,
+    "td": 14,
+    "wind10": 0,
+    "sw": 1000
+   }
+  },
+  {
+   "texture": "comfortable",
+   "shadeLevel": "easy",
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "moment": "night",
+    "T": 20,
+    "td": 15,
+    "wind10": 4,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "comfortable",
+   "shadeLevel": "easy",
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "moment": "noon",
+    "T": 20,
+    "td": 15,
+    "wind10": 4,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "comfortable",
+   "shadeLevel": "hard",
+   "sunLevel": "dangerous",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 40,
+    "td": 15,
+    "wind10": 1.5,
+    "sw": 800
+   }
+  },
+  {
+   "texture": "comfortable",
+   "shadeLevel": "hard",
+   "sunLevel": "hard",
+   "isDay": false,
+   "sunKnown": true,
+   "example": {
+    "moment": "night",
+    "T": 40,
+    "td": 14,
+    "wind10": 10,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "comfortable",
+   "shadeLevel": "hard",
+   "sunLevel": "hard",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 40,
+    "td": 14,
+    "wind10": 10,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "comfortable",
+   "shadeLevel": "hard",
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "moment": "night",
+    "T": 40,
+    "td": 14,
+    "wind10": 10,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "comfortable",
+   "shadeLevel": "hard",
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "moment": "noon",
+    "T": 40,
+    "td": 14,
+    "wind10": 10,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "comfortable",
+   "shadeLevel": "none",
+   "sunLevel": "easy",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 13,
+    "td": 13,
+    "wind10": 0,
+    "sw": 800
+   }
+  },
+  {
+   "texture": "comfortable",
+   "shadeLevel": "none",
+   "sunLevel": "none",
+   "isDay": false,
+   "sunKnown": true,
+   "example": {
+    "moment": "night",
+    "T": 13,
+    "td": 13,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "comfortable",
+   "shadeLevel": "none",
+   "sunLevel": "none",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 13,
+    "td": 13,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "comfortable",
+   "shadeLevel": "none",
+   "sunLevel": "noticeable",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 15,
+    "td": 14,
+    "wind10": 0,
+    "sw": 1000
+   }
+  },
+  {
+   "texture": "comfortable",
+   "shadeLevel": "none",
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "moment": "night",
+    "T": 13,
+    "td": 13,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "comfortable",
+   "shadeLevel": "none",
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "moment": "noon",
+    "T": 13,
+    "td": 13,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "comfortable",
+   "shadeLevel": "noticeable",
+   "sunLevel": "dangerous",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 34,
+    "td": 15,
+    "wind10": 0,
+    "sw": 1000
+   }
+  },
+  {
+   "texture": "comfortable",
+   "shadeLevel": "noticeable",
+   "sunLevel": "hard",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 28,
+    "td": 14,
+    "wind10": 0,
+    "sw": 1000
+   }
+  },
+  {
+   "texture": "comfortable",
+   "shadeLevel": "noticeable",
+   "sunLevel": "noticeable",
+   "isDay": false,
+   "sunKnown": true,
+   "example": {
+    "moment": "night",
+    "T": 26,
+    "td": 15,
+    "wind10": 1.5,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "comfortable",
+   "shadeLevel": "noticeable",
+   "sunLevel": "noticeable",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 26,
+    "td": 15,
+    "wind10": 1.5,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "comfortable",
+   "shadeLevel": "noticeable",
+   "sunLevel": "realWork",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 27,
+    "td": 15,
+    "wind10": 0,
+    "sw": 800
+   }
+  },
+  {
+   "texture": "comfortable",
+   "shadeLevel": "noticeable",
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "moment": "night",
+    "T": 26,
+    "td": 15,
+    "wind10": 1.5,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "comfortable",
+   "shadeLevel": "noticeable",
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "moment": "noon",
+    "T": 26,
+    "td": 15,
+    "wind10": 1.5,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "comfortable",
+   "shadeLevel": "realWork",
+   "sunLevel": "dangerous",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 35,
+    "td": 14,
+    "wind10": 0,
+    "sw": 1000
+   }
+  },
+  {
+   "texture": "comfortable",
+   "shadeLevel": "realWork",
+   "sunLevel": "hard",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 34,
+    "td": 15,
+    "wind10": 1.5,
+    "sw": 800
+   }
+  },
+  {
+   "texture": "comfortable",
+   "shadeLevel": "realWork",
+   "sunLevel": "realWork",
+   "isDay": false,
+   "sunKnown": true,
+   "example": {
+    "moment": "night",
+    "T": 34,
+    "td": 14,
+    "wind10": 10,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "comfortable",
+   "shadeLevel": "realWork",
+   "sunLevel": "realWork",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 34,
+    "td": 14,
+    "wind10": 4,
+    "sw": 800
+   }
+  },
+  {
+   "texture": "comfortable",
+   "shadeLevel": "realWork",
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "moment": "night",
+    "T": 34,
+    "td": 14,
+    "wind10": 10,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "comfortable",
+   "shadeLevel": "realWork",
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "moment": "noon",
+    "T": 34,
+    "td": 14,
+    "wind10": 4,
+    "sw": 800
+   }
+  },
+  {
+   "texture": "comfortable",
+   "shadeLevel": null,
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "unavailable": true
+   }
+  },
+  {
+   "texture": "comfortable",
+   "shadeLevel": null,
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "unavailable": true
+   }
+  },
+  {
+   "texture": "dry",
+   "shadeLevel": "dangerous",
+   "sunLevel": "dangerous",
+   "isDay": false,
+   "sunKnown": true,
+   "example": {
+    "moment": "night",
+    "T": 48,
+    "td": 11,
+    "wind10": 10,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "dry",
+   "shadeLevel": "dangerous",
+   "sunLevel": "dangerous",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 48,
+    "td": 11,
+    "wind10": 4,
+    "sw": 800
+   }
+  },
+  {
+   "texture": "dry",
+   "shadeLevel": "dangerous",
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "moment": "night",
+    "T": 48,
+    "td": 11,
+    "wind10": 10,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "dry",
+   "shadeLevel": "dangerous",
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "moment": "noon",
+    "T": 48,
+    "td": 11,
+    "wind10": 4,
+    "sw": 800
+   }
+  },
+  {
+   "texture": "dry",
+   "shadeLevel": "easy",
+   "sunLevel": "easy",
+   "isDay": false,
+   "sunKnown": true,
+   "example": {
+    "moment": "night",
+    "T": 22,
+    "td": 12,
+    "wind10": 10,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "dry",
+   "shadeLevel": "easy",
+   "sunLevel": "easy",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 22,
+    "td": 12,
+    "wind10": 10,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "dry",
+   "shadeLevel": "easy",
+   "sunLevel": "noticeable",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 23,
+    "td": 11,
+    "wind10": 1.5,
+    "sw": 800
+   }
+  },
+  {
+   "texture": "dry",
+   "shadeLevel": "easy",
+   "sunLevel": "realWork",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 24,
+    "td": 12,
+    "wind10": 0,
+    "sw": 1000
+   }
+  },
+  {
+   "texture": "dry",
+   "shadeLevel": "easy",
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "moment": "night",
+    "T": 22,
+    "td": 12,
+    "wind10": 10,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "dry",
+   "shadeLevel": "easy",
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "moment": "noon",
+    "T": 22,
+    "td": 12,
+    "wind10": 10,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "dry",
+   "shadeLevel": "hard",
+   "sunLevel": "dangerous",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 42,
+    "td": 12,
+    "wind10": 1.5,
+    "sw": 800
+   }
+  },
+  {
+   "texture": "dry",
+   "shadeLevel": "hard",
+   "sunLevel": "hard",
+   "isDay": false,
+   "sunKnown": true,
+   "example": {
+    "moment": "night",
+    "T": 42,
+    "td": 11,
+    "wind10": 4,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "dry",
+   "shadeLevel": "hard",
+   "sunLevel": "hard",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 42,
+    "td": 11,
+    "wind10": 4,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "dry",
+   "shadeLevel": "hard",
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "moment": "night",
+    "T": 42,
+    "td": 11,
+    "wind10": 4,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "dry",
+   "shadeLevel": "hard",
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "moment": "noon",
+    "T": 42,
+    "td": 11,
+    "wind10": 4,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "dry",
+   "shadeLevel": "none",
+   "sunLevel": "easy",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 12,
+    "td": 10,
+    "wind10": 0,
+    "sw": 1000
+   }
+  },
+  {
+   "texture": "dry",
+   "shadeLevel": "none",
+   "sunLevel": "none",
+   "isDay": false,
+   "sunKnown": true,
+   "example": {
+    "moment": "night",
+    "T": -5,
+    "td": -15,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "dry",
+   "shadeLevel": "none",
+   "sunLevel": "none",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": -5,
+    "td": -15,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "dry",
+   "shadeLevel": "none",
+   "sunLevel": "noticeable",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 16,
+    "td": 12,
+    "wind10": 0,
+    "sw": 1000
+   }
+  },
+  {
+   "texture": "dry",
+   "shadeLevel": "none",
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "moment": "night",
+    "T": -5,
+    "td": -15,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "dry",
+   "shadeLevel": "none",
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "moment": "noon",
+    "T": -5,
+    "td": -15,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "dry",
+   "shadeLevel": "noticeable",
+   "sunLevel": "dangerous",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 36,
+    "td": 12,
+    "wind10": 0,
+    "sw": 1000
+   }
+  },
+  {
+   "texture": "dry",
+   "shadeLevel": "noticeable",
+   "sunLevel": "hard",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 30,
+    "td": 12,
+    "wind10": 0,
+    "sw": 1000
+   }
+  },
+  {
+   "texture": "dry",
+   "shadeLevel": "noticeable",
+   "sunLevel": "noticeable",
+   "isDay": false,
+   "sunKnown": true,
+   "example": {
+    "moment": "night",
+    "T": 28,
+    "td": 12,
+    "wind10": 1.5,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "dry",
+   "shadeLevel": "noticeable",
+   "sunLevel": "noticeable",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 28,
+    "td": 12,
+    "wind10": 1.5,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "dry",
+   "shadeLevel": "noticeable",
+   "sunLevel": "realWork",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 29,
+    "td": 12,
+    "wind10": 0,
+    "sw": 800
+   }
+  },
+  {
+   "texture": "dry",
+   "shadeLevel": "noticeable",
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "moment": "night",
+    "T": 28,
+    "td": 12,
+    "wind10": 1.5,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "dry",
+   "shadeLevel": "noticeable",
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "moment": "noon",
+    "T": 28,
+    "td": 12,
+    "wind10": 1.5,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "dry",
+   "shadeLevel": "realWork",
+   "sunLevel": "dangerous",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 37,
+    "td": 12,
+    "wind10": 0,
+    "sw": 1000
+   }
+  },
+  {
+   "texture": "dry",
+   "shadeLevel": "realWork",
+   "sunLevel": "hard",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 36,
+    "td": 12,
+    "wind10": 1.5,
+    "sw": 800
+   }
+  },
+  {
+   "texture": "dry",
+   "shadeLevel": "realWork",
+   "sunLevel": "realWork",
+   "isDay": false,
+   "sunKnown": true,
+   "example": {
+    "moment": "night",
+    "T": 36,
+    "td": 11,
+    "wind10": 4,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "dry",
+   "shadeLevel": "realWork",
+   "sunLevel": "realWork",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 36,
+    "td": 11,
+    "wind10": 4,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "dry",
+   "shadeLevel": "realWork",
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "moment": "night",
+    "T": 36,
+    "td": 11,
+    "wind10": 4,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "dry",
+   "shadeLevel": "realWork",
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "moment": "noon",
+    "T": 36,
+    "td": 11,
+    "wind10": 4,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "dry",
+   "shadeLevel": null,
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "unavailable": true
+   }
+  },
+  {
+   "texture": "dry",
+   "shadeLevel": null,
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "unavailable": true
+   }
+  },
+  {
+   "texture": "humid",
+   "shadeLevel": "dangerous",
+   "sunLevel": "dangerous",
+   "isDay": false,
+   "sunKnown": true,
+   "example": {
+    "moment": "night",
+    "T": 44,
+    "td": 17,
+    "wind10": 10,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "humid",
+   "shadeLevel": "dangerous",
+   "sunLevel": "dangerous",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 44,
+    "td": 17,
+    "wind10": 10,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "humid",
+   "shadeLevel": "dangerous",
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "moment": "night",
+    "T": 44,
+    "td": 17,
+    "wind10": 10,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "humid",
+   "shadeLevel": "dangerous",
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "moment": "noon",
+    "T": 44,
+    "td": 17,
+    "wind10": 10,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "humid",
+   "shadeLevel": "easy",
+   "sunLevel": "easy",
+   "isDay": false,
+   "sunKnown": true,
+   "example": {
+    "moment": "night",
+    "T": 18,
+    "td": 18,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "humid",
+   "shadeLevel": "easy",
+   "sunLevel": "easy",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 18,
+    "td": 18,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "humid",
+   "shadeLevel": "easy",
+   "sunLevel": "noticeable",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 18,
+    "td": 18,
+    "wind10": 0,
+    "sw": 450
+   }
+  },
+  {
+   "texture": "humid",
+   "shadeLevel": "easy",
+   "sunLevel": "realWork",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 19,
+    "td": 18,
+    "wind10": 0,
+    "sw": 1000
+   }
+  },
+  {
+   "texture": "humid",
+   "shadeLevel": "easy",
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "moment": "night",
+    "T": 18,
+    "td": 18,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "humid",
+   "shadeLevel": "easy",
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "moment": "noon",
+    "T": 18,
+    "td": 18,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "humid",
+   "shadeLevel": "hard",
+   "sunLevel": "dangerous",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 38,
+    "td": 18,
+    "wind10": 0,
+    "sw": 450
+   }
+  },
+  {
+   "texture": "humid",
+   "shadeLevel": "hard",
+   "sunLevel": "hard",
+   "isDay": false,
+   "sunKnown": true,
+   "example": {
+    "moment": "night",
+    "T": 37,
+    "td": 18,
+    "wind10": 10,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "humid",
+   "shadeLevel": "hard",
+   "sunLevel": "hard",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 37,
+    "td": 18,
+    "wind10": 10,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "humid",
+   "shadeLevel": "hard",
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "moment": "night",
+    "T": 37,
+    "td": 18,
+    "wind10": 10,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "humid",
+   "shadeLevel": "hard",
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "moment": "noon",
+    "T": 37,
+    "td": 18,
+    "wind10": 10,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "humid",
+   "shadeLevel": "none",
+   "sunLevel": "easy",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 16,
+    "td": 16,
+    "wind10": 0,
+    "sw": 450
+   }
+  },
+  {
+   "texture": "humid",
+   "shadeLevel": "none",
+   "sunLevel": "none",
+   "isDay": false,
+   "sunKnown": true,
+   "example": {
+    "moment": "night",
+    "T": 16,
+    "td": 16,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "humid",
+   "shadeLevel": "none",
+   "sunLevel": "none",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 16,
+    "td": 16,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "humid",
+   "shadeLevel": "none",
+   "sunLevel": "noticeable",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 16,
+    "td": 16,
+    "wind10": 0,
+    "sw": 800
+   }
+  },
+  {
+   "texture": "humid",
+   "shadeLevel": "none",
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "moment": "night",
+    "T": 16,
+    "td": 16,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "humid",
+   "shadeLevel": "none",
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "moment": "noon",
+    "T": 16,
+    "td": 16,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "humid",
+   "shadeLevel": "noticeable",
+   "sunLevel": "dangerous",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 31,
+    "td": 18,
+    "wind10": 0,
+    "sw": 1000
+   }
+  },
+  {
+   "texture": "humid",
+   "shadeLevel": "noticeable",
+   "sunLevel": "hard",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 25,
+    "td": 18,
+    "wind10": 0,
+    "sw": 1000
+   }
+  },
+  {
+   "texture": "humid",
+   "shadeLevel": "noticeable",
+   "sunLevel": "noticeable",
+   "isDay": false,
+   "sunKnown": true,
+   "example": {
+    "moment": "night",
+    "T": 23,
+    "td": 18,
+    "wind10": 10,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "humid",
+   "shadeLevel": "noticeable",
+   "sunLevel": "noticeable",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 23,
+    "td": 18,
+    "wind10": 10,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "humid",
+   "shadeLevel": "noticeable",
+   "sunLevel": "realWork",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 24,
+    "td": 18,
+    "wind10": 0,
+    "sw": 800
+   }
+  },
+  {
+   "texture": "humid",
+   "shadeLevel": "noticeable",
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "moment": "night",
+    "T": 23,
+    "td": 18,
+    "wind10": 10,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "humid",
+   "shadeLevel": "noticeable",
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "moment": "noon",
+    "T": 23,
+    "td": 18,
+    "wind10": 10,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "humid",
+   "shadeLevel": "realWork",
+   "sunLevel": "dangerous",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 32,
+    "td": 18,
+    "wind10": 0,
+    "sw": 1000
+   }
+  },
+  {
+   "texture": "humid",
+   "shadeLevel": "realWork",
+   "sunLevel": "hard",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 32,
+    "td": 17,
+    "wind10": 1.5,
+    "sw": 1000
+   }
+  },
+  {
+   "texture": "humid",
+   "shadeLevel": "realWork",
+   "sunLevel": "realWork",
+   "isDay": false,
+   "sunKnown": true,
+   "example": {
+    "moment": "night",
+    "T": 31,
+    "td": 18,
+    "wind10": 4,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "humid",
+   "shadeLevel": "realWork",
+   "sunLevel": "realWork",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 31,
+    "td": 18,
+    "wind10": 4,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "humid",
+   "shadeLevel": "realWork",
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "moment": "night",
+    "T": 31,
+    "td": 18,
+    "wind10": 4,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "humid",
+   "shadeLevel": "realWork",
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "moment": "noon",
+    "T": 31,
+    "td": 18,
+    "wind10": 4,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "humid",
+   "shadeLevel": null,
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "unavailable": true
+   }
+  },
+  {
+   "texture": "humid",
+   "shadeLevel": null,
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "unavailable": true
+   }
+  },
+  {
+   "texture": "miserable",
+   "shadeLevel": "dangerous",
+   "sunLevel": "dangerous",
+   "isDay": false,
+   "sunKnown": true,
+   "example": {
+    "moment": "night",
+    "T": 31,
+    "td": 31,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "miserable",
+   "shadeLevel": "dangerous",
+   "sunLevel": "dangerous",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 31,
+    "td": 31,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "miserable",
+   "shadeLevel": "dangerous",
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "moment": "night",
+    "T": 31,
+    "td": 31,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "miserable",
+   "shadeLevel": "dangerous",
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "moment": "noon",
+    "T": 31,
+    "td": 31,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "miserable",
+   "shadeLevel": "hard",
+   "sunLevel": "dangerous",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 28,
+    "td": 28,
+    "wind10": 0,
+    "sw": 450
+   }
+  },
+  {
+   "texture": "miserable",
+   "shadeLevel": "hard",
+   "sunLevel": "hard",
+   "isDay": false,
+   "sunKnown": true,
+   "example": {
+    "moment": "night",
+    "T": 28,
+    "td": 28,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "miserable",
+   "shadeLevel": "hard",
+   "sunLevel": "hard",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 28,
+    "td": 28,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "miserable",
+   "shadeLevel": "hard",
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "moment": "night",
+    "T": 28,
+    "td": 28,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "miserable",
+   "shadeLevel": "hard",
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "moment": "noon",
+    "T": 28,
+    "td": 28,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "miserable",
+   "shadeLevel": "noticeable",
+   "sunLevel": "dangerous",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 25,
+    "td": 24,
+    "wind10": 0,
+    "sw": 1000
+   }
+  },
+  {
+   "texture": "miserable",
+   "shadeLevel": "noticeable",
+   "sunLevel": "hard",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 24,
+    "td": 24,
+    "wind10": 0,
+    "sw": 800
+   }
+  },
+  {
+   "texture": "miserable",
+   "shadeLevel": "noticeable",
+   "sunLevel": "noticeable",
+   "isDay": false,
+   "sunKnown": true,
+   "example": {
+    "moment": "night",
+    "T": 24,
+    "td": 24,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "miserable",
+   "shadeLevel": "noticeable",
+   "sunLevel": "noticeable",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 24,
+    "td": 24,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "miserable",
+   "shadeLevel": "noticeable",
+   "sunLevel": "realWork",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 24,
+    "td": 24,
+    "wind10": 0,
+    "sw": 150
+   }
+  },
+  {
+   "texture": "miserable",
+   "shadeLevel": "noticeable",
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "moment": "night",
+    "T": 24,
+    "td": 24,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "miserable",
+   "shadeLevel": "noticeable",
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "moment": "noon",
+    "T": 24,
+    "td": 24,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "miserable",
+   "shadeLevel": "realWork",
+   "sunLevel": "dangerous",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 25,
+    "td": 25,
+    "wind10": 0,
+    "sw": 1000
+   }
+  },
+  {
+   "texture": "miserable",
+   "shadeLevel": "realWork",
+   "sunLevel": "hard",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 25,
+    "td": 25,
+    "wind10": 0,
+    "sw": 450
+   }
+  },
+  {
+   "texture": "miserable",
+   "shadeLevel": "realWork",
+   "sunLevel": "realWork",
+   "isDay": false,
+   "sunKnown": true,
+   "example": {
+    "moment": "night",
+    "T": 25,
+    "td": 25,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "miserable",
+   "shadeLevel": "realWork",
+   "sunLevel": "realWork",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 25,
+    "td": 25,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "miserable",
+   "shadeLevel": "realWork",
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "moment": "night",
+    "T": 25,
+    "td": 25,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "miserable",
+   "shadeLevel": "realWork",
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "moment": "noon",
+    "T": 25,
+    "td": 25,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "miserable",
+   "shadeLevel": null,
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "unavailable": true
+   }
+  },
+  {
+   "texture": "miserable",
+   "shadeLevel": null,
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "unavailable": true
+   }
+  },
+  {
+   "texture": "muggy",
+   "shadeLevel": "dangerous",
+   "sunLevel": "dangerous",
+   "isDay": false,
+   "sunKnown": true,
+   "example": {
+    "moment": "night",
+    "T": 41,
+    "td": 21,
+    "wind10": 4,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "muggy",
+   "shadeLevel": "dangerous",
+   "sunLevel": "dangerous",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 41,
+    "td": 21,
+    "wind10": 4,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "muggy",
+   "shadeLevel": "dangerous",
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "moment": "night",
+    "T": 41,
+    "td": 21,
+    "wind10": 4,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "muggy",
+   "shadeLevel": "dangerous",
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "moment": "noon",
+    "T": 41,
+    "td": 21,
+    "wind10": 4,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "muggy",
+   "shadeLevel": "easy",
+   "sunLevel": "easy",
+   "isDay": false,
+   "sunKnown": true,
+   "example": {
+    "moment": "night",
+    "T": 19,
+    "td": 19,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "muggy",
+   "shadeLevel": "easy",
+   "sunLevel": "easy",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 19,
+    "td": 19,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "muggy",
+   "shadeLevel": "easy",
+   "sunLevel": "noticeable",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 19,
+    "td": 19,
+    "wind10": 0,
+    "sw": 450
+   }
+  },
+  {
+   "texture": "muggy",
+   "shadeLevel": "easy",
+   "sunLevel": "realWork",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 19,
+    "td": 19,
+    "wind10": 0,
+    "sw": 1000
+   }
+  },
+  {
+   "texture": "muggy",
+   "shadeLevel": "easy",
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "moment": "night",
+    "T": 19,
+    "td": 19,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "muggy",
+   "shadeLevel": "easy",
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "moment": "noon",
+    "T": 19,
+    "td": 19,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "muggy",
+   "shadeLevel": "hard",
+   "sunLevel": "dangerous",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 35,
+    "td": 21,
+    "wind10": 1.5,
+    "sw": 800
+   }
+  },
+  {
+   "texture": "muggy",
+   "shadeLevel": "hard",
+   "sunLevel": "hard",
+   "isDay": false,
+   "sunKnown": true,
+   "example": {
+    "moment": "night",
+    "T": 35,
+    "td": 21,
+    "wind10": 1.5,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "muggy",
+   "shadeLevel": "hard",
+   "sunLevel": "hard",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 35,
+    "td": 21,
+    "wind10": 1.5,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "muggy",
+   "shadeLevel": "hard",
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "moment": "night",
+    "T": 35,
+    "td": 21,
+    "wind10": 1.5,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "muggy",
+   "shadeLevel": "hard",
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "moment": "noon",
+    "T": 35,
+    "td": 21,
+    "wind10": 1.5,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "muggy",
+   "shadeLevel": "noticeable",
+   "sunLevel": "dangerous",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 28,
+    "td": 21,
+    "wind10": 0,
+    "sw": 1000
+   }
+  },
+  {
+   "texture": "muggy",
+   "shadeLevel": "noticeable",
+   "sunLevel": "hard",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 22,
+    "td": 21,
+    "wind10": 0,
+    "sw": 1000
+   }
+  },
+  {
+   "texture": "muggy",
+   "shadeLevel": "noticeable",
+   "sunLevel": "noticeable",
+   "isDay": false,
+   "sunKnown": true,
+   "example": {
+    "moment": "night",
+    "T": 21,
+    "td": 21,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "muggy",
+   "shadeLevel": "noticeable",
+   "sunLevel": "noticeable",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 21,
+    "td": 21,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "muggy",
+   "shadeLevel": "noticeable",
+   "sunLevel": "realWork",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 21,
+    "td": 21,
+    "wind10": 0,
+    "sw": 800
+   }
+  },
+  {
+   "texture": "muggy",
+   "shadeLevel": "noticeable",
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "moment": "night",
+    "T": 21,
+    "td": 21,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "muggy",
+   "shadeLevel": "noticeable",
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "moment": "noon",
+    "T": 21,
+    "td": 21,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "muggy",
+   "shadeLevel": "realWork",
+   "sunLevel": "dangerous",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 29,
+    "td": 21,
+    "wind10": 0,
+    "sw": 1000
+   }
+  },
+  {
+   "texture": "muggy",
+   "shadeLevel": "realWork",
+   "sunLevel": "hard",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 29,
+    "td": 21,
+    "wind10": 0,
+    "sw": 450
+   }
+  },
+  {
+   "texture": "muggy",
+   "shadeLevel": "realWork",
+   "sunLevel": "realWork",
+   "isDay": false,
+   "sunKnown": true,
+   "example": {
+    "moment": "night",
+    "T": 29,
+    "td": 21,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "muggy",
+   "shadeLevel": "realWork",
+   "sunLevel": "realWork",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 29,
+    "td": 21,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "muggy",
+   "shadeLevel": "realWork",
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "moment": "night",
+    "T": 29,
+    "td": 21,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "muggy",
+   "shadeLevel": "realWork",
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "moment": "noon",
+    "T": 29,
+    "td": 21,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "muggy",
+   "shadeLevel": null,
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "unavailable": true
+   }
+  },
+  {
+   "texture": "muggy",
+   "shadeLevel": null,
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "unavailable": true
+   }
+  },
+  {
+   "texture": "oppressive",
+   "shadeLevel": "dangerous",
+   "sunLevel": "dangerous",
+   "isDay": false,
+   "sunKnown": true,
+   "example": {
+    "moment": "night",
+    "T": 39,
+    "td": 23,
+    "wind10": 10,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "oppressive",
+   "shadeLevel": "dangerous",
+   "sunLevel": "dangerous",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 39,
+    "td": 23,
+    "wind10": 4,
+    "sw": 450
+   }
+  },
+  {
+   "texture": "oppressive",
+   "shadeLevel": "dangerous",
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "moment": "night",
+    "T": 39,
+    "td": 23,
+    "wind10": 10,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "oppressive",
+   "shadeLevel": "dangerous",
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "moment": "noon",
+    "T": 39,
+    "td": 23,
+    "wind10": 4,
+    "sw": 450
+   }
+  },
+  {
+   "texture": "oppressive",
+   "shadeLevel": "hard",
+   "sunLevel": "dangerous",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 33,
+    "td": 23,
+    "wind10": 1.5,
+    "sw": 800
+   }
+  },
+  {
+   "texture": "oppressive",
+   "shadeLevel": "hard",
+   "sunLevel": "hard",
+   "isDay": false,
+   "sunKnown": true,
+   "example": {
+    "moment": "night",
+    "T": 33,
+    "td": 23,
+    "wind10": 1.5,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "oppressive",
+   "shadeLevel": "hard",
+   "sunLevel": "hard",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 33,
+    "td": 23,
+    "wind10": 1.5,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "oppressive",
+   "shadeLevel": "hard",
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "moment": "night",
+    "T": 33,
+    "td": 23,
+    "wind10": 1.5,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "oppressive",
+   "shadeLevel": "hard",
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "moment": "noon",
+    "T": 33,
+    "td": 23,
+    "wind10": 1.5,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "oppressive",
+   "shadeLevel": "noticeable",
+   "sunLevel": "dangerous",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 26,
+    "td": 23,
+    "wind10": 0,
+    "sw": 1000
+   }
+  },
+  {
+   "texture": "oppressive",
+   "shadeLevel": "noticeable",
+   "sunLevel": "hard",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 22,
+    "td": 22,
+    "wind10": 0,
+    "sw": 1000
+   }
+  },
+  {
+   "texture": "oppressive",
+   "shadeLevel": "noticeable",
+   "sunLevel": "noticeable",
+   "isDay": false,
+   "sunKnown": true,
+   "example": {
+    "moment": "night",
+    "T": 22,
+    "td": 22,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "oppressive",
+   "shadeLevel": "noticeable",
+   "sunLevel": "noticeable",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 22,
+    "td": 22,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "oppressive",
+   "shadeLevel": "noticeable",
+   "sunLevel": "realWork",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 22,
+    "td": 22,
+    "wind10": 0,
+    "sw": 450
+   }
+  },
+  {
+   "texture": "oppressive",
+   "shadeLevel": "noticeable",
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "moment": "night",
+    "T": 22,
+    "td": 22,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "oppressive",
+   "shadeLevel": "noticeable",
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "moment": "noon",
+    "T": 22,
+    "td": 22,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "oppressive",
+   "shadeLevel": "realWork",
+   "sunLevel": "dangerous",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 27,
+    "td": 23,
+    "wind10": 0,
+    "sw": 1000
+   }
+  },
+  {
+   "texture": "oppressive",
+   "shadeLevel": "realWork",
+   "sunLevel": "hard",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 27,
+    "td": 23,
+    "wind10": 0,
+    "sw": 450
+   }
+  },
+  {
+   "texture": "oppressive",
+   "shadeLevel": "realWork",
+   "sunLevel": "realWork",
+   "isDay": false,
+   "sunKnown": true,
+   "example": {
+    "moment": "night",
+    "T": 27,
+    "td": 23,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "oppressive",
+   "shadeLevel": "realWork",
+   "sunLevel": "realWork",
+   "isDay": true,
+   "sunKnown": true,
+   "example": {
+    "moment": "noon",
+    "T": 27,
+    "td": 23,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "oppressive",
+   "shadeLevel": "realWork",
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "moment": "night",
+    "T": 27,
+    "td": 23,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "oppressive",
+   "shadeLevel": "realWork",
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "moment": "noon",
+    "T": 27,
+    "td": 23,
+    "wind10": 0,
+    "sw": 0
+   }
+  },
+  {
+   "texture": "oppressive",
+   "shadeLevel": null,
+   "sunLevel": null,
+   "isDay": false,
+   "sunKnown": false,
+   "example": {
+    "unavailable": true
+   }
+  },
+  {
+   "texture": "oppressive",
+   "shadeLevel": null,
+   "sunLevel": null,
+   "isDay": true,
+   "sunKnown": false,
+   "example": {
+    "unavailable": true
+   }
+  }
+ ]
+}

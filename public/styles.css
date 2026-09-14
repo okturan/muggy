@@ -26,6 +26,9 @@
 [data-level="miserable"] { --lc: var(--c-miserable); }
 
 * { box-sizing: border-box; }
+/* Cards are hidden with the attribute; an author display rule (.block is flex)
+   would otherwise beat the browser's own [hidden] { display: none }. */
+[hidden] { display: none !important; }
 html { background: var(--paper); -webkit-text-size-adjust: 100%; }
 body {
   margin: 0;
@@ -225,5 +228,33 @@ h1, h2, p { margin: 0; }
 .results .nm { font-family: var(--display); font-size: 18px; }
 .results .ad { font-size: 12px; color: var(--muted); font-weight: 600; }
 .results .empty { font-size: 13px; color: var(--muted); padding: 8px 4px; font-weight: 600; }
+
+/* "Why this verdict?" links */
+.why {
+  align-self: flex-start; font-family: var(--display); font-weight: 700; font-size: 14px; color: var(--accent);
+  min-height: 32px; padding: 4px 0; text-decoration: underline; text-underline-offset: 3px;
+}
+.why:focus-visible, .close:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* "Out in it": what the load is made of */
+.panel.outin { gap: 10px; }
+.factors-lead { font-size: 13px; font-weight: 700; color: var(--muted); }
+.factors { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.factor { display: grid; grid-template-columns: 62px minmax(0, 1fr) 104px; align-items: center; gap: 10px; }
+.factor .name { font-family: var(--display); font-weight: 700; font-size: 13px; letter-spacing: .5px; text-transform: uppercase; }
+.factor .track { position: relative; height: 14px; border: 2px solid var(--ink); background: var(--paper); }
+.factor .track::after { content: ''; position: absolute; left: 50%; top: -4px; bottom: -4px; width: 2px; margin-left: -1px; background: var(--ink); }
+.factor .fill { position: absolute; top: 0; bottom: 0; background: var(--accent); }
+.factor .fill.minus { background: #7FA7D1; }
+.factor .word { font-size: 13px; font-weight: 700; color: var(--ink-2); text-align: right; }
+
+/* "Why this verdict?" sheet */
+.why-sheet .sheet-inner { gap: 14px; }
+.why-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 14px; padding: 2px 6px calc(env(safe-area-inset-bottom) + 32px) 2px; }
+.why-body section { border: var(--border); background: var(--panel); box-shadow: 4px 4px 0 var(--ink); padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
+.why-body h3 { margin: 0; font-family: var(--display); font-size: 15px; letter-spacing: .5px; text-transform: uppercase; }
+.why-body p { font-size: 14px; line-height: 1.5; font-weight: 600; color: var(--ink-2); }
+.why-body .small { font-size: 12px; color: var(--muted); }
+.why-body strong { color: var(--ink); }
 
 @media (min-width: 640px) { .app { padding-top: 40px; } }

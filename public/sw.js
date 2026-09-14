@@ -6,8 +6,11 @@
  * the shell renders and the last forecast the person saw renders with it,
  * instead of the browser's dinosaur.
  */
-const CACHE = 'muggy-v1';
-const CORE = ['/', '/styles.css', '/app.js', '/manifest.webmanifest', '/icons/icon-192.png'];
+const CACHE = 'muggy-v2';
+// The app is ES modules: every shared module must be cached, or the offline
+// shell loads app.js and then fails on its first import.
+const CORE = ['/', '/styles.css', '/app.js', '/about', '/manifest.webmanifest', '/icons/icon-192.png',
+  '/lib/calibration.js', '/lib/copy.js', '/lib/explain.js', '/lib/explorer.js', '/lib/globe.js', '/lib/interp.js', '/lib/levels.js', '/lib/lexicon.js', '/lib/load.js', '/lib/normals.js', '/lib/psychro.js', '/lib/relief.js', '/lib/sun.js', '/lib/texture.js', '/lib/verdict.js', '/lib/wbgt.js'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE)).then(() => self.skipWaiting()));

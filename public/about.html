@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>How Muggy works</title>
-  <meta name="description" content="What dew point, comfort bands and humidex mean, in plain words.">
+  <meta name="description" content="How Muggy reads the air: dew point bands, WBGT heat load in the shade and in the sun, what each level means, and how the model was checked against measured stations.">
   <meta name="theme-color" content="#FBF4E6">
   <link rel="icon" href="/icons/icon-192.png" type="image/png">
   <link rel="canonical" href="https://muggy.fyi/about">
@@ -13,28 +13,49 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Nunito:wght@600;700&display=swap">
   <link rel="stylesheet" href="/styles.css">
   <style>
-    .page { max-width: 640px; margin: 0 auto; padding: calc(env(safe-area-inset-top) + 20px) 16px 48px; display: flex; flex-direction: column; gap: 26px; }
+    .page { max-width: 640px; margin: 0 auto; padding: calc(env(safe-area-inset-top) + 20px) 16px 48px; display: flex; flex-direction: column; gap: 30px; }
     .page h1 { font-size: 32px; letter-spacing: .5px; text-transform: uppercase; line-height: 1.1; }
     .page h2 { font-size: 21px; letter-spacing: .5px; text-transform: uppercase; scroll-margin-top: 24px; }
-    .page p { font-size: 15.5px; line-height: 1.6; font-weight: 600; color: var(--ink-2); }
+    .page h3 { font-family: var(--display); font-size: 16px; letter-spacing: .5px; text-transform: uppercase; margin: 6px 0 0; }
+    .page p, .page li { font-size: 15.5px; line-height: 1.6; font-weight: 600; color: var(--ink-2); }
+    .page ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
     .page section { display: flex; flex-direction: column; gap: 14px; }
-    /* boxed elements carry a 6px drop shadow, so they need extra clearance below */
-    .page table.bands, .page .callout { margin-bottom: 8px; }
+    .page .lede { font-size: 17px; color: var(--ink); }
     .back { display: inline-flex; align-items: center; gap: 8px; font-family: var(--display); font-weight: 700; font-size: 15px; color: var(--ink); border: var(--border); background: var(--panel); padding: 8px 14px; box-shadow: 3px 3px 0 var(--ink); align-self: flex-start; }
     .back:hover { text-decoration: none; color: var(--ink); }
+    .scroll { overflow-x: auto; margin-bottom: 8px; }
     table.bands { border-collapse: collapse; width: 100%; border: var(--border); background: var(--panel); box-shadow: var(--shadow); font-size: 14px; }
-    table.bands th, table.bands td { border: 2px solid var(--ink); padding: 8px 10px; text-align: left; font-weight: 700; }
+    table.bands th, table.bands td { border: 2px solid var(--ink); padding: 8px 10px; text-align: left; font-weight: 700; vertical-align: top; }
     table.bands th { font-family: var(--display); text-transform: uppercase; font-size: 12.5px; letter-spacing: .5px; }
-    table.bands td:first-child { font-family: var(--display); text-transform: uppercase; }
-    .callout { border: var(--border); background: var(--panel); box-shadow: var(--shadow); padding: 12px 14px; }
-    .callout p { margin: 0; }
+    table.bands td:first-child { font-family: var(--display); text-transform: uppercase; white-space: nowrap; }
+    table.grid td, table.grid th { text-align: center; padding: 6px; font-size: 13px; }
+    table.grid td:first-child, table.grid th:first-child { text-align: left; }
+    table.grid td.no { color: var(--muted); background: repeating-linear-gradient(45deg, transparent 0 6px, var(--grid) 6px 8px); }
+    table.grid td.here { background: var(--c-muggy); }
+    .callout { border: var(--border); background: var(--panel); box-shadow: var(--shadow); padding: 12px 14px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 8px; }
     .swatch { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--ink); vertical-align: -1px; margin-right: 6px; }
+    .formula { font-family: var(--display); font-size: 18px; font-weight: 700; color: var(--ink); }
+    .small { font-size: 13px !important; color: var(--muted) !important; }
+    /* explorer */
+    .explorer { border: var(--border); background: var(--panel); box-shadow: var(--shadow); padding: 14px; display: flex; flex-direction: column; gap: 14px; margin-bottom: 8px; }
+    .explorer label, .explorer legend { font-family: var(--display); font-weight: 700; font-size: 13px; letter-spacing: .5px; text-transform: uppercase; }
+    .explorer fieldset { border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+    .explorer .row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .explorer .row label { text-transform: none; letter-spacing: 0; font-size: 15px; display: flex; align-items: center; gap: 6px; border: var(--border); padding: 6px 12px; min-height: 40px; background: var(--paper); cursor: pointer; }
+    .explorer .row input { accent-color: var(--ink); }
+    .explorer input[type=range] { width: 100%; accent-color: var(--accent); }
+    .explorer select { font: inherit; font-size: 16px; font-weight: 700; border: var(--border); background: var(--paper); padding: 8px; min-height: 44px; }
+    .explorer .result { border-top: 3px solid var(--ink); padding-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+    .explorer .result h3 { font-size: 22px; line-height: 1.1; margin: 0; }
+    .explorer input:focus-visible, .explorer select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
   </style>
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
-    {"@type":"Question","name":"Why does Muggy use dew point instead of temperature or humidity?","acceptedAnswer":{"@type":"Answer","text":"Temperature does not say how the air feels: 30\u00b0 in dry air is pleasant, 27\u00b0 in soaked air is a slog. The dew point measures how much water the air already carries, which decides how well sweat can evaporate and cool you. Relative humidity alone cannot tell you this: fog on a cold morning is 100% humidity and nobody calls it muggy."}},
-    {"@type":"Question","name":"What are the six comfort bands?","acceptedAnswer":{"@type":"Answer","text":"Dry (dew point below 13\u00b0C), comfortable (13-16), humid (16-18), muggy (18-21), oppressive (21-24) and miserable (24 and up). These are the thresholds WeatherSpark made familiar, converted from Fahrenheit."}},
-    {"@type":"Question","name":"What is humidex?","acceptedAnswer":{"@type":"Answer","text":"Environment Canada's discomfort index from 1965. It folds temperature and dew point into one number read like a feels-like temperature in \u00b0C: humidex 36 means the load on your body is about what 36\u00b0 of dry heat would be. Under 30 is little discomfort, 30-39 some, 40-45 great, above 45 dangerous."}},
-    {"@type":"Question","name":"How does Muggy decide whether the air is normal for the date?","acceptedAnswer":{"@type":"Answer","text":"It compares right now against ten years of history for the same place and time of year, every recorded hour within a week of today's date, about 3,600 of them, and reports where the moment sits, such as stickier than 93% of days."}}
+    {"@type":"Question","name":"Why does Muggy use dew point instead of temperature or humidity?","acceptedAnswer":{"@type":"Answer","text":"Temperature does not say how the air feels: 30° in dry air is pleasant, 27° in soaked air is a slog. The dew point measures how much water the air already carries, which decides how well sweat can evaporate and cool you. Relative humidity alone cannot tell you this: fog on a cold morning is 100% humidity and nobody calls it muggy."}},
+    {"@type":"Question","name":"What are the six air bands?","acceptedAnswer":{"@type":"Answer","text":"Dry (dew point below 12.8°C), comfortable (12.8 to 15.6), humid (15.6 to 18.3), muggy (18.3 to 21.1), oppressive (21.1 to 23.9) and miserable (23.9 and up). These are the thresholds WeatherSpark made familiar, converted from Fahrenheit. They describe what the moisture does to skin and sweat, not what to do."}},
+    {"@type":"Question","name":"What is WBGT and why does Muggy use it?","acceptedAnswer":{"@type":"Answer","text":"WBGT, wet-bulb globe temperature, is one number for how heavily heat, damp, sun and wind sit on a body. Muggy computes it the way Japan's Ministry of the Environment publishes it: 70% a wet thermometer, 20% a black globe in the sun, 10% the air temperature. It is calculated twice, in the shade and in the sun, because the sun alone can move you a whole level."}},
+    {"@type":"Question","name":"What do Muggy's heat levels mean?","acceptedAnswer":{"@type":"Answer","text":"None below WBGT 18; Easy 18 to 20; Noticeable 21 to 24; Real work 25 to 27, when moderate or heavy activity needs regular rest; Hard 28 to 30, when everyone should avoid direct sun and heavy exercise; Dangerous 31 and up, when outdoor activity should be avoided. The ranges follow the Japanese Society of Biometeorology and Japan's Ministry of the Environment."}},
+    {"@type":"Question","name":"How accurate is Muggy's heat load?","acceptedAnswer":{"@type":"Answer","text":"Checked against 47 Japanese stations that measure WBGT with a black globe, using the same kind of forecast data the app uses, and predicting each station with settings chosen without it: the mean error is 0.79°C, and 99.8% of hours land on the measured level or the one next to it."}},
+    {"@type":"Question","name":"How does Muggy decide whether the air is normal?","acceptedAnswer":{"@type":"Answer","text":"It compares the current dew point with ten years of past hours from the same place, within a week of today's date and two hours of the current time of day, and states one number, such as stickier than 78% of mornings."}}
   ]}</script>
 </head>
 <body>
@@ -42,63 +63,202 @@
     <a class="back" href="/">← muggy.fyi</a>
     <h1>How Muggy works</h1>
 
-    <section id="dew-point">
-      <h2>Why not just temperature?</h2>
-      <p>Because temperature doesn't tell you how the air feels. 30° in dry air is a nice day. 27° in soaked air is a slog. Your body cools itself by sweating, and sweat only cools you if it can evaporate. Wet air slows that down.</p>
-      <p>The measure of how wet the air really is: the <strong>dew point</strong>, the temperature the air would have to cool to before its moisture starts condensing. The higher it sits, the more water the air already carries and the worse your sweat works. Relative humidity can't tell you this on its own. Fog on a cold morning is 100% humidity, and nobody calls fog muggy.</p>
-      <p>So Muggy reads the dew point and sorts it into one of six bands. You see the band, not the number, because "dew point 21°" tells most people nothing and "muggy" tells them everything.</p>
+    <section id="two-readings">
+      <h2>Two readings, one verdict</h2>
+      <p class="lede">Muggy looks at the air in two ways, and only ever gives you one answer.</p>
+      <ul>
+        <li><strong>What kind of air it is.</strong> Dry, muggy, oppressive: how much water the air holds, and so how well your sweat can dry.</li>
+        <li><strong>How heavily it sits on you.</strong> The heat, the damp, the sun and the breeze added together. This is the part that decides whether to slow down.</li>
+      </ul>
+      <p>The second one leads the headline, and the first describes it. They aren't allowed to argue. Damp air on a mild morning is a real, common thing, and the honest way to say it is <strong>"Muggy but mild"</strong>. "It's muggy, slow down" next to "nothing will slow you down" is not.</p>
+      <p>Not every pairing can happen. Here is every combination Muggy's engine can produce, from a sweep of more than 150,000 weather situations:</p>
+      <div class="scroll">
+        <table class="bands grid" aria-label="Which air bands can meet which heat levels">
+          <tr><th>Air</th><th>None</th><th>Easy</th><th>Noticeable</th><th>Real work</th><th>Hard</th><th>Dangerous</th></tr>
+          <tr><td>dry</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+          <tr><td>comfortable</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+          <tr><td>humid</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+          <tr><td>muggy</td><td class="no" title="cannot happen">–</td><td class="here">✓ mild</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+          <tr><td>oppressive</td><td class="no" title="cannot happen">–</td><td class="no" title="cannot happen">–</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+          <tr><td>miserable</td><td class="no" title="cannot happen">–</td><td class="no" title="cannot happen">–</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        </table>
+      </div>
+      <p>Air that wet always carries some heat load, so oppressive or miserable air is never easy. Muggy air, though, is often mild: a morning or evening only a few degrees above its dew point.</p>
     </section>
 
     <section id="bands">
-      <h2>The six bands</h2>
-      <p>The cut-offs are the ones <a href="https://weatherspark.com" rel="noopener">WeatherSpark</a> made familiar, converted from Fahrenheit:</p>
-      <table class="bands">
-        <tr><th>Band</th><th>Dew point</th><th>How it feels</th></tr>
-        <tr><td><span class="swatch" style="background:#DCE3EC"></span>dry</td><td>below 13°</td><td>Crisp. Skin and lips feel it.</td></tr>
-        <tr><td><span class="swatch" style="background:#CDE8B8"></span>comfortable</td><td>13 – 16°</td><td>The good stuff. Go outside.</td></tr>
-        <tr><td><span class="swatch" style="background:#F5EFA8"></span>humid</td><td>16 – 18°</td><td>Noticeable, not a problem.</td></tr>
-        <tr><td><span class="swatch" style="background:#F6C6A8"></span>muggy</td><td>18 – 21°</td><td>Shirts stick. Shade helps.</td></tr>
-        <tr><td><span class="swatch" style="background:#F79AC0"></span>oppressive</td><td>21 – 24°</td><td>Sweat won't dry. Take it slow.</td></tr>
-        <tr><td><span class="swatch" style="background:#F0755B"></span>miserable</td><td>24° and up</td><td>Stay in. Find the AC.</td></tr>
-      </table>
+      <h2>The six air bands</h2>
+      <p>Your body cools itself by sweating, and sweat only cools you if it can evaporate. The <strong>dew point</strong> measures how much water the air already carries: the temperature it would have to cool to before that water starts condensing. The higher it is, the worse sweat works. Relative humidity can't tell you this on its own. Fog on a cold morning is 100% humidity, and nobody calls fog muggy.</p>
+      <p>Muggy sorts the dew point into the bands <a href="https://weatherspark.com" rel="noopener">WeatherSpark</a> made familiar, converted from Fahrenheit. You see the band, never the number.</p>
+      <div class="scroll">
+        <table class="bands">
+          <tr><th>Air</th><th>Dew point</th><th>What the moisture does</th></tr>
+          <tr><td><span class="swatch" style="background:#DCE3EC"></span>dry</td><td>below 12.8°</td><td>Sweat vanishes the moment it forms.</td></tr>
+          <tr><td><span class="swatch" style="background:#CDE8B8"></span>comfortable</td><td>12.8 – 15.6°</td><td>Sweat dries as fast as it comes.</td></tr>
+          <tr><td><span class="swatch" style="background:#F5EFA8"></span>humid</td><td>15.6 – 18.3°</td><td>You notice it on your skin, not much more.</td></tr>
+          <tr><td><span class="swatch" style="background:#F6C6A8"></span>muggy</td><td>18.3 – 21.1°</td><td>Shirts stick; sweat is slow to dry.</td></tr>
+          <tr><td><span class="swatch" style="background:#F79AC0"></span>oppressive</td><td>21.1 – 23.9°</td><td>Sweat barely dries, so it stops cooling you.</td></tr>
+          <tr><td><span class="swatch" style="background:#F0755B"></span>miserable</td><td>23.9° and up</td><td>Saturated: sweat pours and does almost nothing.</td></tr>
+        </table>
+      </div>
     </section>
 
-    <section id="humidex">
-      <h2>What is humidex?</h2>
-      <p>The band says how sticky the air is. It doesn't say how hard that stickiness is working against you: sticky air at 34° and the same sticky air at 24° are different afternoons. <strong>Humidex</strong> joins the two. It folds temperature and dew point into a single number for how heavy the air sits on a body.</p>
-      <p>Canadian meteorologists built it in 1965, and <a href="https://www.canada.ca/en/environment-climate-change/services/seasonal-weather-hazards/warm-season-weather-hazards.html#toc7" rel="noopener">Environment Canada</a> still issues heat warnings with it. Read it like a feels-like temperature in °C: humidex 36 means the load on you is about what 36° of dry heat would be.</p>
-      <table class="bands">
-        <tr><th>Humidex</th><th>Officially</th><th>Muggy says</th></tr>
-        <tr><td>under 30</td><td>little discomfort</td><td>Barely registers</td></tr>
-        <tr><td>30 – 39</td><td>some discomfort</td><td>Fine unless you push</td></tr>
-        <tr><td>40 – 45</td><td>great discomfort; avoid exertion</td><td>Hard on the body</td></tr>
-        <tr><td>45 and up</td><td>dangerous; heat stroke possible</td><td>Dangerous to exert</td></tr>
-      </table>
-      <div class="callout"><p>This is also why evenings feel easier than afternoons when the air is just as damp: night takes away the heat, not the moisture. On the August evening this page was written, Tirana's humidex was 42 at lunchtime and 37 by nine at night. The same sticky air had become a whole level easier to be out in.</p></div>
-      <p>The US <strong>heat index</strong> answers the same question with different math; humidex gets the job here because it's built straight from the dew point the rest of the app already runs on. <strong>WBGT</strong>, the standard for sport and outdoor work, also measures sun and wind, but it wants instruments a weather API doesn't have. Rather than fake one, Muggy mentions the sun separately, and only when the radiation data says it matters.</p>
+    <section id="wbgt">
+      <h2>How heavily the air sits on you</h2>
+      <p>The band can't tell you how hard the air is working against you. Muggy air at 24° and the same air at 34° in full sun are different afternoons. For that, Muggy uses <strong>WBGT</strong>, the wet-bulb globe temperature. It's the number sports bodies, armies and Japan's heat-stroke alerts use.</p>
+      <p>Think of it as three thermometers blended into one reading:</p>
+      <ul>
+        <li><strong>A wet thermometer (70%)</strong>: how well sweat can still cool you. Damp air makes it read high.</li>
+        <li><strong>A black globe (20%)</strong>: how much the sun and warm surroundings heat you up. It is why full sun can move you a whole level.</li>
+        <li><strong>The air itself (10%)</strong>.</li>
+      </ul>
+      <p>Muggy works this out twice. <strong>In the shade</strong> means under a solid awning or a tree. <strong>In the sun</strong> means standing in direct sunlight. When the two land on different levels, the headline gives both: "Easy in the shade, noticeable in the sun". At night they are the same, and Muggy says nothing about the sun.</p>
+      <div class="callout">
+        <p>Two honest caveats. The numbers describe the forecast for an area a few kilometres wide, not your street: a walled courtyard holds heat long after a seafront cools. And heat hits people differently. Age, fitness, clothing, medication and how used you are to the heat all change your own risk.</p>
+        <p>Everything here describes being <strong>outside</strong>. If you're reading this in air conditioning, it's about the walk home.</p>
+      </div>
+    </section>
+
+    <section id="levels">
+      <h2>What each level means</h2>
+      <p>The ranges and advice follow the <a href="https://seikishou.jp/cms/wp-content/uploads/Guidlines-for-the-prevention-of-heat-illness-in-daily-life-Ver.4-in-English-2023.pdf" rel="noopener">Japanese Society of Biometeorology's daily-life guideline</a> and the <a href="https://www.wbgt.env.go.jp/en/wbgt.php" rel="noopener">Japan Ministry of the Environment's WBGT table</a>. Muggy splits their lowest band in two, so a mild day and a noticeable one aren't lumped together.</p>
+      <div class="scroll">
+        <table class="bands" id="ladder">
+          <tr><th>Level</th><th>WBGT</th><th>What it means</th><th>Anchor</th></tr>
+          <tr data-level="none" data-max="17"><td>None</td><td>below 18</td><td>Heat is not a factor.</td><td>–</td></tr>
+          <tr data-level="easy" data-min="18" data-max="20"><td>Easy</td><td>18 – 20</td><td>Little heat stress. Long sessions of sport still go better with regular drinks.</td><td>MOE "almost safe"</td></tr>
+          <tr data-level="noticeable" data-min="21" data-max="24"><td>Noticeable</td><td>21 – 24</td><td>Low risk in daily life. During sport or heavy work, drink regularly.</td><td>MOE "caution"</td></tr>
+          <tr data-level="realWork" data-min="25" data-max="27"><td>Real work</td><td>25 – 27</td><td>Errands are fine. Moderate or heavy activity needs regular rest and water.</td><td>JSBM/MOE "warning"</td></tr>
+          <tr data-level="hard" data-min="28" data-max="30"><td>Hard</td><td>28 – 30</td><td>Everyone: avoid direct sun outdoors and heavy exercise.</td><td>JSBM/MOE "severe warning"</td></tr>
+          <tr data-level="dangerous" data-min="31"><td>Dangerous</td><td>31 and up</td><td>Avoid outdoor activity. Older people are at risk even at rest. At 33 Japan issues a heat-stroke alert; at 35, a special alert.</td><td>JSBM/MOE "danger"</td></tr>
+        </table>
+      </div>
+      <p>A reading sitting right on a line doesn't flip the verdict back and forth. Muggy keeps the earlier level until the reading clearly crosses.</p>
+    </section>
+
+    <section id="try">
+      <h2>Try it</h2>
+      <p>Pick the weather and see what Muggy would say. It runs the same engine and the same words as the app.</p>
+      <form class="explorer" id="explorer" onsubmit="return false">
+        <div>
+          <label for="xTemp">Air temperature: <span id="xTempValue">30°C</span></label>
+          <input id="xTemp" type="range" min="10" max="45" step="1" value="30">
+        </div>
+        <div>
+          <label for="xAir">Air</label><br>
+          <select id="xAir">
+            <option value="dry">dry</option><option value="comfortable">comfortable</option><option value="humid">humid</option>
+            <option value="muggy" selected>muggy</option><option value="oppressive">oppressive</option><option value="miserable">miserable</option>
+          </select>
+        </div>
+        <fieldset>
+          <legend>Sun</legend>
+          <div class="row">
+            <label><input type="radio" name="xSun" value="none"> none (night or thick cloud)</label>
+            <label><input type="radio" name="xSun" value="some"> some</label>
+            <label><input type="radio" name="xSun" value="full" checked> full</label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Wind</legend>
+          <div class="row">
+            <label><input type="radio" name="xWind" value="still"> still</label>
+            <label><input type="radio" name="xWind" value="breeze" checked> a breeze</label>
+            <label><input type="radio" name="xWind" value="windy"> windy</label>
+          </div>
+        </fieldset>
+        <div class="result" id="xResult" role="status" aria-live="polite">
+          <h3 class="display" id="xHeadline">…</h3>
+          <p id="xBlurb"></p>
+          <p class="small" id="xLevels"></p>
+          <ul class="factors" id="xFactors"></ul>
+        </div>
+      </form>
+    </section>
+
+    <section id="accuracy">
+      <h2>How we know it's right</h2>
+      <p>A model that sounds precise and is quietly wrong is worse than no model. So Muggy's heat load was checked against the real thing: the <strong><span data-metric="stations">47</span> Japanese weather stations</strong> where the Ministry of the Environment measures WBGT with an actual black globe. The inputs were the same kind of forecast data the app uses, and there were <span data-metric="hours">434,405</span> measured summer hours.</p>
+      <p>Each station was predicted with settings chosen <em>without</em> that station, so none of these numbers comes from grading its own homework:</p>
+      <ul>
+        <li>Typical miss: <strong><span data-metric="mae">0.79</span> °C</strong> of WBGT, with an average lean of <span data-metric="bias">-0.16</span> °C.</li>
+        <li>On the measured level, or the one next to it: <strong><span data-metric="withinOne">99.8</span>%</strong> of hours.</li>
+        <li>Calling it Noticeable or lower when it was really Hard or Dangerous: <strong><span data-metric="severe">0.13</span>%</strong> of those hours.</li>
+      </ul>
+      <p>That matches Japan's own official estimator on the same inputs, and adds what an estimator can't: shade versus sun, and what the load is made of. The full results, including runs that failed along the way, are <a href="https://github.com/okturan/muggy/blob/main/tools/wbgt-validation/RESULTS.md" rel="noopener">published in the repository</a>.</p>
     </section>
 
     <section id="normal">
       <h2>"Is this normal?"</h2>
-      <p>A band alone doesn't tell you whether to be surprised by it. So the app checks right now against ten years of history for the same place and time of year: every hour recorded within a week of today's date, about 3,600 of them. Then it says where this moment sits. Stickier than 93% of days, or squarely normal for here. The coloured bar underneath is the local climate at a glance, one segment per band, each sized by its share of the past decade.</p>
+      <p>A band alone doesn't tell you whether to be surprised by it. So Muggy compares the air right now with ten years of history from the same place: every hour within a week of today's date and two hours of the current time of day, about 750 of them. A morning is compared with mornings, never with whole days. You get one number, like "stickier than 78% of mornings", and the bar shows how often each band turns up at this time of day.</p>
     </section>
 
     <section id="better">
       <h2>"When will it get better?"</h2>
-      <p>The forecast already knows when the air eases, so the app says it plainly: the first stretch in the next 24 hours that beats the band you're standing in, and where that stretch bottoms out. "Muggy from 22:00, easing to dry by 03:00." When nothing better is coming, it says that instead.</p>
+      <p>"Better" means what the headline means: less heat load first, then drier air. So sunset counts as relief, not only a change of air. For example: "Easy from 21:00, once the sun is down." Hours between midnight and six can extend a stretch of relief but never start one, because nobody plans around 03:00. When nothing better is coming, it says that instead.</p>
+    </section>
+
+    <section id="technical">
+      <h2>The technical bits</h2>
+      <p class="formula">WBGT = 0.7 · Tw + 0.2 · Tg + 0.1 · Ta</p>
+      <ul>
+        <li><strong>Definition.</strong> Japan's Ministry of the Environment computes its measured WBGT with a psychrometric wet bulb <em>Tw</em> (Iribarne &amp; Godson) and a 6-inch black globe <em>Tg</em>. Muggy's levels and alert marks are MOE's, so the index is too.</li>
+        <li><strong>Globe.</strong> The energy balance of Liljegren et al. (2008), ported line by line from Argonne National Laboratory's source and checked against the original to 0.02 °C. Convection follows ISO 7726 for 150 mm globes.</li>
+        <li><strong>Sun.</strong> The forecast's own direct and diffuse radiation, with the sun's angle averaged over the sunlit part of each forecast interval (Hogan &amp; Hirahara 2016). It stays within 0.4 °C of minute-by-minute physics even in the hours around sunrise and sunset.</li>
+        <li><strong>Wind.</strong> 10 m wind brought down to 2 m with town stability classes; one wind for shade and sun.</li>
+        <li><strong>Calibration.</strong> Two physical settings, surface albedo (<span data-metric="albedo">0.2</span>) and a minimum 2 m wind (<span data-metric="minWind">0.13</span> m/s), chosen by a fixed rule in leave-one-station-out cross-validation.</li>
+        <li><strong>What it's made of.</strong> The breakdown into damp, sun and breeze is an exact Shapley attribution against the same air temperature in dry, shaded air with a 2 m/s breeze. The shares always add up.</li>
+      </ul>
+      <p class="small" id="humidex">Earlier versions of Muggy used a different heat index that couldn't tell shade from sun, and the page could show two verdicts that disagreed. That index and its wording are gone.</p>
     </section>
 
     <section id="data">
       <h2>Where the data comes from</h2>
-      <p>Weather and history come from <a href="https://open-meteo.com/" rel="noopener">Open-Meteo</a> (CC-BY 4.0). Comfort bands follow <a href="https://weatherspark.com" rel="noopener">WeatherSpark</a>'s thresholds. Humidex is <a href="https://en.wikipedia.org/wiki/Humidex" rel="noopener">Environment Canada's index</a>. Muggy itself is <a href="https://github.com/okturan/muggy" rel="noopener">open source</a>.</p>
-      <p>One caveat worth knowing: these numbers describe a weather model's grid cell a few kilometres wide, not your street. A walled courtyard holds damp air after a seafront has cleared. Treat the bands as your neighbourhood's weather, not your balcony's.</p>
+      <p>Weather, history and historical forecasts come from <a href="https://open-meteo.com/" rel="noopener">Open-Meteo</a> (CC-BY 4.0). Measured WBGT for validation comes from Japan's Ministry of the Environment, <a href="https://www.wbgt.env.go.jp/" rel="noopener">Heat Illness Prevention Information</a>. The air bands follow <a href="https://weatherspark.com" rel="noopener">WeatherSpark</a>'s thresholds. The WBGT model is by James C. Liljegren, Argonne National Laboratory.</p>
+      <p class="small" id="acknowledgment">This product includes software produced by UChicago Argonne, LLC under Contract No. DE-AC02-06CH11357 with the Department of Energy.</p>
     </section>
 
     <section id="maker">
       <h2>Who made this</h2>
-      <p>Muggy is by <a href="https://okanerturan.com" rel="noopener">Okan Erturan</a>, a product engineer in Tirana, a city that spends its summers muggy or worse. That is where the idea came from: the forecast kept saying 27° and the air kept saying something else.</p>
+      <p>Muggy is by <a href="https://okanerturan.com" rel="noopener">Okan Erturan</a>, a product engineer in Tirana, a city that spends its summers muggy or worse. That's where the idea came from: the forecast kept saying 27°, and the air kept saying something else.</p>
       <p>The whole thing is <a href="https://github.com/okturan/muggy" rel="noopener">open source</a>. If a number looks wrong or your city misbehaves, open an issue.</p>
     </section>
   </main>
+
+  <script type="module">
+    import { explore } from '/lib/explorer.js';
+    import { LEVEL_NAMES, roundHalfUp } from '/lib/levels.js';
+
+    const $ = (id) => document.getElementById(id);
+    const label = { damp: 'Damp', sun: 'Sun', breeze: 'Breeze' };
+    const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+    function update() {
+      const opts = {
+        tair: Number($('xTemp').value),
+        texture: $('xAir').value,
+        sun: document.querySelector('input[name=xSun]:checked').value,
+        wind: document.querySelector('input[name=xWind]:checked').value,
+      };
+      $('xTempValue').textContent = `${opts.tair}°C`;
+      const r = explore(opts);
+      $('xHeadline').textContent = r.verdict.headline;
+      $('xBlurb').textContent = r.verdict.blurb;
+      const levels = opts.sun === 'none'
+        ? `WBGT ${roundHalfUp(r.load.shade)}: ${LEVEL_NAMES[r.shadeLevel]}.`
+        : `WBGT ${roundHalfUp(r.load.shade)} in the shade (${LEVEL_NAMES[r.shadeLevel]}), ${roundHalfUp(r.load.sun)} in the sun (${LEVEL_NAMES[r.sunLevel]}).`;
+      $('xLevels').textContent = `${levels}${r.texture !== opts.texture ? ` The air can't be ${opts.texture} at ${opts.tair}°, so it's ${r.texture}.` : ''}`;
+      const scale = Math.max(3, ...Object.values(r.factors).map(Math.abs));
+      $('xFactors').innerHTML = Object.entries(r.factors).map(([name, c]) => {
+        const width = Math.min(50, (Math.abs(c) / scale) * 50);
+        const pos = c < 0 ? `right:50%;width:${width}%` : `left:50%;width:${width}%`;
+        return `<li class="factor" aria-label="${label[name]}: ${esc(r.words[name])}"><span class="name">${label[name]}</span>
+          <span class="track" aria-hidden="true"><i class="fill${c < 0 ? ' minus' : ''}" style="${pos}"></i></span><span class="word">${esc(r.words[name])}</span></li>`;
+      }).join('');
+    }
+    $('explorer').addEventListener('input', update);
+    $('explorer').addEventListener('change', update);
+    update();
+  </script>
 </body>
 </html>

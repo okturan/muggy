@@ -4,20 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Muggy · how sticky is it out there?</title>
-  <meta name="description" content="Not how hot. How sticky. Comfort level, whether it is normal, and when it will get better.">
+  <meta name="description" content="Not how hot. How sticky. How the air treats you, whether it is normal, and when it will get better.">
   <meta name="theme-color" content="#FBF4E6">
   <link rel="canonical" href="https://muggy.fyi/">
   <meta property="og:site_name" content="Muggy">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Muggy · how sticky is it out there?">
-  <meta property="og:description" content="Not how hot. How sticky. Comfort level, whether it is normal, and when it will get better.">
+  <meta property="og:description" content="Not how hot. How sticky. How the air treats you, whether it is normal, and when it will get better.">
   <meta property="og:url" content="https://muggy.fyi/">
   <meta property="og:image" content="https://muggy.fyi/og/default.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Muggy · how sticky is it out there?">
-  <meta name="twitter:description" content="Not how hot. How sticky. Comfort level, whether it is normal, and when it will get better.">
+  <meta name="twitter:description" content="Not how hot. How sticky. How the air treats you, whether it is normal, and when it will get better.">
   <meta name="twitter:image" content="https://muggy.fyi/og/default.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -29,7 +29,22 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Nunito:wght@600;700&display=swap">
   <link rel="stylesheet" href="/styles.css">
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Muggy","url":"https://muggy.fyi/","description":"Not how hot. How sticky. Comfort level from the dew point, whether it is normal for the date, and when it will get better.","applicationCategory":"Weather","operatingSystem":"Any","offers":{"@type":"Offer","price":"0"},"author":{"@type":"Person","name":"Okan Erturan","url":"https://okanerturan.com"}}</script>
+  <link rel="modulepreload" href="/lib/calibration.js">
+  <link rel="modulepreload" href="/lib/copy.js">
+  <link rel="modulepreload" href="/lib/explain.js">
+  <link rel="modulepreload" href="/lib/globe.js">
+  <link rel="modulepreload" href="/lib/interp.js">
+  <link rel="modulepreload" href="/lib/levels.js">
+  <link rel="modulepreload" href="/lib/lexicon.js">
+  <link rel="modulepreload" href="/lib/load.js">
+  <link rel="modulepreload" href="/lib/normals.js">
+  <link rel="modulepreload" href="/lib/psychro.js">
+  <link rel="modulepreload" href="/lib/relief.js">
+  <link rel="modulepreload" href="/lib/sun.js">
+  <link rel="modulepreload" href="/lib/texture.js">
+  <link rel="modulepreload" href="/lib/verdict.js">
+  <link rel="modulepreload" href="/lib/wbgt.js">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Muggy","url":"https://muggy.fyi/","description":"Not how hot. How sticky. How the outside air treats you, from the dew point and a validated heat-load model, whether it is normal for the date, and when it will get better.","applicationCategory":"Weather","operatingSystem":"Any","offers":{"@type":"Offer","price":"0"},"author":{"@type":"Person","name":"Okan Erturan","url":"https://okanerturan.com"}}</script>
 </head>
 <body>
   <main class="app" id="app" data-level="comfortable" data-state="loading">
@@ -62,15 +77,29 @@
       <div class="chip time-chip" id="timeChip">now</div>
     </section>
 
-    <section class="headline">
+    <section class="headline" aria-live="polite">
       <h1 class="display" id="title">Sniffing the air…</h1>
       <p id="blurb">One sec while we check the air.</p>
+      <button type="button" class="why" id="whyBtn" hidden>Why this verdict?</button>
     </section>
 
     <section class="stats">
       <div class="stat"><span class="k">Temp</span><span class="v display" id="temp">–</span></div>
       <div class="stat"><span class="k">Humidity</span><span class="v display" id="hum">–</span></div>
-      <div class="stat comfort"><span class="k">Comfort</span><span class="v display" id="comfort">–</span></div>
+      <div class="stat comfort"><span class="k">Air</span><span class="v display" id="comfort">–</span></div>
+    </section>
+
+    <section class="block" id="strainCard" hidden>
+      <div class="block-head">
+        <h2 class="display">Out in it</h2>
+        <span class="sub" id="strainSub"></span>
+      </div>
+      <div class="panel outin">
+        <p class="factors-lead" id="factorsLead"></p>
+        <ul class="factors" id="factors"></ul>
+        <p class="note" id="strainNote"></p>
+        <button type="button" class="why" id="whyCardBtn">Why this verdict?</button>
+      </div>
     </section>
 
     <section class="block" id="normalCard" hidden>
@@ -81,19 +110,8 @@
       <div class="panel normal">
         <p class="verdict display" id="normalVerdict"></p>
         <p class="note" id="normalNote"></p>
-        <div class="mixbar" id="mixBar" role="img" aria-label="Where today sits against the usual range"></div>
+        <div class="mixbar" id="mixBar" role="img" aria-label="Where the air sits against the usual range for this time of day"></div>
         <div class="mixends"><span>drier</span><span>stickier</span></div>
-      </div>
-    </section>
-
-    <section class="block" id="strainCard" hidden>
-      <div class="block-head">
-        <h2 class="display">What it means</h2>
-        <span class="sub" id="strainSub"></span>
-      </div>
-      <div class="panel">
-        <p class="verdict display" id="strainValue"></p>
-        <p class="note" id="strainNote"></p>
       </div>
     </section>
 
@@ -133,7 +151,7 @@
     </section>
 
     <footer class="foot">
-      <p><a href="/about">How Muggy works</a> · Comfort level comes from the dew point, sorted into <a href="https://weatherspark.com" rel="noopener">WeatherSpark's</a> comfort bands. Weather data by <a href="https://open-meteo.com/" rel="noopener">Open-Meteo</a>.</p>
+      <p><a href="/about">How Muggy works</a> · The air's stickiness comes from the dew point, in <a href="https://weatherspark.com" rel="noopener">WeatherSpark's</a> bands. The heat load is WBGT as Japan's Ministry of the Environment defines it, checked against measured stations. Weather data by <a href="https://open-meteo.com/" rel="noopener">Open-Meteo</a>.</p>
       <p class="maker">Made in Tirana by <a href="https://okanerturan.com" rel="noopener">Okan Erturan</a> · <a href="https://github.com/okturan/muggy" rel="noopener">open source</a></p>
     </footer>
 
@@ -161,6 +179,18 @@
     </form>
   </dialog>
 
-  <script src="/app.js" defer></script>
+  <dialog class="sheet why-sheet" id="whySheet" aria-labelledby="whyTitle">
+    <div class="sheet-inner">
+      <div class="sheet-head">
+        <h2 class="display" id="whyTitle">Why this verdict?</h2>
+        <button type="button" class="close" id="whyClose" aria-label="Close">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+      <div class="why-body" id="whyBody"></div>
+    </div>
+  </dialog>
+
+  <script type="module" src="/app.js"></script>
 </body>
 </html>

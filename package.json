@@ -4,6 +4,8 @@
   "version": "0.1.0",
   "description": "How muggy is it? A cute dew-point weather app on Cloudflare Workers.",
   "scripts": {
+    "test": "node --test test/",
+    "test:e2e": "node tools/e2e-fixtures.mjs && node test/e2e/run.e2e.mjs && node test/e2e/about.e2e.mjs && node test/e2e/perf.e2e.mjs",
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
     "sprites": "python3 tools/slice-sprites.py"
@@ -11,5 +13,6 @@
   "devDependencies": {
     "puppeteer-core": "^25.9.0",
     "wrangler": "^4.97.0"
-  }
+  },
+  "type": "module"
 }

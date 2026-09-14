@@ -1,772 +1,602 @@
-/* Muggy — dew point → comfort band, with a cloud who feels it. */
-(() => {
-  'use strict';
+/* Muggy — how the outside air treats you, with a cloud who feels it. */
+import { interpolateNow } from './lib/interp.js';
+import { textureOf } from './lib/texture.js';
+import { loadAt, loadSeries, readingNow, intervalInputs, isSunUp } from './lib/load.js';
+import { levelOf, alertMark, createHysteresis, roundHalfUp, LEVELS, LEVEL_MIN } from './lib/levels.js';
+import { compose } from './lib/verdict.js';
+import { attribute, peakAndTrend, REFERENCE_WIND_MS } from './lib/explain.js';
+import { findRelief, describeRelief, forecastHours } from './lib/relief.js';
+import { describe as describeNormals, barSegments, hasHourLadders } from './lib/normals.js';
+import { TEXTURE_SENTENCE, LEVEL_GUIDE, LEVEL_PHRASE, factorSentence } from './lib/copy.js';
 
-  // WeatherSpark bands (55/60/65/70/75 °F) expressed in °C.
-  const BANDS = [
-    { id: 'dry',         max: 12.8 },
-    { id: 'comfortable', max: 15.6 },
-    { id: 'humid',       max: 18.3 },
-    { id: 'muggy',       max: 21.1 },
-    { id: 'oppressive',  max: 23.9 },
-    { id: 'miserable',   max: Infinity },
-  ];
-  const RANK = Object.fromEntries(BANDS.map((b, i) => [b.id, i]));
-  /**
-   * Headline and blurbs per band: [headline, day blurb, night blurb].
-   *
-   * Blurbs describe how well sweat evaporates — what the dew point measures —
-   * never how warm it is. And the advice must know whether the sun is up:
-   * "keep to the shade" at 23:00 is meaningless, and the sticky bands are a
-   * different problem at night, when the question becomes sleep.
-   */
-  const COPY = {
-    dry:         ['Crisp and dry',
-                  'Sweat evaporates the moment it forms.',
-                  'Sweat evaporates the moment it forms.'],
-    comfortable: ['Perfect air',
-                  'Nothing to plan around. This is about as good as air gets.',
-                  'Nothing to plan around. As good as a night gets.'],
-    humid:       ['A little sticky',
-                  "You'll notice it, but it stays out of your way. Something light and breathable is plenty.",
-                  "You'll notice it, but it stays out of your way. Sleep should be fine."],
-    muggy:       ["It's muggy out",
-                  'Shirts start sticking. Keep to the shade and take it slower than usual.',
-                  'Shirts stick even without the sun. Sleeping is easier with moving air.'],
-    oppressive:  ['Oppressive',
-                  'Sweat stops evaporating, so you stop cooling down. Slow everything down and keep water on you.',
-                  "Sweat won't dry even with the sun long gone. A fan pointed at the bed is the move."],
-    miserable:   ['Miserable',
-                  'The air cannot hold any more water, so sweating barely works. Stay in and find air conditioning.',
-                  'The air cannot hold any more water, even at night. This is what AC was invented for.'],
-  };
+const DEFAULT_PLACE = { name: 'Tirana', lat: 41.33, lon: 19.82 };
 
-  /** Pick the blurb for the moment: dry asks the temperature, the rest ask the sun. */
-  function blurbFor(band, cur) {
-    const night = cur.is_day === 0;
-    if (band === 'dry' && cur.temperature_2m != null) {
-      const t = cur.temperature_2m;
-      if (t < 10) return `${COPY.dry[1]} Cold and dry, the kind that chaps lips. Drink more than you feel like.`;
-      if (t > 28) return `${COPY.dry[1]} Dry heat: you will not feel yourself sweating, which is exactly why to keep drinking.`;
-      return `${COPY.dry[1]} Easy air. Your skin will notice before you do.`;
-    }
-    return COPY[band][night ? 2 : 1];
-  }
-  const DEFAULT_PLACE = { name: 'Tirana', lat: 41.33, lon: 19.82 };
+const slugify = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '')
+  .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
-  const slugify = (s) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+const $ = (id) => document.getElementById(id);
+const app = $('app');
+const els = {
+  placeName: $('placeName'), levelName: $('levelName'), timeChip: $('timeChip'),
+  title: $('title'), blurb: $('blurb'), temp: $('temp'), hum: $('hum'), comfort: $('comfort'),
+  hours: $('hours'), hoursSub: $('hoursSub'), week: $('week'), weekSub: $('weekSub'),
+  sheet: $('sheet'), q: $('q'), results: $('results'), toast: $('toast'),
+  normalCard: $('normalCard'), normalSub: $('normalSub'), normalVerdict: $('normalVerdict'),
+  normalNote: $('normalNote'), mixBar: $('mixBar'),
+  windowCard: $('windowCard'), windowSub: $('windowSub'), windowWhen: $('windowWhen'), windowNote: $('windowNote'),
+  strainCard: $('strainCard'), strainSub: $('strainSub'), strainNote: $('strainNote'),
+  factors: $('factors'), factorsLead: $('factorsLead'),
+  whyBtn: $('whyBtn'), whyCardBtn: $('whyCardBtn'), whySheet: $('whySheet'), whyBody: $('whyBody'), whyClose: $('whyClose'),
+};
 
-  const $ = (id) => document.getElementById(id);
-  const app = $('app');
-  const els = {
-    placeName: $('placeName'), levelName: $('levelName'), timeChip: $('timeChip'),
-    title: $('title'), blurb: $('blurb'), temp: $('temp'), hum: $('hum'), comfort: $('comfort'),
-    hours: $('hours'), hoursSub: $('hoursSub'), week: $('week'), weekSub: $('weekSub'),
-    sheet: $('sheet'), q: $('q'), results: $('results'), toast: $('toast'),
-    normalCard: $('normalCard'), normalSub: $('normalSub'), normalVerdict: $('normalVerdict'),
-    normalNote: $('normalNote'), mixBar: $('mixBar'),
-    windowCard: $('windowCard'), windowSub: $('windowSub'), windowWhen: $('windowWhen'), windowNote: $('windowNote'),
-    strainCard: $('strainCard'), strainSub: $('strainSub'), strainValue: $('strainValue'), strainNote: $('strainNote'),
-  };
-
-  const prefs = (() => {
-    try { return JSON.parse(localStorage.getItem('muggy:prefs') || '{}'); } catch { return {}; }
-  })();
-  const savePrefs = () => { try { localStorage.setItem('muggy:prefs', JSON.stringify(prefs)); } catch {} };
-
-  const qs = new URLSearchParams(location.search);
-  const savedUnit = qs.get('unit') || prefs.unit;
-  // First visit with no saved choice: Fahrenheit for the handful of locales
-  // that live in it, Celsius for everyone else. The toggle always wins after.
-  let unit = savedUnit === 'f' || savedUnit === 'c'
-    ? savedUnit
-    : (/(^|-)(US|BS|BZ|KY|LR)$/i.test(navigator.language || '') ? 'f' : 'c');
-  let data = null;
-  let normals = null;
-  let currentPlace = null;   // the place on screen; share and title derive from this, never from the URL bar   // climatology for this place and date, or null while loading/unavailable
-
-  const levelOf = (dpC) => BANDS.find((b) => dpC < b.max).id;
-  const fmtTemp = (c) => (c == null ? '–' : `${Math.round(unit === 'f' ? c * 9 / 5 + 32 : c)}°`);
-  const dayName = (iso) => new Date(`${iso}T12:00:00`).toLocaleDateString(undefined, { weekday: 'short' });
-  const hourLabel = (iso) => iso.slice(11, 13);
-
-  function toast(msg, ms = 2600) {
-    els.toast.textContent = msg;
-    els.toast.classList.add('is-on');
-    clearTimeout(toast.t);
-    toast.t = setTimeout(() => els.toast.classList.remove('is-on'), ms);
-  }
-
-  function applyPrefUI() {
-    document.querySelectorAll('.units button').forEach((b) => b.classList.toggle('is-on', b.dataset.unit === unit));
-  }
-
-  /**
-   * "Current" from the model is a 15-minute step; the app promises the minute.
-   * So the 15-minutely series is interpolated to the wall clock in the city's
-   * own timezone, and a once-a-minute tick keeps it moving while the tab is
-   * open. This is interpolation, not invention: dew point and temperature move
-   * smoothly at this scale, and upstream itself interpolates from hourly data
-   * outside central Europe.
-   */
-  function synthesize() {
-    if (!data || !data.current) return;
-    if (!data._model) data._model = { ...data.current };   // the pristine model step
-    const cur = { ...data._model };
-    const off = data.utc_offset_seconds || 0;
-    const iso = new Date(Date.now() + off * 1000).toISOString().slice(0, 16);
-    const m = data.minutely_15;
-    if (m && m.time && m.time.length > 1 && iso >= m.time[0]) {
-      let i = 0;
-      while (i + 1 < m.time.length && m.time[i + 1] <= iso) i++;
-      const j = Math.min(i + 1, m.time.length - 1);
-      const t0 = Date.parse(`${m.time[i]}:00Z`);
-      const t1 = Date.parse(`${m.time[j]}:00Z`);
-      const frac = t1 > t0 ? Math.min(1, (Date.parse(`${iso}:00Z`) - t0) / (t1 - t0)) : 0;
-      for (const k of ['temperature_2m', 'relative_humidity_2m', 'dew_point_2m', 'apparent_temperature', 'shortwave_radiation']) {
-        const a = m[k] && m[k][i];
-        const b = m[k] && m[k][j];
-        if (a != null && b != null) cur[k] = a + (b - a) * frac;
-        else if (a != null) cur[k] = a;
-      }
-      cur.time = iso;
-    }
-    data.current = cur;
-  }
-
-  // ---------- is this normal? ----------
-  /** Percentile of x within a 101-point quantile ladder. */
-  function pctOf(q, x) {
-    if (!q || !q.length) return null;
-    if (x <= q[0]) return 0;
-    if (x >= q[100]) return 100;
-    let lo = 0, hi = 100;
-    while (lo < hi) { const mid = (lo + hi) >> 1; if (q[mid] < x) lo = mid + 1; else hi = mid; }
-    return lo;
-  }
-
-  function renderNormals() {
-    if (!normals || !data) { els.normalCard.hidden = true; return; }
-    const dp = data.current.dew_point_2m;
-    const pct = pctOf(normals.q, dp);
-    if (pct == null) { els.normalCard.hidden = true; return; }
-    const nowBand = levelOf(dp);
-    const share = normals.mix[nowBand] || 0;
-
-    const cap = (s) => s[0].toUpperCase() + s.slice(1);
-    els.normalVerdict.textContent =
-      pct >= 90 ? 'Way stickier than usual'
-      : pct >= 70 ? 'Stickier than usual'
-      : pct > 30 ? 'About normal'
-      : pct > 10 ? 'Drier than usual'
-      : 'Way drier than usual';
-
-    // How unusual, as a count of hours rather than a percentile — "only 21% have
-    // been stickier" lands where "79th percentile" does not.
-    const rarer = 100 - pct;
-    const position =
-      rarer <= 1 ? 'Nothing recorded around this date has been stickier.'
-      : pct <= 1 ? 'Nothing recorded around this date has been drier.'
-      : pct >= 50 ? `Only ${rarer}% of hours around this date have been stickier.`
-      : `Only ${pct}% of hours around this date have been drier.`;
-
-    // The band alone cannot say "normal band, top of it" — which is exactly the
-    // common case, and reads as a contradiction next to "stickier than usual".
-    const context =
-      share === 0 ? `${cap(nowBand)} air has never been recorded here around this date.`
-      : share < 0.05 ? `${cap(nowBand)} air turns up only about ${Math.round(share * 100)}% of the time around now.`
-      : nowBand !== normals.medianBand ? `Usually it is ${normals.medianBand} around now.`
-      : pct >= 65 ? `Still the usual ${nowBand} band, just at the sticky end of it.`
-      : pct <= 35 ? `Still the usual ${nowBand} band, at the easier end of it.`
-      : 'Squarely normal for here.';
-
-    els.normalNote.textContent = `${position} ${context}`;
-
-    // Rank today against every individual past day around this date, so the
-    // claim is day-against-day rather than a day against a smoothed average.
-    const past = normals.days;
-    const todayVals = data.hourly.time
-      .map((t, i) => (t.slice(0, 10) === data.current.time.slice(0, 10) ? data.hourly.dew_point_2m[i] : null))
-      .filter((v) => v != null)
-      .sort((a, b) => a - b);
-    if (past && past.length >= 30 && todayVals.length) {
-      const todayMid = todayVals[Math.floor(todayVals.length / 2)];
-      const frac = past.filter((v) => todayMid > v).length / past.length;
-      els.normalSub.textContent =
-        frac >= 0.98 ? `stickiest in ${normals.years} years`
-        : frac <= 0.02 ? `driest in ${normals.years} years`
-        : frac >= 0.5 ? `stickier than ${Math.round(frac * 100)}% of days`
-        : `drier than ${Math.round((1 - frac) * 100)}% of days`;
-    } else {
-      els.normalSub.textContent = `${normals.years} years of history`;
-    }
-
-    // Segments sized by each band's share of past hours, so the marker at the
-    // current percentile necessarily lands inside today's band.
-    const segs = BANDS
-      .filter((b) => (normals.mix[b.id] || 0) > 0)
-      .map((b) => `<i style="flex-grow:${(normals.mix[b.id] * 1000).toFixed(0)};background:var(--c-${b.id})" title="${b.id} ${Math.round(normals.mix[b.id] * 100)}%"></i>`)
-      .join('');
-    els.mixBar.innerHTML = `${segs}<span class="marker" style="left:${pct}%"></span>`;
-    els.normalCard.hidden = false;
-  }
-
-  // ---------- how it lands ----------
-  /**
-   * Humidex — Environment Canada's discomfort index, T + 0.5555*(e - 10) with e
-   * the vapour pressure from the dew point.
-   *
-   * This is the second axis the app was missing. A comfort band is deliberately
-   * moisture-only, so 20° dew point reads "muggy" at four in the afternoon and
-   * at midnight alike — while the body plainly disagrees, because the air is
-   * ten degrees cooler and the sun has gone. Humidex is built from the same dew
-   * point the rest of the app runs on, and adds exactly the missing term.
-   *
-   * Chosen over WBGT and UTCI deliberately: both model solar load properly, but
-   * WBGT needs a globe temperature (and a *natural* wet bulb, not the
-   * psychrometric one the API returns) and UTCI needs mean radiant temperature
-   * and a ~200-term polynomial. Approximating either would mean showing a
-   * precise-looking number that is quietly guessed. The sun is handled
-   * separately and honestly, from is_day and the actual radiation.
-   */
-  function humidex(tempC, dewC) {
-    if (tempC == null || dewC == null) return null;
-    const e = 6.11 * Math.exp(5417.753 * (1 / 273.16 - 1 / (273.15 + dewC)));
-    return tempC + 0.5555 * (e - 10);
-  }
-  /**
-   * Environment Canada's bands, said in plain words.
-   *
-   * "Humidex 36" is exactly as meaningless as "dew point 21" — which the app
-   * refuses to print for that very reason — so the verdict leads and the number
-   * follows quietly, for anyone who already knows the scale. The official band
-   * names (little/some/great discomfort, dangerous) are about exertion, so the
-   * wording is too.
-   */
-  // `felt` is how each level reads inside a sentence, so comparisons against
-  // the day's peak can be said in words. The card exists to translate the
-  // index; quoting its raw numbers back ("peaked at 42, so this is 6 lower")
-  // would defeat the point.
-  const HUMIDEX_LEVELS = [
-    { max: 30, head: 'Barely registers', felt: 'barely anything',
-      body: 'The heat and the stickiness together add up to very little. Nothing here will slow you down.' },
-    { max: 40, head: 'Fine unless you push', felt: 'noticeable',
-      body: 'Enough heat and stickiness together to notice on a hill or a fast walk, not enough to stop you.' },
-    { max: 46, head: 'Hard on the body', felt: 'genuinely hard',
-      body: 'Heat and stickiness combined are at the level where the official advice is to avoid real exertion.' },
-    { max: Infinity, head: 'Dangerous to exert', felt: 'dangerous',
-      body: 'Heat and stickiness combined are in heat-stroke territory. Do not push it.' },
-  ];
-
-  function renderStrain() {
-    const { current: cur, hourly: h } = data;
-    const hx = humidex(cur.temperature_2m, cur.dew_point_2m);
-    // Below ~25 the index is just the air temperature wearing a hat.
-    if (hx == null || hx < 25) { els.strainCard.hidden = true; return; }
-
-    const level = HUMIDEX_LEVELS.find((l) => hx < l.max);
-    els.strainSub.innerHTML = `<a href="/about#humidex">humidex ${Math.round(hx)} · what's this?</a>`;
-
-    // Today's peak, so "now" has something to be measured against.
-    const today = cur.time.slice(0, 10);
-    let peak = null;
-    h.time.forEach((t, i) => {
-      if (t.slice(0, 10) !== today) return;
-      const v = humidex(h.temperature_2m[i], h.dew_point_2m[i]);
-      if (v != null && (!peak || v > peak.v)) peak = { v, t };
-    });
-
-    // The official 30-39 bracket is ten points wide, which froze the card
-    // while an evening visibly eased from 36 to 32. Position within the
-    // bracket and the last hour's direction keep it honest between
-    // thresholds.
-    // The verdict itself grades within the wide official bracket: humidex 38
-    // is two points from Environment Canada's avoid-exertion line, and a
-    // headline that starts with "fine" there is wrong even when the small
-    // print hedges. Verdicts must not need their own small print.
-    let head = level.head;
-    let body = level.body;
-    if (hx >= 30 && hx < 33) body = 'Only just into the range where you feel it. A stroll is nothing; a hill will remind you.';
-    else if (hx >= 37 && hx < 40) {
-      head = 'Verging on hard';
-      body = 'Two points shy of the level where the official advice is to avoid exertion. Keep the pace easy and the water close.';
-    }
-    els.strainValue.textContent = head;
-    const parts = [body];
-
-    const m = data.minutely_15;
-    let trend = 0;
-    if (m && m.time && m.time.length) {
-      const off = data.utc_offset_seconds || 0;
-      const agoIso = new Date(Date.now() + off * 1000 - 3600000).toISOString().slice(0, 16);
-      let i = 0;
-      while (i + 1 < m.time.length && m.time[i + 1] <= agoIso) i++;
-      if (m.time[i] <= agoIso) {
-        const ago = humidex(m.temperature_2m && m.temperature_2m[i], m.dew_point_2m && m.dew_point_2m[i]);
-        if (ago != null) trend = hx - ago;
-      }
-    }
-
-    if (peak && peak.v - hx >= 3) {
-      const peakLevel = HUMIDEX_LEVELS.find((l) => peak.v < l.max);
-      parts.push(peakLevel === level
-        ? `The heaviest stretch was around ${hourLabel(peak.t)}:00, and it has eased since.`
-        : `Around ${hourLabel(peak.t)}:00 it was ${peakLevel.felt} out there. It has eased since.`);
-      if (trend >= 1.5) parts.push('It is climbing again.');
-    } else if (peak && hx - peak.v >= -1) {
-      parts.push('This is about as heavy as today gets.');
-    } else if (trend <= -1.5) {
-      parts.push('It has been easing over the past hour.');
-    } else if (trend >= 1.5) {
-      parts.push('It is still climbing.');
-    }
-
-    // The sun, from the actual radiation rather than the clock.
-    const sun = cur.shortwave_radiation;
-    if (cur.is_day === 0) {
-      parts.push('And the sun is down, so nothing is piling on top of that.');
-    } else if (sun != null && sun > 450) {
-      parts.push('Full sun on top of it. The shade is a different place.');
-    } else if (sun != null && sun > 120) {
-      parts.push('Some sun on top of it.');
-    }
-    // Wind is the one thing that genuinely helps sticky air: it is why WBGT
-    // measures it. Mention it only when it is doing real work.
-    const wind = cur.wind_speed_10m;
-    if (wind != null && wind >= 15 && hx >= 30) {
-      const w = unit === 'f' ? `${Math.round(wind * 0.621)} mph` : `${Math.round(wind)} km/h`;
-      parts.push(`A ${w} breeze is helping sweat do its job.`);
-    }
-    els.strainNote.textContent = parts.join(' ');
-    els.strainCard.hidden = false;
-  }
-
-  // ---------- when to go out ----------
-  const NIGHT_START = 6;   // never headline 03:00 as the moment to go out
-
-  /**
-   * When the air next eases off.
-   *
-   * The question people actually have is "when does this let up", so the search
-   * runs forward from now and reports the first stretch that is a band better
-   * than the air right now.
-   *
-   * Evenings and nights count. On a muggy day the relief almost always arrives
-   * after dark, and an earlier version that only searched 07:00-21:00 told
-   * people at 20:30 that nothing better was coming — while 23:00 was humid and
-   * midnight was comfortable, two bands down and plainly visible in the hours
-   * strip right below it. Night hours can no longer *open* a window (nobody
-   * plans around 03:00) but they can extend one, which is what lets the card
-   * say the air keeps easing after midnight.
-   */
-  function bestWindow() {
-    const { current: cur, hourly: h } = data;
-    let start = h.time.findIndex((t) => t.slice(0, 13) === cur.time.slice(0, 13));
-    if (start < 0) start = 0;
-
-    // From the NEXT hour: the current hour's bucket is the air you already have,
-    // and offering it as relief reads as "go out at 20:00" when it is 20:30.
-    const pool = [];
-    for (let i = start + 1; i < Math.min(start + 25, h.time.length); i++) {
-      const dp = h.dew_point_2m[i];
-      if (dp == null) continue;
-      pool.push({ i, t: h.time[i], hr: +h.time[i].slice(11, 13), rank: RANK[levelOf(dp)] });
-    }
-    if (!pool.length) return null;
-
-    const curBand = levelOf(cur.dew_point_2m);
-    const curRank = RANK[curBand];
-    const at = pool.findIndex((c) => c.rank < curRank && c.hr >= NIGHT_START);
-    if (at < 0) return { kind: 'none', curBand, curRank };
-
-    const target = pool[at].rank;
-    let end = at;
-    while (end + 1 < pool.length && pool[end + 1].rank <= target
-           && pool[end + 1].i === pool[end].i + 1) end++;
-
-    // Where the run actually bottoms out — "muggy at 22:00" undersells a night
-    // that reaches comfortable by midnight.
-    let bestAt = at;
-    for (let k = at; k <= end; k++) if (pool[k].rank < pool[bestAt].rank) bestAt = k;
-
-    return {
-      kind: 'relief',
-      band: BANDS[target].id,
-      bestRank: target,
-      start: pool[at].t,
-      end: pool[end].t,
-      len: end - at + 1,
-      bestBand: BANDS[pool[bestAt].rank].id,
-      bestTime: pool[bestAt].t,
-      deepens: pool[bestAt].rank < target,
-      tomorrow: pool[at].t.slice(0, 10) !== cur.time.slice(0, 10),
-      curBand,
-      curRank,
-    };
-  }
-
-  function renderWindow() {
-    const w = bestWindow();
-    if (!w) { els.windowCard.hidden = true; return; }
-    const panel = els.windowCard.querySelector('.panel');
-    const cap = (x) => x[0].toUpperCase() + x.slice(1);
-
-    if (w.kind === 'none') {
-      if (panel) panel.style.background = `var(--c-${w.curBand})`;
-      els.windowWhen.textContent = 'Right now';
-      els.windowSub.textContent = w.curRank >= RANK.muggy ? 'no real relief' : 'as good as it gets';
-      els.windowNote.textContent = w.curRank >= RANK.muggy
-        ? `Nothing in the next 24 hours is any better than the ${w.curBand} air right now.`
-        : `Nothing in the next 24 hours beats the ${w.curBand} air you already have.`;
-      els.windowCard.hidden = false;
-      return;
-    }
-
-    // Tint with the band you are being sent out into, not the current one.
-    if (panel) panel.style.background = `var(--c-${w.deepens ? w.bestBand : w.band})`;
-    const from = `${hourLabel(w.start)}:00`;
-    const to = `${String((+hourLabel(w.end) + 1) % 24).padStart(2, '0')}:00`;
-    // A run of half a day is not a window to aim at, so give it an opening time.
-    const when = w.len > 8 || w.len === 1 ? `From ${from}` : `${from} – ${to}`;
-    els.windowWhen.textContent = w.tomorrow ? `Tomorrow, ${when}` : when;
-    els.windowSub.textContent = w.bestRank >= RANK.muggy && !w.deepens ? 'a little relief' : 'first relief';
-    els.windowNote.textContent = w.deepens
-      ? `${cap(w.band)} from ${from}, easing to ${w.bestBand} by ${hourLabel(w.bestTime)}:00.`
-      : `${cap(w.band)}, a step better than the ${w.curBand} air right now.`;
-    els.windowCard.hidden = false;
-  }
-
-  async function loadNormals(place) {
-    normals = null;
-    els.normalCard.hidden = true;
-    try {
-      const r = await fetch(`/api/normals?lat=${place.lat}&lon=${place.lon}`);
-      if (!r.ok) return;                     // no history for this spot — just leave the card off
-      const j = await r.json();
-      if (!j.q || !j.mix) return;
-      normals = j;
-      renderNormals();
-    } catch { /* the rest of the app is unaffected */ }
-  }
-
-  // ---------- render ----------
-  function render() {
-    if (!data) return;
-    const { current: cur, hourly: h } = data;
-    const now = levelOf(cur.dew_point_2m);
-    app.dataset.level = now;
-    app.dataset.state = 'ready';
-    els.levelName.textContent = now;
-    document.title = currentPlace && currentPlace.name && currentPlace.name !== 'My location'
-      ? `${COPY[now][0]} in ${currentPlace.name} · muggy.fyi`
-      : `Muggy · ${COPY[now][0]}`;
-    els.timeChip.textContent = `now · ${cur.time.slice(11, 16)}`;
-    els.title.textContent = COPY[now][0];
-    els.blurb.textContent = blurbFor(now, cur);
-    els.temp.textContent = fmtTemp(cur.temperature_2m);
-    els.hum.textContent = cur.relative_humidity_2m == null ? '–' : `${Math.round(cur.relative_humidity_2m)}%`;
-    els.comfort.textContent = now;
-    els.comfort.classList.toggle('long', now.length > 8);
-
-    // Hours: from the current hour, next 24.
-    const curHour = cur.time.slice(0, 13);
-    let start = h.time.findIndex((t) => t.slice(0, 13) === curHour);
-    if (start < 0) start = 0;
-    const slice = [];
-    for (let i = start; i < Math.min(start + 24, h.time.length); i++) {
-      slice.push({ t: h.time[i], dp: h.dew_point_2m[i], temp: h.temperature_2m[i] });
-    }
-    // The "now" cell must be the same now as every card above it. Left on the
-    // top-of-the-hour model step, it can sit a band apart from the
-    // interpolated reading and make the relief card look like a liar.
-    if (slice.length) slice[0] = { t: cur.time, dp: cur.dew_point_2m, temp: cur.temperature_2m };
-    const valid = slice.filter((x) => x.dp != null);
-    const peak = valid.reduce((a, b) => (b.dp > a.dp ? b : a), valid[0]);
-    els.hours.innerHTML = slice.map((x, i) => {
-      const lv = x.dp == null ? 'comfortable' : levelOf(x.dp);
-      return `<div class="hour${i === 0 ? ' is-now' : ''}" data-level="${lv}" title="${lv}">
-        <span class="t">${i === 0 ? 'now' : `${hourLabel(x.t)}:00`}</span><span class="dot"></span><span class="d">${fmtTemp(x.temp)}</span></div>`;
-    }).join('');
-    els.hoursSub.textContent = peak ? `stickiest around ${hourLabel(peak.t)}:00 (${levelOf(peak.dp)})` : '';
-
-    // Week: one row per local date, a 24-segment band bar (from dew point) and the day's high temperature.
-    const days = new Map();
-    h.time.forEach((t, i) => {
-      const d = t.slice(0, 10);
-      if (!days.has(d)) days.set(d, { dps: [], temps: [] });
-      days.get(d).dps.push(h.dew_point_2m[i]);
-      days.get(d).temps.push(h.temperature_2m[i]);
-    });
-    const todayKey = cur.time.slice(0, 10);
-    const rows = [...days.entries()].filter(([d, o]) => d >= todayKey && o.dps.some((v) => v != null)).slice(0, 7);
-    let stickyDays = 0; let worst = null;
-    els.week.innerHTML = rows.map(([d, { dps, temps }]) => {
-      const vals = dps.filter((v) => v != null);
-      const max = Math.max(...vals);
-      const hi = Math.max(...temps.filter((v) => v != null));
-      const lvMax = levelOf(max);
-      if (RANK[lvMax] >= RANK.muggy) stickyDays++;
-      if (!worst || max > worst.max) worst = { d, max };
-      const segs = dps.map((v) => `<i data-level="${v == null ? 'comfortable' : levelOf(v)}" style="--lc:var(--c-${v == null ? 'comfortable' : levelOf(v)})"></i>`).join('');
-      return `<div class="day" title="${lvMax}"><span class="n display">${d === todayKey ? 'Today' : dayName(d)}</span>
-        <div class="bar">${segs}</div><span class="d">${fmtTemp(hi)}</span></div>`;
-    }).join('');
-    els.weekSub.textContent = stickyDays
-      ? `${stickyDays} of ${rows.length} day${rows.length === 1 ? '' : 's'} muggy or worse`
-      : 'nothing sticky ahead';
-
-    renderStrain();
-    renderWindow();
-    renderNormals();
-  }
-
-  // ---------- data ----------
-  function syncUrl(place, push) {
-    // Geolocation stays at "/" — coordinates do not belong in a shareable URL.
-    const path = place.geo ? '/' : `/${slugify(place.name)}`;
-    try {
-      if (push) history.pushState({}, '', path);
-      else history.replaceState({}, '', path);
-    } catch { /* sandboxed contexts */ }
-  }
-
-  async function load(place, { push } = {}) {
-    app.dataset.state = 'loading';
-    els.placeName.textContent = place.name;
-    syncUrl(place, push);
-    try {
-      const r = await fetch(`/api/forecast?lat=${place.lat}&lon=${place.lon}`);
-      if (!r.ok) throw new Error(`forecast ${r.status}`);
-      data = await r.json();
-      if (!data.current || data.current.dew_point_2m == null) throw new Error('no dew point');
-      currentPlace = place;
-      if (!place.geo) {
-        const rec = (prefs.recents || []).filter((r2) => r2.name !== place.name);
-        rec.unshift({ name: place.name, lat: place.lat, lon: place.lon });
-        prefs.recents = rec.slice(0, 5);
-      }
-      prefs.place = place; savePrefs();
-      synthesize();
-      render();
-      // A stale hit means the worker is refreshing KV behind this response.
-      // Pick the fresh copy up once, quietly, without flashing the UI.
-      if (r.headers.get('x-muggy-cache') === 'stale') {
-        setTimeout(async () => {
-          try {
-            const r2 = await fetch(`/api/forecast?lat=${place.lat}&lon=${place.lon}`, { cache: 'reload' });
-            if (!r2.ok) return;
-            const d2 = await r2.json();
-            if (d2.current && d2.current.dew_point_2m != null) { data = d2; synthesize(); render(); }
-          } catch { /* the stale data stays; it was good enough to render */ }
-        }, 6000);
-      }
-      loadNormals(place);   // slower and optional; never blocks the main view
-    } catch (err) {
-      console.error(err);
-      app.dataset.state = 'error';
-      els.title.textContent = 'Could not read the sky.';
-      els.blurb.textContent = 'The weather service did not answer. Pull down or try again in a moment.';
-      toast('Weather service unavailable');
-    }
-  }
-
-  /**
-   * getCurrentPosition with a cap WE enforce. In-app browsers (LinkedIn,
-   * Instagram) often neither prompt nor call the error callback — the spec's
-   * own timeout only starts after permission resolves, so the call can hang
-   * forever. This one always answers.
-   */
-  const gps = (ms) => new Promise((resolve) => {
-    let done = false;
-    const finish = (v) => { if (!done) { done = true; resolve(v); } };
-    if (!navigator.geolocation) return finish(null);
-    try {
-      navigator.geolocation.getCurrentPosition((p) => finish(p), () => finish(null),
-        { timeout: Math.max(1000, ms - 500), maximumAge: 600000 });
-    } catch { finish(null); }
-    setTimeout(() => finish(null), ms);
-  });
-
-  /** Coordinates → the name of the biggest real city that agrees on where we are. */
-  async function nameFor(lat, lon) {
-    let name = 'My location';
-    try {
-      const r = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
-      const j = r.ok ? await r.json() : null;
-      if (j) name = j.city || j.locality || j.principalSubdivision || name;
-      const fields = j ? [j.city, j.locality, j.principalSubdivision,
-        ...(((j.localityInfo || {}).administrative) || []).map((a) => a.name)].filter(Boolean) : [];
-      const cands = [...new Set(fields.map((f) => f.trim()))].slice(0, 7);
-      const near = await Promise.all(cands.map(async (q2) => {
-        try {
-          const g = await fetch(`/api/geocode?q=${encodeURIComponent(q2)}`);
-          if (!g.ok) return null;
-          const c = ((await g.json()).results || [])[0];
-          if (!c || /^PCL/.test(c.fc || '')) return null;
-          return Math.abs(c.lat - lat) < 0.7 && Math.abs(c.lon - lon) < 0.7 ? c : null;
-        } catch { return null; }
-      }));
-      const best = near.filter(Boolean).sort((a2, b2) => (b2.population || 0) - (a2.population || 0))[0];
-      if (best) name = best.name;
-    } catch { /* the generic label is a fine fallback */ }
-    return name;
-  }
-
-  async function locate({ silent } = {}) {
-    const pos = await gps(6000);
-    if (!pos) { if (!silent) toast('Could not get your location'); return false; }
-    const lat = +pos.coords.latitude.toFixed(3);
-    const lon = +pos.coords.longitude.toFixed(3);
-    const name = await nameFor(lat, lon);
-    load({ name, lat, lon, geo: true });
-    return true;
-  }
-
-  /** IP-level location from our own worker: instant, promptless, city-close. */
-  async function ipLocate() {
-    try {
-      const r = await fetch('/api/whereami');
-      if (!r.ok) return false;
-      const j = await r.json();
-      if (j.lat == null || j.lon == null) return false;
-      const lat = +(+j.lat).toFixed(2);
-      const lon = +(+j.lon).toFixed(2);
-      load({ name: j.city || await nameFor(lat, lon), lat, lon, geo: true });
-      return true;
-    } catch { return false; }
-  }
-
-  // ---------- search sheet ----------
-  let searchT = null;
-  function renderResults(list, emptyMsg) {
-    if (!list.length) { els.results.innerHTML = emptyMsg ? `<li class="empty">${emptyMsg}</li>` : ''; return; }
-    els.results.innerHTML = list.map((p, i) => `<li><button type="button" data-i="${i}">
-      <span class="nm">${esc(p.name)}</span><span class="ad">${esc([p.admin, p.country].filter(Boolean).join(', '))}</span></button></li>`).join('');
-    els.results.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
-      const p = list[+b.dataset.i];
-      els.sheet.close();
-      load({ name: p.name, lat: p.lat, lon: p.lon }, { push: true });
-    }));
-  }
-  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-
-  els.q.addEventListener('input', () => {
-    clearTimeout(searchT);
-    const q = els.q.value.trim();
-    if (q.length < 2) { renderResults([]); return; }
-    searchT = setTimeout(async () => {
-      try {
-        const r = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`);
-        const j = await r.json();
-        if (els.q.value.trim() !== q) return;
-        renderResults(j.results || [], 'No matches. Try a bigger town nearby.');
-      } catch { renderResults([], 'Search is unavailable right now.'); }
-    }, 280);
-  });
-  // Enter in the search box submits the dialog form and closes the sheet with
-  // nothing chosen. People type a city and hit Enter; give them the top match.
-  els.q.addEventListener('keydown', (e) => {
-    if (e.key !== 'Enter') return;
-    e.preventDefault();
-    const first = els.results.querySelector('button');
-    if (first) first.click();
-  });
-  function renderRecents() {
-    const rec = prefs.recents || [];
-    const box = $('recents');
-    box.innerHTML = rec.map((r2, i) => `<button type="button" data-i="${i}">${esc(r2.name)}</button>`).join('');
-    box.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
-      const r2 = rec[+b.dataset.i];
-      els.sheet.close();
-      load({ name: r2.name, lat: r2.lat, lon: r2.lon }, { push: true });
-    }));
-  }
-  $('placeBtn').addEventListener('click', () => { els.sheet.showModal(); els.q.value = ''; renderResults([]); renderRecents(); setTimeout(() => els.q.focus(), 50); });
-  $('geoBtn').addEventListener('click', async () => {
-    els.sheet.close();
-    if (!(await locate())) {
-      if (await ipLocate()) toast('Using your rough location');
-    }
-  });
-  els.sheet.addEventListener('click', (e) => { if (e.target === els.sheet) els.sheet.close(); });
-
-  // ---------- toggles ----------
-  document.querySelectorAll('.units button').forEach((b) => b.addEventListener('click', () => {
-    unit = b.dataset.unit; prefs.unit = unit; savePrefs(); applyPrefUI(); render();
-  }));
-
-  // ---------- boot ----------
-  async function loadFromSlug(slug) {
-    try {
-      const r = await fetch(`/api/geocode?q=${encodeURIComponent(slug.replace(/-/g, ' '))}`);
-      const j = await r.json();
-      const p = (j.results || [])[0];
-      if (!p) return false;
-      load({ name: p.name, lat: p.lat, lon: p.lon });
-      return true;
-    } catch { return false; }
-  }
-
-  window.addEventListener('popstate', () => {
-    const slug = location.pathname.replace(/^\/+|\/+$/g, '');
-    if (slug) loadFromSlug(slug);
-    else if (prefs.place) load(prefs.place);
-  });
-
-  $('shareBtn').addEventListener('click', async () => {
-    const named = currentPlace && currentPlace.name && currentPlace.name !== 'My location';
-    const url = `https://muggy.fyi/${named ? slugify(currentPlace.name) : ''}`;
-    const title = document.title;
-    const text = data ? `${els.title.textContent} in ${els.placeName.textContent}. ${els.blurb.textContent}` : title;
-    if (navigator.share) {
-      try { await navigator.share({ title, text, url }); return; } catch { /* dismissed */ }
-    } else {
-      try { await navigator.clipboard.writeText(url); toast('Link copied'); } catch { toast(url); }
-    }
-  });
-
-  applyPrefUI();
-  (async () => {
-    const slug = location.pathname.replace(/^\/+|\/+$/g, '');
-    if (/^[a-z0-9-]{2,60}$/i.test(slug)) {
-      if (await loadFromSlug(slug)) return;
-      toast('Could not find that place');
-    }
-    if (prefs.place && Number.isFinite(prefs.place.lat)) {
-      load(prefs.place);
-      if (prefs.place.geo) locate({ silent: true }); // refresh silently if they were on GPS
-      return;
-    }
-    if (await ipLocate()) {
-      locate({ silent: true });   // background upgrade to real GPS, if the browser allows it
-      return;
-    }
-    const ok = await locate({ silent: true });
-    if (!ok) { load(DEFAULT_PLACE); toast('Showing Tirana. Tap the name to change.'); }
-  })();
-
-  // The minute tick moves the interpolated reading; the five-minute fetch
-  // brings a fresh model step behind it.
-  setInterval(() => {
-    if (data && !document.hidden) { synthesize(); render(); }
-  }, 60000);
-  setInterval(async () => {
-    if (!currentPlace || document.hidden) return;
-    try {
-      const r = await fetch(`/api/forecast?lat=${currentPlace.lat}&lon=${currentPlace.lon}`, { cache: 'reload' });
-      if (!r.ok) return;
-      const d = await r.json();
-      if (d.current && d.current.dew_point_2m != null) { data = d; synthesize(); render(); }
-    } catch { /* keep what we have */ }
-  }, 300000);
-
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
-
-  // Refresh when coming back to the tab after a while.
-  let hidden = 0;
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) hidden = Date.now();
-    else if (hidden && Date.now() - hidden > 15 * 60000 && prefs.place) load(prefs.place);
-  });
+const prefs = (() => {
+  try { return JSON.parse(localStorage.getItem('muggy:prefs') || '{}'); } catch { return {}; }
 })();
+const savePrefs = () => { try { localStorage.setItem('muggy:prefs', JSON.stringify(prefs)); } catch {} };
+
+const qs = new URLSearchParams(location.search);
+const savedUnit = qs.get('unit') || prefs.unit;
+// First visit with no saved choice: Fahrenheit for the handful of locales
+// that live in it, Celsius for everyone else. The toggle always wins after.
+let unit = savedUnit === 'f' || savedUnit === 'c'
+  ? savedUnit
+  : (/(^|-)(US|BS|BZ|KY|LR)$/i.test(navigator.language || '') ? 'f' : 'c');
+let data = null;
+let normals = null;       // climatology for this place and date, or null while loading/unavailable
+let currentPlace = null;  // the place on screen; share and title derive from this, never from the URL bar
+let now = null;           // everything the last render decided, for the "Why?" sheet
+// Level changes need a clear crossing, so a reading on a boundary does not
+// flip the verdict every minute. Reset when the place changes.
+const hysteresis = createHysteresis();
+
+const fmtTemp = (c) => (c == null || !Number.isFinite(c) ? '–' : `${Math.round(unit === 'f' ? c * 9 / 5 + 32 : c)}°`);
+/**
+ * The WBGT printed beside a level. While hysteresis holds a level across a
+ * boundary, the plain rounded value would sit outside the level's range and
+ * read as a contradiction, so it is clamped; the Why sheet shows the exact
+ * value and says the reading is on the line.
+ */
+function shownWbgt(value, level) {
+  const i = LEVELS.indexOf(level);
+  const lo = LEVEL_MIN[i];
+  const hi = i + 1 < LEVEL_MIN.length ? LEVEL_MIN[i + 1] - 1 : Infinity;
+  return Math.min(hi, Math.max(lo, roundHalfUp(value)));
+}
+const dayName = (iso) => new Date(`${iso}T12:00:00`).toLocaleDateString(undefined, { weekday: 'short' });
+const hourLabel = (iso) => iso.slice(11, 13);
+const phrase = (level) => (level ? LEVEL_PHRASE[level] : '');
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const placeKey = () => (currentPlace ? `${currentPlace.lat},${currentPlace.lon}` : 'here');
+
+function toast(msg, ms = 2600) {
+  els.toast.textContent = msg;
+  els.toast.classList.add('is-on');
+  clearTimeout(toast.t);
+  toast.t = setTimeout(() => els.toast.classList.remove('is-on'), ms);
+}
+
+function applyPrefUI() {
+  document.querySelectorAll('.units button').forEach((b) => b.classList.toggle('is-on', b.dataset.unit === unit));
+}
+
+/**
+ * "Current" from the model is a 15-minute step; the app promises the minute.
+ * The shared interpolation (also used by the link preview) runs against the
+ * pristine model step every minute.
+ */
+function synthesize() {
+  if (!data || !data.current) return;
+  if (!data._model) data._model = { ...data.current };
+  data.current = interpolateNow(data, Date.now(), data._model);
+}
+
+
+// ---------- render ----------
+function render() {
+  if (!data) return;
+  const { current: cur, hourly: h } = data;
+  const texture = textureOf(cur.dew_point_2m);
+  app.dataset.level = texture;
+  app.dataset.state = 'ready';
+  els.levelName.textContent = texture;
+  els.timeChip.textContent = `now · ${cur.time.slice(11, 16)}`;
+
+  // The heat-load work (current reading, 7-day series, breakdown) is measured
+  // as one span so the performance budget can be checked on a slow phone.
+  performance.mark('muggy:load:start');
+  const reading = cur.temperature_2m != null ? readingNow(data, cur) : null;
+  const load = reading ? loadAt(reading) : null;
+  const key = placeKey();
+  const shadeLevel = load ? hysteresis.level(`${key}:shade`, load.shade) : null;
+  const sunLevel = load && load.sunKnown ? hysteresis.level(`${key}:sun`, load.sun) : null;
+  // Day or night for the wording is the sun at this minute; the load itself
+  // averages over its interval, so it may still carry a sliver of sun at dusk.
+  const nowMs = Date.parse(`${cur.time}:00Z`) - (data.utc_offset_seconds || 0) * 1000;
+  const isDay = isSunUp(nowMs, data.latitude, data.longitude);
+  const sunInPlay = !!(isDay && load && load.sunUp && load.sunKnown);
+  const worstValue = load ? (sunInPlay ? Math.max(load.sun, load.shade) : load.shade) : null;
+  const verdict = compose({
+    texture, shadeLevel, sunLevel, isDay, sunKnown: load ? load.sunKnown : false,
+    alert: worstValue != null ? alertMark(worstValue) : null,
+  });
+  const series = loadSeries(data);
+  // Forecast hours levelled relative to the held current levels (see relief.js).
+  const hours = load ? forecastHours(h, series, shadeLevel, sunLevel) : [];
+  const hourValue = (s) => (s ? (s.sunUp && s.sunKnown ? Math.max(s.sun, s.shade) : s.shade) : null);
+  // Trend over the last hour: the difference between the two most recent
+  // hourly means, which is steady within the hour rather than flickering.
+  const slot = h.time.findIndex((t) => t.slice(0, 13) === cur.time.slice(0, 13));
+  const trend = slot > 0 && hourValue(series[slot]) != null && hourValue(series[slot - 1]) != null
+    ? hourValue(series[slot]) - hourValue(series[slot - 1]) : 0;
+  now = { cur, texture, reading, load, shadeLevel, sunLevel, isDay, sunInPlay, worstValue, verdict, series, hours, trend };
+
+  const named = currentPlace && currentPlace.name && currentPlace.name !== 'My location';
+  document.title = named ? `${verdict.headline} in ${currentPlace.name} · muggy.fyi` : `Muggy · ${verdict.headline}`;
+  els.title.textContent = verdict.headline;
+  els.blurb.textContent = verdict.blurb;
+  els.whyBtn.hidden = !load;
+  els.temp.textContent = fmtTemp(cur.temperature_2m);
+  els.hum.textContent = cur.relative_humidity_2m == null ? '–' : `${Math.round(cur.relative_humidity_2m)}%`;
+  els.comfort.textContent = texture;
+  els.comfort.classList.toggle('long', texture.length > 8);
+
+  renderHours(cur, h);
+  renderWeek(cur, h);
+  renderOutInIt();
+  // Conservative: the span also covers the hours and week DOM work.
+  performance.measure('muggy:load', 'muggy:load:start');
+  renderRelief();
+  renderNormals();
+}
+
+function renderHours(cur, h) {
+  // Hours: from the current hour, next 24.
+  const curHour = cur.time.slice(0, 13);
+  let start = h.time.findIndex((t) => t.slice(0, 13) === curHour);
+  if (start < 0) start = 0;
+  const slice = [];
+  for (let i = start; i < Math.min(start + 24, h.time.length); i++) {
+    slice.push({ t: h.time[i], dp: h.dew_point_2m[i], temp: h.temperature_2m[i] });
+  }
+  // The "now" cell must be the same now as every card above it.
+  if (slice.length) slice[0] = { t: cur.time, dp: cur.dew_point_2m, temp: cur.temperature_2m };
+  const valid = slice.filter((x) => x.dp != null);
+  const peak = valid.reduce((a, b) => (b.dp > a.dp ? b : a), valid[0]);
+  els.hours.innerHTML = slice.map((x, i) => {
+    const lv = x.dp == null ? 'comfortable' : textureOf(x.dp);
+    return `<div class="hour${i === 0 ? ' is-now' : ''}" data-level="${lv}" title="${lv}">
+      <span class="t">${i === 0 ? 'now' : `${hourLabel(x.t)}:00`}</span><span class="dot"></span><span class="d">${fmtTemp(x.temp)}</span></div>`;
+  }).join('');
+  els.hoursSub.textContent = peak ? `stickiest around ${hourLabel(peak.t)}:00 (${textureOf(peak.dp)})` : '';
+}
+
+function renderWeek(cur, h) {
+  // One row per local date: a 24-segment stickiness bar and the day's high temperature.
+  const days = new Map();
+  h.time.forEach((t, i) => {
+    const d = t.slice(0, 10);
+    if (!days.has(d)) days.set(d, { dps: [], temps: [] });
+    days.get(d).dps.push(h.dew_point_2m[i]);
+    days.get(d).temps.push(h.temperature_2m[i]);
+  });
+  const todayKey = cur.time.slice(0, 10);
+  const rows = [...days.entries()].filter(([d, o]) => d >= todayKey && o.dps.some((v) => v != null)).slice(0, 7);
+  let stickyDays = 0;
+  els.week.innerHTML = rows.map(([d, { dps, temps }]) => {
+    const vals = dps.filter((v) => v != null);
+    const hi = Math.max(...temps.filter((v) => v != null));
+    const lvMax = textureOf(Math.max(...vals));
+    if (['muggy', 'oppressive', 'miserable'].includes(lvMax)) stickyDays++;
+    const segs = dps.map((v) => {
+      const lv = v == null ? 'comfortable' : textureOf(v);
+      return `<i data-level="${lv}" style="--lc:var(--c-${lv})"></i>`;
+    }).join('');
+    return `<div class="day" title="${lvMax}"><span class="n display">${d === todayKey ? 'Today' : dayName(d)}</span>
+      <div class="bar">${segs}</div><span class="d">${fmtTemp(hi)}</span></div>`;
+  }).join('');
+  els.weekSub.textContent = stickyDays
+    ? `${stickyDays} of ${rows.length} day${rows.length === 1 ? '' : 's'} muggy or worse`
+    : 'nothing sticky ahead';
+}
+
+// ---------- out in it ----------
+const FACTOR_LABEL = { damp: 'Damp', sun: 'Sun', breeze: 'Breeze' };
+
+function factorsFor(n) {
+  const inputs = intervalInputs(n.reading);
+  // Unknown wind: attribute at the reference breeze so the breeze share is
+  // exactly zero, and the shares still add up without a breeze row.
+  if (!n.load.windKnown) inputs.wind10 = REFERENCE_WIND_MS;
+  const scope = n.sunInPlay ? 'sun' : 'shade';
+  const a = attribute(inputs, scope);
+  const entries = Object.entries(a.factors).filter(([name]) => name !== 'breeze' || n.load.windKnown);
+  return { a, entries, inputs, scope };
+}
+
+function renderOutInIt() {
+  const n = now;
+  const worst = n.verdict.worst;
+  if (!n.load || !worst || worst === 'none') { els.strainCard.hidden = true; return; }
+
+  const { a, entries } = factorsFor(n);
+  const scale = Math.max(3, ...entries.map(([, c]) => Math.abs(c)));
+  els.factorsLead.textContent = `Against the same ${fmtTemp(n.cur.temperature_2m)} in dry, shaded air with a light breeze:`;
+  els.factors.innerHTML = entries.map(([name, c]) => {
+    const word = a.words[name];
+    const width = Math.min(50, (Math.abs(c) / scale) * 50);
+    const pos = c < 0 ? `right:50%;width:${width}%` : `left:50%;width:${width}%`;
+    return `<li class="factor" aria-label="${FACTOR_LABEL[name]}: ${word}">
+      <span class="name">${FACTOR_LABEL[name]}</span>
+      <span class="track" aria-hidden="true"><i class="fill${c < 0 ? ' minus' : ''}" style="${pos}"></i></span>
+      <span class="word">${word}</span></li>`;
+  }).join('');
+
+  // Where the day is heading; any other level carries its time.
+  const today = n.cur.time.slice(0, 10);
+  const hours = n.hours
+    .filter((x) => x.time.slice(0, 10) === today)
+    .map((x) => ({ time: x.time, level: x.sunUp && x.sunKnown !== false && LEVELS.indexOf(x.sunLevel) > LEVELS.indexOf(x.shadeLevel) ? x.sunLevel : x.shadeLevel }));
+  els.strainNote.textContent = peakAndTrend({ nowLevel: worst, now: n.cur.time, hours, trend: n.trend }).join(' ');
+
+  const shade = `WBGT ${shownWbgt(n.load.shade, n.shadeLevel)} shade`;
+  const sun = n.sunInPlay ? ` · ${shownWbgt(n.load.sun, n.sunLevel)} sun` : '';
+  els.strainSub.innerHTML = `<a href="/about#wbgt">${shade}${sun} · what's this?</a>`;
+  els.strainCard.hidden = false;
+}
+
+// ---------- when will it get better ----------
+function renderRelief() {
+  const n = now;
+  const current = { time: n.cur.time, texture: n.texture, shadeLevel: n.shadeLevel, sunLevel: n.sunLevel, sunUp: n.isDay, sunKnown: n.load ? n.load.sunKnown : false };
+  const d = n.load ? describeRelief(findRelief(current, n.hours)) : null;
+  if (!d) { els.windowCard.hidden = true; return; }
+  const panel = els.windowCard.querySelector('.panel');
+  if (panel) panel.style.background = `var(--c-${d.tint})`;
+  els.windowWhen.textContent = d.when;
+  els.windowSub.textContent = d.sub;
+  els.windowNote.textContent = d.note;
+  els.windowCard.hidden = false;
+}
+
+// ---------- is this normal? ----------
+function renderNormals() {
+  if (!normals || !data) { els.normalCard.hidden = true; return; }
+  const d = describeNormals(normals, data.current.dew_point_2m, Number(data.current.time.slice(11, 13)));
+  if (!d) { els.normalCard.hidden = true; return; }
+  els.normalVerdict.textContent = d.verdict;
+  els.normalSub.textContent = d.sub;
+  els.normalNote.textContent = d.note;
+  // Segments sized by each band's share of the comparison set, so the marker at
+  // the current percentile lands inside today's band.
+  const segs = barSegments(d.mix)
+    .map((s) => `<i style="flex-grow:${(s.share * 1000).toFixed(0)};background:var(--c-${s.band})" title="${s.band} ${Math.round(s.share * 100)}%"></i>`)
+    .join('');
+  els.mixBar.innerHTML = `${segs}<span class="marker" style="left:${d.pct}%"></span>`;
+  els.normalCard.hidden = false;
+}
+
+async function loadNormals(place, superseded = () => false) {
+  normals = null;
+  els.normalCard.hidden = true;
+  try {
+    const r = await fetch(`/api/normals?lat=${place.lat}&lon=${place.lon}`);
+    if (!r.ok || superseded()) return;     // no history for this spot, or the user has moved on
+    const j = await r.json();
+    if (!hasHourLadders(j) || superseded()) return;
+    normals = j;
+    renderNormals();
+  } catch { /* the rest of the app is unaffected */ }
+}
+
+// ---------- why this verdict? ----------
+let whyOpener = null;
+const section = (title, body) => `<section><h3>${esc(title)}</h3>${body}</section>`;
+
+function openWhy(opener) {
+  const n = now;
+  if (!n) return;
+  const { verdict, texture, load, isDay } = n;
+  const parts = [];
+  parts.push(section('The verdict', `<p><strong>${esc(verdict.headline)}.</strong> ${esc(verdict.blurb)}</p>`));
+  parts.push(section('The air', `<p>The air is <strong>${esc(texture)}</strong>. ${esc(TEXTURE_SENTENCE[texture][isDay ? 'day' : 'night'])}</p>
+    <p class="small">That comes from the dew point: how much water the air already holds, which decides how well sweat can dry.</p>`));
+
+  if (load && verdict.worst) {
+    if (verdict.worst !== 'none') {
+      const { a, entries, inputs } = factorsFor(n);
+      const lines = entries.map(([name, c]) => `<p>${esc(factorSentence(name, c, a.words[name], { wind10: inputs.wind10 }))}</p>`).join('');
+      parts.push(section('What it is made of', `<p>Compared with the same ${esc(fmtTemp(n.cur.temperature_2m))} in dry, shaded air with a light breeze:</p>${lines}`));
+    }
+    if (verdict.split) {
+      parts.push(section('Shade and sun', `<p>Under cover it is <strong>${esc(phrase(n.shadeLevel))}</strong>. Standing in the sun it is <strong>${esc(phrase(n.sunLevel))}</strong>: the sun heats you directly, the way it heats a black globe.</p>`));
+    }
+    parts.push(section(verdict.worst === 'none' ? 'The heat load' : `What ${phrase(verdict.worst)} means`, `<p>${esc(LEVEL_GUIDE[verdict.worst])}</p>
+      <p class="small">Paraphrased from the Japanese Society of Biometeorology's daily-life guideline and Japan's Ministry of the Environment. Age, fitness, clothing and how used you are to the heat all change your own risk.</p>`));
+    const nums = `WBGT ${load.shade.toFixed(1)} °C in the shade${n.sunInPlay ? ` and ${load.sun.toFixed(1)} °C in the sun` : ''}.`;
+    const held = levelOf(load.shade) !== n.shadeLevel || (n.sunInPlay && levelOf(load.sun) !== n.sunLevel);
+    const onLine = held
+      ? ' That is right on the line between two levels; Muggy keeps the earlier one until the reading clearly crosses.'
+      : '';
+    parts.push(section('Where the numbers come from', `<p>${nums}${onLine} WBGT, wet-bulb globe temperature, blends a wet thermometer (how well sweat can cool you), a black globe (how much sun and warm surroundings load you) and the air temperature, the way Japan's Ministry of the Environment publishes it.</p>
+      <p class="small">Muggy models it from the forecast for your area, not your street, and checks the model against dozens of stations that measure it. <a href="/about#wbgt">How Muggy works →</a></p>`));
+  } else {
+    parts.push(section('Heat load', '<p>No temperature is available right now, so Muggy only describes the air.</p>'));
+  }
+
+  els.whyBody.innerHTML = parts.join('');
+  whyOpener = opener;
+  els.whySheet.showModal();
+  els.whyClose.focus();
+}
+
+els.whyBtn.addEventListener('click', (e) => openWhy(e.currentTarget));
+els.whyCardBtn.addEventListener('click', (e) => openWhy(e.currentTarget));
+els.whyClose.addEventListener('click', () => els.whySheet.close());
+els.whySheet.addEventListener('click', (e) => { if (e.target === els.whySheet) els.whySheet.close(); });
+els.whySheet.addEventListener('close', () => { if (whyOpener) whyOpener.focus(); whyOpener = null; });
+
+// ---------- data ----------
+function syncUrl(place, push) {
+  // Geolocation stays at "/" — coordinates do not belong in a shareable URL.
+  const path = place.geo ? '/' : `/${slugify(place.name)}`;
+  try {
+    if (push) history.pushState({}, '', path);
+    else history.replaceState({}, '', path);
+  } catch { /* sandboxed contexts */ }
+}
+
+// Loads can overlap (boot runs load(prefs.place) and then a GPS locate; a
+// stale-cache refetch fires six seconds after any load). Only the newest load
+// may touch the screen, or a slow response for a place the user has left
+// would overwrite the one they asked for.
+let loadSeq = 0;
+
+async function load(place, { push } = {}) {
+  const seq = ++loadSeq;
+  const superseded = () => seq !== loadSeq;
+  app.dataset.state = 'loading';
+  els.placeName.textContent = place.name;
+  syncUrl(place, push);
+  try {
+    const r = await fetch(`/api/forecast?lat=${place.lat}&lon=${place.lon}`);
+    if (superseded()) return;
+    if (!r.ok) throw new Error(`forecast ${r.status}`);
+    const fresh = await r.json();
+    if (superseded()) return;
+    data = fresh;
+    if (!data.current || data.current.dew_point_2m == null) throw new Error('no dew point');
+    if (!currentPlace || currentPlace.lat !== place.lat || currentPlace.lon !== place.lon) hysteresis.reset();
+    currentPlace = place;
+    if (!place.geo) {
+      const rec = (prefs.recents || []).filter((r2) => r2.name !== place.name);
+      rec.unshift({ name: place.name, lat: place.lat, lon: place.lon });
+      prefs.recents = rec.slice(0, 5);
+    }
+    prefs.place = place; savePrefs();
+    synthesize();
+    render();
+    // A stale hit means the worker is refreshing KV behind this response.
+    // Pick the fresh copy up once, quietly, without flashing the UI.
+    if (r.headers.get('x-muggy-cache') === 'stale') {
+      setTimeout(async () => {
+        if (superseded()) return;
+        try {
+          const r2 = await fetch(`/api/forecast?lat=${place.lat}&lon=${place.lon}`, { cache: 'reload' });
+          if (!r2.ok || superseded()) return;
+          const d2 = await r2.json();
+          if (superseded()) return;
+          if (d2.current && d2.current.dew_point_2m != null) { data = d2; synthesize(); render(); }
+        } catch { /* the stale data stays; it was good enough to render */ }
+      }, 6000);
+    }
+    loadNormals(place, superseded);   // slower and optional; never blocks the main view
+  } catch (err) {
+    if (superseded()) return;
+    console.error(err);
+    app.dataset.state = 'error';
+    els.title.textContent = 'Could not read the sky.';
+    els.blurb.textContent = 'The weather service did not answer. Pull down or try again in a moment.';
+    toast('Weather service unavailable');
+  }
+}
+
+/**
+ * getCurrentPosition with a cap WE enforce. In-app browsers (LinkedIn,
+ * Instagram) often neither prompt nor call the error callback — the spec's
+ * own timeout only starts after permission resolves, so the call can hang
+ * forever. This one always answers.
+ */
+const gps = (ms) => new Promise((resolve) => {
+  let done = false;
+  const finish = (v) => { if (!done) { done = true; resolve(v); } };
+  if (!navigator.geolocation) return finish(null);
+  try {
+    navigator.geolocation.getCurrentPosition((p) => finish(p), () => finish(null),
+      { timeout: Math.max(1000, ms - 500), maximumAge: 600000 });
+  } catch { finish(null); }
+  setTimeout(() => finish(null), ms);
+});
+
+/** Coordinates → the name of the biggest real city that agrees on where we are. */
+async function nameFor(lat, lon) {
+  let name = 'My location';
+  try {
+    const r = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
+    const j = r.ok ? await r.json() : null;
+    if (j) name = j.city || j.locality || j.principalSubdivision || name;
+    const fields = j ? [j.city, j.locality, j.principalSubdivision,
+      ...(((j.localityInfo || {}).administrative) || []).map((a) => a.name)].filter(Boolean) : [];
+    const cands = [...new Set(fields.map((f) => f.trim()))].slice(0, 7);
+    const near = await Promise.all(cands.map(async (q2) => {
+      try {
+        const g = await fetch(`/api/geocode?q=${encodeURIComponent(q2)}`);
+        if (!g.ok) return null;
+        const c = ((await g.json()).results || [])[0];
+        if (!c || /^PCL/.test(c.fc || '')) return null;
+        return Math.abs(c.lat - lat) < 0.7 && Math.abs(c.lon - lon) < 0.7 ? c : null;
+      } catch { return null; }
+    }));
+    const best = near.filter(Boolean).sort((a2, b2) => (b2.population || 0) - (a2.population || 0))[0];
+    if (best) name = best.name;
+  } catch { /* the generic label is a fine fallback */ }
+  return name;
+}
+
+async function locate({ silent } = {}) {
+  const pos = await gps(6000);
+  if (!pos) { if (!silent) toast('Could not get your location'); return false; }
+  const lat = +pos.coords.latitude.toFixed(3);
+  const lon = +pos.coords.longitude.toFixed(3);
+  const name = await nameFor(lat, lon);
+  load({ name, lat, lon, geo: true });
+  return true;
+}
+
+/** IP-level location from our own worker: instant, promptless, city-close. */
+async function ipLocate() {
+  try {
+    const r = await fetch('/api/whereami');
+    if (!r.ok) return false;
+    const j = await r.json();
+    if (j.lat == null || j.lon == null) return false;
+    const lat = +(+j.lat).toFixed(2);
+    const lon = +(+j.lon).toFixed(2);
+    load({ name: j.city || await nameFor(lat, lon), lat, lon, geo: true });
+    return true;
+  } catch { return false; }
+}
+
+// ---------- search sheet ----------
+let searchT = null;
+function renderResults(list, emptyMsg) {
+  if (!list.length) { els.results.innerHTML = emptyMsg ? `<li class="empty">${emptyMsg}</li>` : ''; return; }
+  els.results.innerHTML = list.map((p, i) => `<li><button type="button" data-i="${i}">
+    <span class="nm">${esc(p.name)}</span><span class="ad">${esc([p.admin, p.country].filter(Boolean).join(', '))}</span></button></li>`).join('');
+  els.results.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
+    const p = list[+b.dataset.i];
+    els.sheet.close();
+    load({ name: p.name, lat: p.lat, lon: p.lon }, { push: true });
+  }));
+}
+
+els.q.addEventListener('input', () => {
+  clearTimeout(searchT);
+  const q = els.q.value.trim();
+  if (q.length < 2) { renderResults([]); return; }
+  searchT = setTimeout(async () => {
+    try {
+      const r = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`);
+      const j = await r.json();
+      if (els.q.value.trim() !== q) return;
+      renderResults(j.results || [], 'No matches. Try a bigger town nearby.');
+    } catch { renderResults([], 'Search is unavailable right now.'); }
+  }, 280);
+});
+// Enter in the search box submits the dialog form and closes the sheet with
+// nothing chosen. People type a city and hit Enter; give them the top match.
+els.q.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  const first = els.results.querySelector('button');
+  if (first) first.click();
+});
+function renderRecents() {
+  const rec = prefs.recents || [];
+  const box = $('recents');
+  box.innerHTML = rec.map((r2, i) => `<button type="button" data-i="${i}">${esc(r2.name)}</button>`).join('');
+  box.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
+    const r2 = rec[+b.dataset.i];
+    els.sheet.close();
+    load({ name: r2.name, lat: r2.lat, lon: r2.lon }, { push: true });
+  }));
+}
+$('placeBtn').addEventListener('click', () => { els.sheet.showModal(); els.q.value = ''; renderResults([]); renderRecents(); setTimeout(() => els.q.focus(), 50); });
+$('geoBtn').addEventListener('click', async () => {
+  els.sheet.close();
+  if (!(await locate())) {
+    if (await ipLocate()) toast('Using your rough location');
+  }
+});
+els.sheet.addEventListener('click', (e) => { if (e.target === els.sheet) els.sheet.close(); });
+
+// ---------- toggles ----------
+document.querySelectorAll('.units button').forEach((b) => b.addEventListener('click', () => {
+  unit = b.dataset.unit; prefs.unit = unit; savePrefs(); applyPrefUI(); render();
+}));
+
+// ---------- boot ----------
+async function loadFromSlug(slug) {
+  try {
+    const r = await fetch(`/api/geocode?q=${encodeURIComponent(slug.replace(/-/g, ' '))}`);
+    const j = await r.json();
+    const p = (j.results || [])[0];
+    if (!p) return false;
+    load({ name: p.name, lat: p.lat, lon: p.lon });
+    return true;
+  } catch { return false; }
+}
+
+window.addEventListener('popstate', () => {
+  const slug = location.pathname.replace(/^\/+|\/+$/g, '');
+  if (slug) loadFromSlug(slug);
+  else if (prefs.place) load(prefs.place);
+});
+
+$('shareBtn').addEventListener('click', async () => {
+  const named = currentPlace && currentPlace.name && currentPlace.name !== 'My location';
+  const url = `https://muggy.fyi/${named ? slugify(currentPlace.name) : ''}`;
+  const title = document.title;
+  const text = data ? `${els.title.textContent} in ${els.placeName.textContent}. ${els.blurb.textContent}` : title;
+  if (navigator.share) {
+    try { await navigator.share({ title, text, url }); return; } catch { /* dismissed */ }
+  } else {
+    try { await navigator.clipboard.writeText(url); toast('Link copied'); } catch { toast(url); }
+  }
+});
+
+applyPrefUI();
+(async () => {
+  const slug = location.pathname.replace(/^\/+|\/+$/g, '');
+  if (/^[a-z0-9-]{2,60}$/i.test(slug)) {
+    if (await loadFromSlug(slug)) return;
+    toast('Could not find that place');
+  }
+  if (prefs.place && Number.isFinite(prefs.place.lat)) {
+    load(prefs.place);
+    if (prefs.place.geo) locate({ silent: true }); // refresh silently if they were on GPS
+    return;
+  }
+  if (await ipLocate()) {
+    locate({ silent: true });   // background upgrade to real GPS, if the browser allows it
+    return;
+  }
+  const ok = await locate({ silent: true });
+  if (!ok) { load(DEFAULT_PLACE); toast('Showing Tirana. Tap the name to change.'); }
+})();
+
+// The minute tick moves the interpolated reading; the five-minute fetch
+// brings a fresh model step behind it.
+setInterval(() => {
+  if (data && !document.hidden) { synthesize(); render(); }
+}, 60000);
+setInterval(async () => {
+  if (!currentPlace || document.hidden) return;
+  const place = currentPlace;
+  const seq = loadSeq;
+  try {
+    const r = await fetch(`/api/forecast?lat=${place.lat}&lon=${place.lon}`, { cache: 'reload' });
+    if (!r.ok || seq !== loadSeq) return;   // the user has moved on
+    const d = await r.json();
+    if (seq !== loadSeq) return;
+    if (d.current && d.current.dew_point_2m != null) { data = d; synthesize(); render(); }
+  } catch { /* keep what we have */ }
+}, 300000);
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+
+// Refresh when coming back to the tab after a while.
+let hiddenAt = 0;
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) hiddenAt = Date.now();
+  else if (hiddenAt && Date.now() - hiddenAt > 15 * 60000 && prefs.place) load(prefs.place);
+});
