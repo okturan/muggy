@@ -299,7 +299,7 @@ function openWhy(opener) {
   const parts = [];
   parts.push(section('The verdict', `<p><strong>${esc(verdict.headline)}.</strong> ${esc(verdict.blurb)}</p>`));
   parts.push(section('The air', `<p>The air is <strong>${esc(texture)}</strong>. ${esc(TEXTURE_SENTENCE[texture][isDay ? 'day' : 'night'])}</p>
-    <p class="small">That comes from the dew point: how much water the air already holds, which decides how well sweat can dry.</p>`));
+    <p class="small">That comes from the dew point, which is how much water the air already holds. It decides how well sweat can dry.</p>`));
 
   if (load && verdict.worst) {
     if (verdict.worst !== 'none') {
@@ -308,14 +308,14 @@ function openWhy(opener) {
       parts.push(section('Why it feels like this', `<p>Compared with a dry, shady ${esc(fmtTemp(n.cur.temperature_2m))} in a light wind.</p>${lines}`));
     }
     if (verdict.split) {
-      parts.push(section('Shade and sun', `<p>Under cover it is <strong>${esc(phrase(n.shadeLevel))}</strong>. Standing in the sun it is <strong>${esc(phrase(n.sunLevel))}</strong>: the sun heats you directly, the way it heats a black globe.</p>`));
+      parts.push(section('Shade and sun', `<p>Under cover it is <strong>${esc(phrase(n.shadeLevel))}</strong>. Standing in the sun it is <strong>${esc(phrase(n.sunLevel))}</strong>. The sun heats you directly, the way it heats a black globe.</p>`));
     }
     parts.push(section(verdict.worst === 'none' ? 'The heat load' : `What ${phrase(verdict.worst)} means`, `<p>${esc(LEVEL_GUIDE[verdict.worst])}</p>
       <p class="small">Paraphrased from the Japanese Society of Biometeorology's daily-life guideline and Japan's Ministry of the Environment. Age, fitness, clothing and how used you are to the heat all change your own risk.</p>`));
     const nums = `WBGT ${load.shade.toFixed(1)} °C in the shade${n.sunInPlay ? ` and ${load.sun.toFixed(1)} °C in the sun` : ''}.`;
     const held = levelOf(load.shade) !== n.shadeLevel || (n.sunInPlay && levelOf(load.sun) !== n.sunLevel);
     const onLine = held
-      ? ' That is right on the line between two levels; Muggy keeps the earlier one until the reading clearly crosses.'
+      ? ' That is right on the line between two levels. Muggy keeps the earlier one until the reading clearly crosses.'
       : '';
     parts.push(section('Where the numbers come from', `<p>${nums}${onLine} WBGT, wet-bulb globe temperature, blends a wet thermometer (how well sweat can cool you), a black globe (how much sun and warm surroundings load you) and the air temperature, the way Japan's Ministry of the Environment publishes it.</p>
       <p class="small">Muggy models it from the forecast for your area, not your street, and checks the model against dozens of stations that measure it. <a href="/about#wbgt">How Muggy works →</a></p>`));
