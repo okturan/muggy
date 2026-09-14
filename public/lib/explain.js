@@ -122,3 +122,27 @@ export function peakAndTrend({ nowLevel, now, hours, trend = 0 }) {
   else if (trend <= -1) out.push('It has been easing over the past hour.');
   return out.slice(0, 2);
 }
+
+/**
+ * The breakdown as one or two plain sentences: the biggest cause first, the
+ * helpers after, and anything that does nothing left out.
+ * factors: { damp, sun?, breeze }; windKnown hides the breeze.
+ */
+export function factorSummary(factors, { windKnown = true } = {}) {
+  const items = Object.entries(factors)
+    .filter(([name]) => name !== 'breeze' || windKnown)
+    .filter(([, c]) => Math.abs(c) >= 0.5)
+    .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
+  const adds = items.filter(([, c]) => c > 0);
+  const helps = items.filter(([, c]) => c < 0);
+  const noun = { damp: 'the damp', sun: 'the sun', breeze: 'still air' };
+  const helper = { damp: 'The dry air', sun: 'The sun', breeze: 'The breeze' };
+  const out = [];
+  if (adds.length === 0) out.push('This is mostly just the air temperature.');
+  else if (adds.length === 1 || Math.abs(adds[0][1]) >= 2 * Math.abs(adds[1][1])) {
+    const rest = adds.slice(1).map(([n]) => noun[n]);
+    out.push(`Most of this is ${noun[adds[0][0]]}${rest.length ? `, with a little from ${rest.join(' and ')}` : ''}.`);
+  } else out.push(`${adds.map(([n]) => noun[n]).join(' and ').replace(/^./, (c) => c.toUpperCase())} share this about equally.`);
+  for (const [n, c] of helps) out.push(`${helper[n]} helps${Math.abs(c) < 1.5 ? ' a little' : ''}.`);
+  return out.join(' ');
+}

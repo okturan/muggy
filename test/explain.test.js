@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { attribute, wordFor } from '../public/lib/explain.js';
+import { attribute, wordFor, factorSummary } from '../public/lib/explain.js';
 
 const base = (over = {}) => ({
   endMs: Date.parse('2026-08-01T03:00:00Z'), minutes: 60, lat: 35.68, lon: 139.69,
@@ -59,4 +59,11 @@ test('in cool air the reference is still dry, so damp cannot "take some off" aga
   assert.ok(wet.factors.damp > 0, `damp ${wet.factors.damp}`);
   const dry = attribute(base({ tair: 8, rh: 50, sw: 300, direct: 240, wind10: 2 }), 'sun');
   assert.ok(dry.factors.damp < 0, `damp ${dry.factors.damp}`);
+});
+
+test('the summary names the biggest cause first and drops what does nothing', () => {
+  assert.equal(factorSummary({ damp: -0.9, sun: 3.6, breeze: 0.1 }), 'Most of this is the sun. The dry air helps a little.');
+  assert.equal(factorSummary({ damp: 2.2, sun: 2.0, breeze: -1.8 }), 'The damp and the sun share this about equally. The breeze helps.');
+  assert.equal(factorSummary({ damp: 0.2, breeze: 0.1 }), 'This is mostly just the air temperature.');
+  assert.equal(factorSummary({ damp: 3.1, sun: 1.2, breeze: 2 }, { windKnown: false }), 'Most of this is the damp, with a little from the sun.');
 });

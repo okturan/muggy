@@ -28,7 +28,7 @@ try {
       const vis = (id) => !document.getElementById(id).hidden;
       return {
         place: t('placeName'), headline: t('title'), blurb: t('blurb'), air: t('comfort'),
-        outInIt: vis('strainCard') ? `${t('strainSub')} | ${t('strainNote')}` : '(hidden)',
+        outInIt: vis('strainCard') ? `${t('factorsText')} ${t('strainNote')} (${t('strainSub')})` : '(hidden)',
         normal: vis('normalCard') ? `${t('normalSub')} | ${t('normalNote')}` : '(hidden)',
         relief: vis('windowCard') ? `${t('windowWhen')} · ${t('windowSub')} | ${t('windowNote')}` : '(hidden)',
         stray: /Infinity|NaN|undefined/.test(document.getElementById('app').textContent),

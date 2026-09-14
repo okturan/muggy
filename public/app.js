@@ -4,7 +4,7 @@ import { textureOf } from './lib/texture.js';
 import { loadAt, loadSeries, readingNow, intervalInputs, isSunUp } from './lib/load.js';
 import { levelOf, alertMark, createHysteresis, roundHalfUp, LEVELS, LEVEL_MIN } from './lib/levels.js';
 import { compose } from './lib/verdict.js';
-import { attribute, peakAndTrend, REFERENCE_WIND_MS } from './lib/explain.js';
+import { attribute, peakAndTrend, factorSummary, REFERENCE_WIND_MS } from './lib/explain.js';
 import { findRelief, describeRelief, forecastHours } from './lib/relief.js';
 import { describe as describeNormals, barSegments, hasHourLadders } from './lib/normals.js';
 import { TEXTURE_SENTENCE, LEVEL_GUIDE, LEVEL_PHRASE, factorSentence } from './lib/copy.js';
@@ -25,7 +25,7 @@ const els = {
   normalNote: $('normalNote'), mixBar: $('mixBar'),
   windowCard: $('windowCard'), windowSub: $('windowSub'), windowWhen: $('windowWhen'), windowNote: $('windowNote'),
   strainCard: $('strainCard'), strainSub: $('strainSub'), strainNote: $('strainNote'),
-  factors: $('factors'), factorsLead: $('factorsLead'),
+  factorsText: $('factorsText'),
   whyBtn: $('whyBtn'), whyCardBtn: $('whyCardBtn'), whySheet: $('whySheet'), whyBody: $('whyBody'), whyClose: $('whyClose'),
 };
 
@@ -200,7 +200,6 @@ function renderWeek(cur, h) {
 }
 
 // ---------- out in it ----------
-const FACTOR_LABEL = { damp: 'Damp', sun: 'Sun', breeze: 'Breeze' };
 
 function factorsFor(n) {
   const inputs = intervalInputs(n.reading);
@@ -218,18 +217,8 @@ function renderOutInIt() {
   const worst = n.verdict.worst;
   if (!n.load || !worst || worst === 'none') { els.strainCard.hidden = true; return; }
 
-  const { a, entries } = factorsFor(n);
-  const scale = Math.max(3, ...entries.map(([, c]) => Math.abs(c)));
-  els.factorsLead.textContent = `Compared with a dry, shady ${fmtTemp(n.cur.temperature_2m)} in a light wind`;
-  els.factors.innerHTML = entries.map(([name, c]) => {
-    const word = a.words[name];
-    const width = Math.min(50, (Math.abs(c) / scale) * 50);
-    const pos = c < 0 ? `right:50%;width:${width}%` : `left:50%;width:${width}%`;
-    return `<li class="factor" aria-label="${FACTOR_LABEL[name]}: ${word}">
-      <span class="name">${FACTOR_LABEL[name]}</span>
-      <span class="track" aria-hidden="true"><i class="fill${c < 0 ? ' minus' : ''}" style="${pos}"></i></span>
-      <span class="word">${word}</span></li>`;
-  }).join('');
+  const { a } = factorsFor(n);
+  els.factorsText.textContent = factorSummary(a.factors, { windKnown: n.load.windKnown });
 
   // Where the day is heading; any other level carries its time.
   const today = n.cur.time.slice(0, 10);

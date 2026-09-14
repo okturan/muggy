@@ -67,7 +67,7 @@ const snapshot = (page) => page.evaluate(async () => {
   const out = {
     headline: text('title'), blurb: text('blurb'), air: text('comfort'), airLabel: document.querySelector('.stat.comfort .k').textContent,
     strainVisible: visible('strainCard'), strainSub: text('strainSub'), strainNote: text('strainNote'),
-    factors: [...document.querySelectorAll('#factors .factor')].map((li) => li.getAttribute('aria-label')),
+    factorsText: text('factorsText'),
     normalVisible: visible('normalCard'), normalSub: text('normalSub'), normalNote: text('normalNote'), normalVerdict: text('normalVerdict'),
     reliefVisible: visible('windowCard'), reliefWhen: text('windowWhen'), reliefSub: text('windowSub'), reliefNote: text('windowNote'),
     hoursSub: text('hoursSub'), weekSub: text('weekSub'), whyVisible: visible('whyBtn'), docTitle: document.title,
@@ -131,12 +131,12 @@ try {
     }
     if (fx.name === 'muggy-mild-dawn') {
       check(fx.name, 'muggy but mild', s.headline === 'Muggy but mild');
-      check(fx.name, 'Out in it shows the breakdown', s.strainVisible && s.factors.length >= 2, s.factors.join(', '));
+      check(fx.name, 'the card says what is causing it', s.strainVisible && /Most of this is|share this|air temperature/.test(s.factorsText), s.factorsText);
     }
     if (fx.name === 'split-noon') {
       check(fx.name, 'split headline names shade and sun', /in the shade/.test(s.headline) && /in the sun/.test(s.headline), s.headline);
       check(fx.name, 'small print gives shade and sun WBGT', /shade/.test(s.strainSub) && /sun/.test(s.strainSub), s.strainSub);
-      check(fx.name, 'three factors including sun', s.factors.some((f) => f.startsWith('Sun')), s.factors.join(', '));
+      check(fx.name, 'the sun is named as the cause', /sun/.test(s.factorsText), s.factorsText);
       const w = await whySheet(page);
       check(fx.name, 'why sheet opens with focus inside', w.open.open && w.open.active === 'whyClose', JSON.stringify(w.open.active));
       check(fx.name, 'why sheet explains shade and sun', w.open.sections.includes('Shade and sun'), w.open.sections.join(', '));
