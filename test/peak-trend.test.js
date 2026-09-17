@@ -16,9 +16,9 @@ test('easy and at the peak: no dramatic wording', () => {
   assert.deepEqual(peakAndTrend({ nowLevel: 'easy', now: '2026-08-01T14:00', hours: hs }), []);
 });
 
-test('noticeable and at the peak: "about as heavy as today gets"', () => {
+test('noticeable and at the peak: "about as bad as today gets"', () => {
   const hs = day([...Array(12).fill('easy'), ...Array(5).fill('noticeable'), ...Array(7).fill('easy')]);
-  assert.deepEqual(peakAndTrend({ nowLevel: 'noticeable', now: '2026-08-01T13:10', hours: hs, trend: 0.2 }), ['This is about as heavy as today gets.']);
+  assert.deepEqual(peakAndTrend({ nowLevel: 'noticeable', now: '2026-08-01T13:10', hours: hs, trend: 0.2 }), ['This is about as bad as today gets.']);
 });
 
 test('after the peak: time-tagged and eased', () => {

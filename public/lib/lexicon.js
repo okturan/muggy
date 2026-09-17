@@ -26,7 +26,7 @@ export const PHRASE_CLASSES = {
   stopCool: rx(['stop (what you are doing|all activity|exercising|and cool)', 'get (somewhere )?cool', 'heat ?stroke', 'cool down (now|right away)']),
   indoor: [/\bindoors?\b/i, /\bair[- ]?condition/i, /\bAC\b/, /\bfans?\b/i, /\bstay in\b/i, /\bgo inside\b/i],
   sunShade: rx(['sun', 'sunny', 'sunshine', 'shade', 'shady', 'sunlight']),
-  loadLevel: rx(['easy', 'noticeable', 'real work', 'hard', 'dangerous', 'danger']),
+  loadLevel: rx(['easy', 'noticeable', 'heavy', 'hard', 'dangerous', 'danger']),
 };
 
 /** Advice about what to do: everything texture copy must never contain (hydration is added back for dry air). */

@@ -10,7 +10,7 @@
 
 export const LEVELS = ['none', 'easy', 'noticeable', 'realWork', 'hard', 'dangerous'];
 export const LEVEL_NAMES = {
-  none: 'None', easy: 'Easy', noticeable: 'Noticeable', realWork: 'Real work', hard: 'Hard', dangerous: 'Dangerous',
+  none: 'None', easy: 'Easy', noticeable: 'Noticeable', realWork: 'Heavy', hard: 'Hard', dangerous: 'Dangerous',
 };
 /** Lowest rounded WBGT of each level, by index. */
 export const LEVEL_MIN = [-Infinity, 18, 21, 25, 28, 31];

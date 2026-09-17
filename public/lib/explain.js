@@ -76,14 +76,14 @@ export function wordFor(c, name = 'damp') {
 }
 
 const LEVEL_ORDER = ['none', 'easy', 'noticeable', 'realWork', 'hard', 'dangerous'];
-const LEVEL_WORDS = { none: 'fine', easy: 'easy', noticeable: 'noticeable', realWork: 'real work', hard: 'hard', dangerous: 'dangerous' };
+const LEVEL_WORDS = { none: 'fine', easy: 'easy', noticeable: 'noticeable', realWork: 'heavy', hard: 'hard', dangerous: 'dangerous' };
 const hourOf = (time) => `${time.slice(11, 13)}:00`;
 
 /**
  * Where the day's load is heading, in at most two sentences.
  *
  * At Easy or below the card stays quiet, unless a higher level is on its way
- * later today; then it says when. "About as heavy as today gets" is kept for
+ * later today; then it says when. "About as bad as today gets" is kept for
  * Noticeable and up. Any level other than now's carries its time.
  *
  * nowLevel: the headline's worst level; now: local ISO minute;
@@ -116,7 +116,7 @@ export function peakAndTrend({ nowLevel, now, hours, trend = 0 }) {
   } else if (earlierPeak && rank(earlierPeak.level) > rank(nowLevel)) {
     out.push(`It was ${LEVEL_WORDS[earlierPeak.level]} around ${hourOf(earlierPeak.time)} and has eased since.`);
   } else {
-    out.push('This is about as heavy as today gets.');
+    out.push('This is about as bad as today gets.');
   }
   if (trend >= 1) out.push('It is still climbing.');
   else if (trend <= -1) out.push('It has been easing over the past hour.');

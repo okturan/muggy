@@ -13,7 +13,7 @@ test('each class matches its examples', () => {
     stopCool: ['Stop and cool down right away.', 'Get somewhere cool.', 'This is heat stroke territory.'],
     indoor: ['Stay in.', 'Find air conditioning.', 'A fan pointed at the bed is the move.', 'Head indoors.'],
     sunShade: ['In full sun it is real work.', 'Keep to the shade.'],
-    loadLevel: ['Easy in the shade', 'Real work in the sun', 'Dangerous heat'],
+    loadLevel: ['Easy in the shade', 'Heavy in the sun', 'Dangerous heat'],
   };
   for (const [cls, list] of Object.entries(positives)) {
     for (const text of list) assert.ok(has(text, cls), `${cls} should match "${text}"`);

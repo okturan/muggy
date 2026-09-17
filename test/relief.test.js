@@ -93,7 +93,7 @@ test('every level named in relief wording carries a time', () => {
 });
 
 test('at an easy load, heavier hours are never offered as relief even if the air is drier', () => {
-  // Reviewer scenario: muggy but easy at 08:30; midday dries to humid but the load climbs to real work.
+  // Reviewer scenario: muggy but easy at 08:30; midday dries to humid but the load climbs to heavy.
   const current = { time: '2026-08-01T08:30', texture: 'muggy', shadeLevel: 'easy', sunLevel: 'easy', sunUp: true };
   const hs = hours('2026-08-01T08:00', (h) => (h >= 12 && h < 18
     ? { texture: 'humid', shadeLevel: 'realWork', sunLevel: 'hard', sunUp: true }

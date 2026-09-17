@@ -8,7 +8,7 @@ Tells people when the outside air next gets meaningfully better. "Better" uses t
 Each forecast hour SHALL get a rank from its worst load level (sun level while the sun is up, shade level otherwise) first, and its texture band second. Relief SHALL be the first forecast hour after the current hour whose rank is lower than the current rank.
 
 #### Scenario: Sunset counts as relief
-- **WHEN** it is 17:00 in full sun at Real work, texture stays muggy all evening, and after 19:00 the level is Noticeable
+- **WHEN** it is 17:00 in full sun at Heavy, texture stays muggy all evening, and after 19:00 the level is Noticeable
 - **THEN** the card reports relief from 19:00 and says it arrives as the sun goes down
 
 #### Scenario: Drier air counts as relief
@@ -19,7 +19,7 @@ Each forecast hour SHALL get a rank from its worst load level (sun level while t
 When the current worst load level is None or Easy, relief SHALL be ranked by texture band alone, except that an hour whose load level is higher than now SHALL never be offered as relief.
 
 #### Scenario: Drier but heavier is not relief
-- **WHEN** it is 08:30 with muggy air at Easy, and from 12:00 the air is humid but the load is Real work
+- **WHEN** it is 08:30 with muggy air at Easy, and from 12:00 the air is humid but the load is Heavy
 - **THEN** the card does not offer 12:00 as relief
 
 #### Scenario: Easy muggy night

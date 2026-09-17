@@ -325,7 +325,7 @@ async function htmlFor(request, env, ctx, slug) {
         if (p) {
           og = {
             title: `${p.verdict.headline} in ${place.name} right now`,
-            desc: `${[p.cur.temperature_2m != null ? `${Math.round(p.cur.temperature_2m)}°C` : null, p.cur.relative_humidity_2m != null ? `${Math.round(p.cur.relative_humidity_2m)}% humidity` : null, `air: ${p.texture}`].filter(Boolean).join(' · ')}. See when it gets better →`,
+            desc: `${[p.cur.temperature_2m != null ? `${Math.round(p.cur.temperature_2m)}°C` : null, p.cur.relative_humidity_2m != null ? `${Math.round(p.cur.relative_humidity_2m)}% humidity` : null].filter(Boolean).join(', ')}. ${p.verdict.blurb}`,
             image: `https://${CANONICAL_HOST}/og/${p.texture}.png`,
             url: `https://${CANONICAL_HOST}/${slug}`,
           };
