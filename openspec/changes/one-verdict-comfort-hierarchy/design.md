@@ -74,7 +74,7 @@ Shade means irradiance = 0 while keeping atmospheric and surface longwave radiat
 ### D5. Levels and rounding
 The thresholds come from the JSBM daily-life table (caution below 25, warning 25–28, severe warning 28–31, danger 31 and up). Caution is split at 21 using MOE's exercise table ("almost safe" below 21). A None floor sits at 18. Levels come from WBGT rounded half-up to an integer. Hysteresis is 0.3 °C around the x.5 rounding boundary, held in a session-only map keyed by place and by shade/sun and reset when the place changes. It sits above the 0.1 °C monotonicity tolerance, so stability-class steps can never flip a level. Dangerous carries the MOE alert marks (33 and above, 35 and above) as sub-labels.
 
-Level display names: None, Easy, Noticeable, Heavy, Hard, Dangerous.
+Level display names: None, Easy, Noticeable, Tiring, Hard, Dangerous.
 
 ### D6. Composition as data, gating as tests
 - `public/lib/copy.js` exports one table: `HEADLINES[texture][level]`, `SPLIT` templates, `TEXTURE_SENTENCE[texture][day|night]`, `LOAD_SENTENCE[level][day|night]`, and `QUALIFIER[shade|sun|night]`.
@@ -166,4 +166,4 @@ Rollback: `git revert` and redeploy. KV keys are versioned, and the service work
 ## Open Questions
 
 - Exact wording of each cell in the composition table and the explainer sentences. Written during implementation within the lexicon and gating rules.
-- Whether "Heavy" is the best display name for level 3. It can be renamed in `copy.js` without affecting specs or tasks.
+- Whether "Tiring" is the best display name for level 3. It can be renamed in `copy.js` without affecting specs or tasks.

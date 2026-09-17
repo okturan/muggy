@@ -9,7 +9,7 @@
  */
 
 export const LEVEL_PHRASE = {
-  none: 'fine', easy: 'easy', noticeable: 'noticeable', realWork: 'heavy', hard: 'hard', dangerous: 'dangerous',
+  none: 'fine', easy: 'easy', noticeable: 'noticeable', realWork: 'tiring', hard: 'hard', dangerous: 'dangerous',
 };
 
 /** Kicker for split headlines; drier air needs none. */
@@ -23,12 +23,12 @@ const DANGER = 'Dangerous heat';
  * danger drops the texture.
  */
 export const HEADLINES = {
-  dry: { none: 'Crisp and dry', easy: 'Dry and easy', noticeable: 'Warm, dry air', realWork: 'Heavy, dry heat', hard: 'Hard, dry heat', dangerous: DANGER },
-  comfortable: { none: 'Perfect air', easy: 'Fresh and easy', noticeable: 'Warm but fresh', realWork: 'Hot and heavy', hard: 'Hard heat', dangerous: DANGER },
-  humid: { none: 'A little sticky', easy: 'A little sticky, still easy', noticeable: 'Sticky and warm', realWork: 'Sticky and heavy', hard: 'Sticky and hard', dangerous: DANGER },
-  muggy: { none: "It's muggy out", easy: 'Muggy but mild', noticeable: 'Muggy and warm', realWork: 'Muggy and heavy', hard: 'Muggy and hard going', dangerous: DANGER },
-  oppressive: { none: 'Oppressive air', easy: 'Oppressive but mild', noticeable: 'Oppressive air', realWork: 'Oppressive and heavy', hard: 'Oppressive and hard', dangerous: DANGER },
-  miserable: { none: 'Miserable air', easy: 'Miserable air', noticeable: 'Miserable air', realWork: 'Miserable and heavy', hard: 'Miserable and hard', dangerous: DANGER },
+  dry: { none: 'Crisp and dry', easy: 'Dry and easy', noticeable: 'Warm, dry air', realWork: 'Tiring, dry heat', hard: 'Hard, dry heat', dangerous: DANGER },
+  comfortable: { none: 'Perfect air', easy: 'Fresh and easy', noticeable: 'Warm but fresh', realWork: 'Hot and tiring', hard: 'Hard heat', dangerous: DANGER },
+  humid: { none: 'A little sticky', easy: 'A little sticky, still easy', noticeable: 'Sticky and warm', realWork: 'Sticky and tiring', hard: 'Sticky and hard', dangerous: DANGER },
+  muggy: { none: "It's muggy out", easy: 'Muggy but mild', noticeable: 'Muggy and warm', realWork: 'Muggy and tiring', hard: 'Muggy and hard going', dangerous: DANGER },
+  oppressive: { none: 'Oppressive air', easy: 'Oppressive but mild', noticeable: 'Oppressive air', realWork: 'Oppressive and tiring', hard: 'Oppressive and hard', dangerous: DANGER },
+  miserable: { none: 'Miserable air', easy: 'Miserable air', noticeable: 'Miserable air', realWork: 'Miserable and tiring', hard: 'Miserable and hard', dangerous: DANGER },
 };
 
 /** What the moisture does. Skin, sweat, the feel of the air; at night, sleep. Never what to do. */
@@ -97,7 +97,7 @@ export const SHADE_QUALIFIER = {
   none: "Under cover it's just warm air.",
   easy: 'Under cover it adds up to little.',
   noticeable: "Under cover it's only noticeable.",
-  realWork: "Under cover it's still heavy going.",
+  realWork: "Under cover it's still tiring.",
   hard: "Even under cover it's hard.",
 };
 

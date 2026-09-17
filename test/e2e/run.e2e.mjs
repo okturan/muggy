@@ -137,7 +137,7 @@ try {
       check(fx.name, 'split headline names shade and sun', /in the shade/.test(s.headline) && /in the sun/.test(s.headline), s.headline);
       check(fx.name, 'small print gives shade and sun WBGT', /shade/.test(s.strainSub) && /sun/.test(s.strainSub), s.strainSub);
       check(fx.name, 'the sun is named as the cause', /sun/.test(s.factorsText), s.factorsText);
-      check(fx.name, 'two doors show the held shade and sun levels', s.doors === `${e.shadeLevel === 'realWork' ? 'heavy' : e.shadeLevel} / ${e.sunLevel === 'realWork' ? 'heavy' : e.sunLevel}`, s.doors);
+      check(fx.name, 'two doors show the held shade and sun levels', s.doors === `${e.shadeLevel === 'realWork' ? 'tiring' : e.shadeLevel} / ${e.sunLevel === 'realWork' ? 'tiring' : e.sunLevel}`, s.doors);
       const w = await whySheet(page);
       check(fx.name, 'why sheet opens with focus inside', w.open.open && w.open.active === 'whyClose', JSON.stringify(w.open.active));
       check(fx.name, 'why sheet explains shade and sun', w.open.sections.includes('Shade and sun'), w.open.sections.join(', '));

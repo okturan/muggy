@@ -76,7 +76,7 @@ export function wordFor(c, name = 'damp') {
 }
 
 const LEVEL_ORDER = ['none', 'easy', 'noticeable', 'realWork', 'hard', 'dangerous'];
-const LEVEL_WORDS = { none: 'fine', easy: 'easy', noticeable: 'noticeable', realWork: 'heavy', hard: 'hard', dangerous: 'dangerous' };
+const LEVEL_WORDS = { none: 'fine', easy: 'easy', noticeable: 'noticeable', realWork: 'tiring', hard: 'hard', dangerous: 'dangerous' };
 const hourOf = (time) => `${time.slice(11, 13)}:00`;
 
 /**

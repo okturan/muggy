@@ -36,10 +36,10 @@ All verdict, load and texture statements SHALL describe the outside air where a 
 - **THEN** the blurb may speak about sleep and moving air
 
 ### Requirement: Headline composition from load level and texture
-The headline SHALL be chosen from a fixed composition table keyed by load level (None, Easy, Noticeable, Heavy, Hard, Dangerous) and texture band (dry, comfortable, humid, muggy, oppressive, miserable). The following rules SHALL apply:
+The headline SHALL be chosen from a fixed composition table keyed by load level (None, Easy, Noticeable, Tiring, Hard, Dangerous) and texture band (dry, comfortable, humid, muggy, oppressive, miserable). The following rules SHALL apply:
 - At None or Easy, texture leads the headline.
 - At Easy, when texture is muggy or wetter, the headline SHALL carry a qualifier saying the load is mild (for example "Muggy but mild").
-- At Noticeable, Heavy and Hard, load leads and texture appears only as a qualifier.
+- At Noticeable, Tiring and Hard, load leads and texture appears only as a qualifier.
 - At Dangerous, the headline SHALL state danger and SHALL NOT include a texture word.
 
 #### Scenario: Muggy air at an easy load
@@ -66,7 +66,7 @@ When the sun load level is higher than the shade load level and is Noticeable or
 - **THEN** the headline is the texture-led Easy headline and mentions neither shade nor sun
 
 #### Scenario: No split when the levels agree
-- **WHEN** the shade and sun levels are both Heavy
+- **WHEN** the shade and sun levels are both Tiring
 - **THEN** the headline mentions neither shade nor sun
 
 ### Requirement: Night
@@ -80,7 +80,7 @@ Day and night for wording are decided by whether the sun is above the horizon at
 The blurb SHALL be at most three sentences, in this order: what the air does to skin and sweat (texture), what the load means for the body (load), then the shade/sun or night qualifier when it applies. A sentence SHALL be omitted when it would add nothing (for example, the load sentence at load level None).
 
 #### Scenario: Blurb order
-- **WHEN** texture is humid, the shade level is Noticeable and the sun level is Heavy
+- **WHEN** texture is humid, the shade level is Noticeable and the sun level is Tiring
 - **THEN** the blurb's first sentence is about the air, the second about the body, and the third names the difference between shade and sun
 
 ### Requirement: Reassurance gating
@@ -94,7 +94,7 @@ Reassuring phrases (for example "nothing here will slow you down", "easy", "adds
 ### Requirement: Severity gating
 Advice to change pace or activity SHALL be gated by the worst applicable level:
 - "easy pace" style advice requires Noticeable or above.
-- Breaks and water require Heavy or above.
+- Breaks and water require Tiring or above.
 - Avoiding exertion or direct sun requires Hard or above.
 - Stopping activity and getting cool requires Dangerous.
 
@@ -105,16 +105,16 @@ Severity advice that applies only in the sun SHALL say so.
 - **THEN** no copy advises avoiding exertion or stopping activity
 
 #### Scenario: Sun-only severity is labelled
-- **WHEN** the shade level is Heavy and the sun level is Hard
+- **WHEN** the shade level is Tiring and the sun level is Hard
 - **THEN** any avoid-exertion advice is explicitly limited to being in the sun
 
 ### Requirement: Level mentions across the screen stay consistent
 Any element other than the headline that names a load level different from the headline's SHALL tie it to a specific time ("around 15:00", "by 13:00") or place ("in full sun"), so it cannot be read as a claim about now.
 
 #### Scenario: A time-tagged peak is allowed
-- **WHEN** the headline level is Easy and today's peak is Heavy at 15:00
-- **THEN** the "Why it feels like this" card may say the load reaches Heavy around 15:00
-- **AND** it does not say "heavy" without the time
+- **WHEN** the headline level is Easy and today's peak is Tiring at 15:00
+- **THEN** the "Why it feels like this" card may say the load reaches Tiring around 15:00
+- **AND** it does not say "tiring" without the time
 
 ### Requirement: Printed numbers agree with their labels
 Every number printed next to a level or band label SHALL, as printed (rounded), fall inside that label's range.

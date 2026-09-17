@@ -61,7 +61,7 @@ The load level SHALL be determined from WBGT rounded to the nearest whole degree
 | None | below 18 | no heat-load claims are made |
 | Easy | 18–20 | MOE "almost safe" (below 21) |
 | Noticeable | 21–24 | MOE "caution" (21–25) |
-| Heavy | 25–27 | JSBM/MOE "warning" (25–28): take regular rests during labour and sport |
+| Tiring | 25–27 | JSBM/MOE "warning" (25–28): take regular rests during labour and sport |
 | Hard | 28–30 | JSBM/MOE "severe warning" (28–31): avoid direct sun outdoors; avoid heavy exercise |
 | Dangerous | 31 and above | JSBM/MOE "danger" (31+): avoid outdoor activity; older people at risk even at rest |
 
@@ -71,7 +71,7 @@ The shade level comes from shade WBGT, the sun level from sun WBGT, and the wors
 
 #### Scenario: Level boundaries
 - **WHEN** rounded WBGT values are 17, 18, 20, 21, 24, 25, 27, 28, 30 and 31
-- **THEN** the levels are None, Easy, Easy, Noticeable, Noticeable, Heavy, Heavy, Hard, Hard and Dangerous
+- **THEN** the levels are None, Easy, Easy, Noticeable, Noticeable, Tiring, Tiring, Hard, Hard and Dangerous
 
 #### Scenario: Alert marks within Dangerous
 - **WHEN** rounded WBGT is 34

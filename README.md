@@ -47,7 +47,7 @@ screen tint and the link-preview banner.
 | None | below 18 | no heat-load claims |
 | Easy | 18 – 20 | MOE "almost safe" |
 | Noticeable | 21 – 24 | MOE "caution" |
-| Heavy | 25 – 27 | JSBM/MOE "warning": regular rest during labour and sport |
+| Tiring | 25 – 27 | JSBM/MOE "warning": regular rest during labour and sport |
 | Hard | 28 – 30 | JSBM/MOE "severe warning": avoid direct sun, avoid heavy exercise |
 | Dangerous | 31 and up | JSBM/MOE "danger"; 33+ and 35+ carry Japan's heat-stroke alert marks |
 
@@ -102,7 +102,7 @@ minimum wind 0.13 m/s.
 
 - **Headline and blurb**: the verdict, at most three sentences: air, body, then shade/sun or night.
 - **Why it feels like this**: two boxes, in the shade and in the sun, then one sentence naming the biggest cause ("Most of this is the sun. The dry air helps a little."); where the day is heading ("It gets to
-  heavy by 12:00"); the WBGT numbers in small print. **Why this verdict?** opens a plain-language sheet.
+  tiring by 12:00"); the WBGT numbers in small print. **Why this verdict?** opens a plain-language sheet.
 - **Is this normal?**: the current dew point against ten years of past hours at the **same time of day**
   (±2 h) within a week of today's date. One statistic: *"stickier than 78% of mornings"*.
 - **When will it get better?**: ranked like the verdict, load first and air second, so sunset counts as

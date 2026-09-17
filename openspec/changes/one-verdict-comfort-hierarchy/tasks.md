@@ -43,7 +43,7 @@
 
 ## 4. Levels, texture and interpolation modules
 
-- [x] 4.1 Implement `public/lib/levels.js` (round half-up, None/Easy/Noticeable/Heavy/Hard/Dangerous thresholds, alert marks at 33 and 35); verify the boundary table from the heat-load spec
+- [x] 4.1 Implement `public/lib/levels.js` (round half-up, None/Easy/Noticeable/Tiring/Hard/Dangerous thresholds, alert marks at 33 and 35); verify the boundary table from the heat-load spec
 - [x] 4.2 Implement hysteresis (0.3 °C around x.5, session map keyed by place and shade/sun, reset on place change); verify the 20.4/20.6/20.5/20.7 → Easy and 20.8 → Noticeable scenarios
 - [x] 4.3 Implement `public/lib/texture.js` (bands 12.8/15.6/18.3/21.1/23.9, ranks); verify the band-edge scenario
 - [x] 4.4 Move the shared minute interpolation into `public/lib/interp.js`, including the new radiation and pressure fields; verify the client and worker produce identical current readings for a fixture at five different minutes
