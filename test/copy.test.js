@@ -1,7 +1,7 @@
 // Texture copy describes the air, never what to do; night copy never mentions the sun.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { TEXTURE_SENTENCE, TEXTURE_SENTENCE_NO_HEAT, DAMP_COOL, HEADLINES, LOAD_SENTENCE } from '../public/lib/copy.js';
+import { TEXTURE_SENTENCE, TEXTURE_SENTENCE_NO_HEAT, TEXTURE_SENTENCE_MILD, DAMP_COOL, HEADLINES, LOAD_SENTENCE } from '../public/lib/copy.js';
 import { classesIn, ACTIVITY_ADVICE, isHydrationOnly } from '../public/lib/lexicon.js';
 import { TEXTURES } from '../public/lib/texture.js';
 import { LEVELS } from '../public/lib/levels.js';
@@ -32,7 +32,7 @@ test('every texture has a headline for every level', () => {
 });
 
 test('the no-heat and damp-cool sentences give no advice and never mention the sun', () => {
-  const all = [...Object.values(TEXTURE_SENTENCE_NO_HEAT).flatMap((p) => [p.day, p.night]), DAMP_COOL.sentence.day, DAMP_COOL.sentence.night];
+  const all = [...Object.values(TEXTURE_SENTENCE_NO_HEAT).flatMap((p) => [p.day, p.night]), ...Object.values(TEXTURE_SENTENCE_MILD).flatMap((p) => Object.values(p)), DAMP_COOL.sentence.day, DAMP_COOL.sentence.night];
   for (const text of all) {
     const found = classesIn(text);
     for (const cls of ACTIVITY_ADVICE) assert.ok(!found.has(cls), `${cls}: "${text}"`);

@@ -9,7 +9,7 @@
  */
 import { LEVELS } from './levels.js';
 import {
-  HEADLINES, TEXTURE_SENTENCE, TEXTURE_SENTENCE_NO_HEAT, LOAD_SENTENCE, LOAD_SUN_SENTENCE, SHADE_QUALIFIER, ALERT_SENTENCE,
+  HEADLINES, TEXTURE_SENTENCE, TEXTURE_SENTENCE_NO_HEAT, TEXTURE_SENTENCE_MILD, LOAD_SENTENCE, LOAD_SUN_SENTENCE, SHADE_QUALIFIER, ALERT_SENTENCE,
   LEVEL_PHRASE, TEXTURE_KICKER, HOT_HEADLINES, HOT_MIN_C, DAMP_COOL, DAMP_COOL_MAX_C, DAMP_COOL_MIN_RH, COLD_MAX_C,
 } from './copy.js';
 
@@ -32,6 +32,8 @@ export function isDampCool(texture, worst, air) {
 export function textureSentence(texture, period, worst, air = null) {
   if (isDampCool(texture, worst, air)) return DAMP_COOL.sentence[period];
   if ((worst == null || worst === 'none') && TEXTURE_SENTENCE_NO_HEAT[texture]) return TEXTURE_SENTENCE_NO_HEAT[texture][period];
+  const mild = worst === 'easy' && TEXTURE_SENTENCE_MILD[texture] && TEXTURE_SENTENCE_MILD[texture][period];
+  if (mild) return mild;
   return TEXTURE_SENTENCE[texture][period];
 }
 

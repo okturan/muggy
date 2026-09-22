@@ -81,6 +81,9 @@ export const TEXTURE_SENTENCE = {
   },
 };
 
+/** Fresh air on a mild night: an easy load is too little heat for sweat to be the point. */
+export const TEXTURE_SENTENCE_MILD = { comfortable: { night: 'The air stays pleasant after dark.' } };
+
 /** Dry and fresh air when heat is not a factor: nobody is sweating, so no sweat talk. */
 export const TEXTURE_SENTENCE_NO_HEAT = {
   dry: { day: 'Dry air, nothing sticky about it.', night: 'Dry air tonight, nothing sticky about it.' },
