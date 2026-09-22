@@ -54,6 +54,22 @@ The headline SHALL be chosen from a fixed composition table keyed by load level 
 - **WHEN** the load level is None and texture is comfortable
 - **THEN** the headline is the comfortable texture headline and makes no heat-load claim
 
+### Requirement: Wording follows the air people actually feel
+The levels SHALL never depend on it, but the wording SHALL take the air temperature and relative humidity into account where the dew point band alone would mislead:
+- **Cool damp air.** At load None (or with no load), when texture is dry or comfortable, the air is below 18 °C and relative humidity is 80 % or more, the headline SHALL be "Cool and damp" (or "Cold and damp" below 8 °C) and the sentence SHALL say the air is damp but too cool to feel sticky.
+- **No heat, no sweat talk.** At load None, dry and comfortable air SHALL be described without mentioning sweat or drinking.
+- **Hot dry air is never fresh.** From 30 °C, Noticeable dry air SHALL read "Hot, dry air" and Noticeable comfortable air "Hot but not sticky". Dry and comfortable air at Easy or above SHALL NOT be called fresh in the blurb.
+- **Hard is "hard going".** Humid, muggy, oppressive and miserable air at Hard SHALL read "<texture> and hard going".
+- The Why sheet SHALL describe the air with the same sentence as the verdict.
+
+#### Scenario: Foggy winter morning
+- **WHEN** it is 6 °C at 95 % humidity with a dew point in the dry band and no heat load
+- **THEN** the headline is "Cold and damp", not "Crisp and dry"
+
+#### Scenario: Hot desert night
+- **WHEN** it is 34 °C at 27 % humidity at 03:00, texture comfortable, load Noticeable
+- **THEN** the headline is "Hot but not sticky" and the blurb does not say "fresh"
+
 ### Requirement: Shade and sun split
 When the sun load level is higher than the shade load level and is Noticeable or above, the headline SHALL name both, in the form "<shade level> in the shade, <sun level> in the sun" (with a texture qualifier where the composition rules allow one). When the two levels are equal, or the sun level is Easy, the headline SHALL NOT mention shade or sun; a sun level of Easy carries no advice, so there is nothing for a split to say.
 

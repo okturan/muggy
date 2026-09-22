@@ -66,7 +66,7 @@ export function attribute(i, scope = 'sun', cfg = CALIBRATION) {
 
 /** How much, in words that read as a sentence after the factor's name. */
 export function wordFor(c, name = 'damp') {
-  if (name === 'breeze') return c <= -0.5 ? 'helps' : c < 0.5 ? 'no difference' : c < 1.5 ? 'a bit worse' : 'makes it worse';
+  if (name === 'breeze') return c <= -0.5 ? 'helps' : c < 0.5 ? 'no difference' : c < 1.5 ? 'a bit worse' : 'worse';
   if (c <= -0.5) return name === 'sun' ? 'no difference' : 'makes it easier';
   const hot = name === 'sun';
   if (c < 0.5) return 'no difference';
@@ -83,8 +83,8 @@ const hourOf = (time) => `${time.slice(11, 13)}:00`;
  * Where the day's load is heading, in at most two sentences.
  *
  * At Easy or below the card stays quiet, unless a higher level is on its way
- * later today; then it says when. "About as bad as today gets" is kept for
- * Noticeable and up. Any level other than now's carries its time.
+ * later today; then it says when. "It doesn't get worse than this today" is
+ * kept for Noticeable and up. Any level other than now's carries its time.
  *
  * nowLevel: the headline's worst level; now: local ISO minute;
  * hours: today's hourly [{ time, level }] (worst level per hour);
@@ -105,44 +105,61 @@ export function peakAndTrend({ nowLevel, now, hours, trend = 0 }) {
   if (rank(nowLevel) <= rank('easy')) {
     if (laterPeak && rank(laterPeak.level) >= rank('noticeable')) {
       const first = later.find((h) => h.level === laterPeak.level);
-      out.push(`It gets to ${LEVEL_WORDS[laterPeak.level]} by ${hourOf(first.time)}.`);
+      out.push(`By ${hourOf(first.time)} it's ${LEVEL_WORDS[laterPeak.level]}.`);
     }
     return out;
   }
 
+  // One statement about the rest of today. The hourly trend is added only
+  // where it tells you something the statement does not: "has eased since"
+  // already says it is falling, and a rise inside the same level would read
+  // as a contradiction of "it doesn't get worse than this".
   if (firstHigher) {
     const first = later.find((h) => h.level === laterPeak.level);
-    out.push(`It gets to ${LEVEL_WORDS[laterPeak.level]} by ${hourOf(first.time)}.`);
+    out.push(`By ${hourOf(first.time)} it's ${LEVEL_WORDS[laterPeak.level]}.`);
   } else if (earlierPeak && rank(earlierPeak.level) > rank(nowLevel)) {
     out.push(`It was ${LEVEL_WORDS[earlierPeak.level]} around ${hourOf(earlierPeak.time)} and has eased since.`);
   } else {
-    out.push('This is about as bad as today gets.');
+    out.push("It doesn't get worse than this today.");
+    if (trend <= -1) out.push('It has been easing over the past hour.');
   }
-  if (trend >= 1) out.push('It is still climbing.');
-  else if (trend <= -1) out.push('It has been easing over the past hour.');
-  return out.slice(0, 2);
+  return out;
 }
+
+const listOf = (words) => (words.length < 2 ? words.join('') : `${words.slice(0, -1).join(', ')} and ${words[words.length - 1]}`);
+const capFirst = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
 /**
  * The breakdown as one or two plain sentences: the biggest cause first, the
  * helpers after, and anything that does nothing left out.
- * factors: { damp, sun?, breeze }; windKnown hides the breeze.
+ * factors: { damp, sun?, breeze }; windKnown hides the breeze; wind10 (m/s)
+ * names it, since a breeze factor above zero means too little wind when the
+ * wind is light and the wind itself when it is strong.
  */
-export function factorSummary(factors, { windKnown = true } = {}) {
+export function factorSummary(factors, { windKnown = true, wind10 = REFERENCE_WIND_MS } = {}) {
   const items = Object.entries(factors)
     .filter(([name]) => name !== 'breeze' || windKnown)
     .filter(([, c]) => Math.abs(c) >= 0.5)
     .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
   const adds = items.filter(([, c]) => c > 0);
   const helps = items.filter(([, c]) => c < 0);
-  const noun = { damp: 'the damp', sun: 'the sun', breeze: 'still air' };
-  const helper = { damp: 'The dry air', sun: 'The sun', breeze: 'The breeze' };
+  const light = wind10 < REFERENCE_WIND_MS;
+  const noun = { damp: 'the damp', sun: 'the sun', breeze: light ? 'the lack of wind' : 'the wind' };
+  const helper = { damp: 'the dry air', sun: 'the sun', breeze: light ? 'the calm air' : 'the breeze' };
   const out = [];
   if (adds.length === 0) out.push('This is mostly just the air temperature.');
-  else if (adds.length === 1 || Math.abs(adds[0][1]) >= 2 * Math.abs(adds[1][1])) {
-    const rest = adds.slice(1).map(([n]) => noun[n]);
-    out.push(`Most of this is ${noun[adds[0][0]]}${rest.length ? `, with a little from ${rest.join(' and ')}` : ''}.`);
-  } else out.push(`${adds.map(([n]) => noun[n]).join(' and ').replace(/^./, (c) => c.toUpperCase())} share this about equally.`);
-  for (const [n, c] of helps) out.push(`${helper[n]} helps${Math.abs(c) < 1.5 ? ' a little' : ''}.`);
+  else {
+    // Causes more than half the size of the biggest share the lead.
+    const lead = adds.filter(([, c]) => c * 2 > adds[0][1]);
+    const rest = adds.filter((a) => !lead.includes(a)).map(([n]) => noun[n]);
+    const tail = rest.length ? `, with a little from ${listOf(rest)}` : '';
+    out.push(lead.length === 1
+      ? `Most of this is ${noun[lead[0][0]]}${tail}.`
+      : `${capFirst(listOf(lead.map(([n]) => noun[n])))} share this about equally${tail}.`);
+  }
+  const strong = helps.filter(([, c]) => c <= -1.5).map(([n]) => helper[n]);
+  const weak = helps.filter(([, c]) => c > -1.5).map(([n]) => helper[n]);
+  if (strong.length) out.push(`${capFirst(listOf(strong))} ${strong.length > 1 ? 'both help' : 'helps'}.`);
+  if (weak.length) out.push(`${capFirst(listOf(weak))} ${weak.length > 1 ? 'both help' : 'helps'} a little.`);
   return out.join(' ');
 }

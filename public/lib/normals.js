@@ -39,54 +39,54 @@ export const hasHourLadders = (normals) =>
   !!(normals && Array.isArray(normals.hours) && normals.hours.length === 24
     && normals.hours.every((h) => h && Array.isArray(h.q) && h.q.length === 101 && h.mix));
 
+/** Percentile floors for the verdict; WET is "stickier" or, for air that is not sticky at all, "damper". */
 export const VERDICTS = [
-  [90, 'Way stickier than usual'],
-  [70, 'Stickier than usual'],
+  [90, 'Way WET than usual'],
+  [70, 'WET than usual'],
   [31, 'About normal'],
   [11, 'Drier than usual'],
   [0, 'Way drier than usual'],
 ];
 
 /**
- * describe(normals, dewPointC, localHour) →
+ * describe(normals, dewPointC, localHour, { feelsDamp }) →
  * { pct, verdict, sub, note, mix, band, usualBand } or null when normals are unusable.
+ * feelsDamp: the headline calls cool, near-saturated air damp; a low dew point
+ * then needs saying in words, or "drier than usual" reads as a contradiction.
  */
-export function describe(normals, dewPointC, localHour) {
+export function describe(normals, dewPointC, localHour, { feelsDamp = false } = {}) {
   if (!hasHourLadders(normals) || dewPointC == null) return null;
   const hour = normals.hours[localHour];
   const pct = percentileOf(hour.q, dewPointC);
   const part = plural(daypart(localHour));
   const band = textureOf(dewPointC);
   const usualBand = textureOf(hour.q[50]);
-  const verdict = VERDICTS.find(([min]) => pct >= min)[1];
+  // Dry and fresh air is not sticky at any percentile, so it gets "damper".
+  const sticky = TEXTURE_RANK[band] >= TEXTURE_RANK.humid;
+  const wetter = sticky ? 'stickier' : 'damper';
+  const verdict = cap(VERDICTS.find(([min]) => pct >= min)[1].replace('WET', wetter));
+  const record = pct >= 99 || pct <= 1;
 
   let sub;
-  let note;
-  if (pct >= 99) {
-    sub = `stickiest ${part} on record here`;
-    note = `Nothing recorded around this date has been stickier at this time of day.`;
-  } else if (pct <= 1) {
-    sub = `driest ${part} on record here`;
-    note = `Nothing recorded around this date has been drier at this time of day.`;
-  } else if (pct >= 50) {
-    sub = `stickier than ${pct}% of ${part}`;
-    note = `Only ${100 - pct}% of ${part} around this date have been stickier.`;
-  } else {
-    sub = `drier than ${100 - pct}% of ${part}`;
-    note = `Only ${pct}% of ${part} around this date have been drier.`;
-  }
+  if (pct >= 99) sub = `${sticky ? 'stickiest' : 'dampest'} ${part} on record here`;
+  else if (pct <= 1) sub = `driest ${part} on record here`;
+  else if (pct >= 50) sub = `${wetter} than ${pct}% of ${part}`;
+  else sub = `drier than ${100 - pct}% of ${part}`;
 
-  // Context without a second number.
+  // The heading carries the number; the note adds context without a second one.
   const share = hour.mix[band] || 0;
-  let context;
-  if (share === 0) context = `${cap(band)} air has not been recorded here at this time of year.`;
-  else if (share < 0.05) context = `${cap(band)} air is rare here at this time of year.`;
-  else if (band !== usualBand) context = `Usually it is ${usualBand} at this time of day.`;
-  else if (pct >= 65) context = `Still the usual ${band} band, at the sticky end of it.`;
-  else if (pct <= 35) context = `Still the usual ${band} band, at the easier end of it.`;
-  else context = 'Squarely normal for here.';
+  const likeThis = `Air this ${pct >= 50 ? (sticky ? 'sticky' : 'damp') : 'dry'}`;
+  let note;
+  // Only when the verdict itself says drier; "About normal" needs no excuse.
+  if (feelsDamp && pct <= 30) note = 'The air holds less water than usual, even though it feels damp.';
+  else if (!record && share === 0) note = `${likeThis} has not been recorded here at this time of year.`;
+  else if (!record && share < 0.05) note = `${likeThis} is rare here at this time of year.`;
+  else if (band !== usualBand) note = `Usually it is ${usualBand} at this time of day.`;
+  else if (pct >= 65) note = `Still the usual ${band} air, at the ${wetter} end of it.`;
+  else if (pct <= 35) note = `Still the usual ${band} air, at the drier end of it.`;
+  else note = 'Squarely normal for here.';
 
-  return { pct, verdict, sub, note: `${note} ${context}`, mix: hour.mix, band, usualBand, samples: hour.n };
+  return { pct, verdict, sub, note, mix: hour.mix, band, usualBand, samples: hour.n };
 }
 
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);

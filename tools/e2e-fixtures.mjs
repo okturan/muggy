@@ -90,7 +90,7 @@ function expected(data, nowMs) {
   const isDay = isSunUp(nowMs, PLACE.lat, PLACE.lon);
   const sunInPlay = !!(isDay && load && load.sunUp && load.sunKnown);
   const worst = load ? (sunInPlay ? Math.max(load.sun, load.shade) : load.shade) : null;
-  const verdict = compose({ texture, shadeLevel, sunLevel, isDay, sunKnown: load ? load.sunKnown : false, alert: worst != null ? alertMark(worst) : null });
+  const verdict = compose({ texture, shadeLevel, sunLevel, isDay, sunKnown: load ? load.sunKnown : false, alert: worst != null ? alertMark(worst) : null, air: { t: cur.temperature_2m, rh: cur.relative_humidity_2m } });
   const series = loadSeries(data);
   const hours = load ? forecastHours(data.hourly, series, shadeLevel, sunLevel) : [];
   const relief = load ? describeRelief(findRelief({ time: cur.time, texture, shadeLevel, sunLevel, sunUp: isDay, sunKnown: load.sunKnown }, hours)) : null;
@@ -132,7 +132,7 @@ const fixtures = [
   scenario('sunset-relief', range(26, 32, 0.5).map((T) => ({ date: '2026-07-20', now: '17:00', profile: (h) => ({ T: diurnal(T, 5, h), Td: 19.5, wind: 5 }) })),
     (e) => e.relief && e.relief.sub === 'first relief' && /from \d\d:00/.test(e.relief.note) && ['sunDown', 'cooler', 'both'].some(() => true) && e.worst !== 'easy' && e.worst !== 'none'),
   scenario('night-oppressive', range(24, 30, 0.5).map((T) => ({ date: '2026-07-20', now: '23:10', profile: (h, day) => ({ T: diurnal(T, 3.5, h), Td: (day === 0 && h >= 18) || (day === 1 && h < 5) ? 22.4 : 17, wind: 4 }) })),
-    (e) => e.texture === 'oppressive' && e.sunUp === false && e.relief && e.relief.when !== 'Right now'),
+    (e) => e.texture === 'oppressive' && e.sunUp === false && e.relief && e.relief.sub !== 'next 24 hours'),
   scenario('missing-radiation', [{ date: '2026-07-20', now: '12:30', radiation: false, profile: (h) => ({ T: diurnal(29, 4, h), Td: 17, wind: 8 }) }],
     (e) => e.sunKnown === false && e.split === false),
   scenario('no-temperature', [{ date: '2026-09-13', now: '10:30', temperature: false, profile: (h) => ({ T: diurnal(22.5, 4.5, h), Td: 18.5, wind: 7 }) }],

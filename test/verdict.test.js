@@ -1,7 +1,7 @@
 // Composition scenarios from the comfort-verdict spec.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { compose } from '../public/lib/verdict.js';
+import { compose, textureSentence } from '../public/lib/verdict.js';
 import { classesIn } from '../public/lib/lexicon.js';
 
 const day = { isDay: true, sunKnown: true };
@@ -85,4 +85,66 @@ test('alert marks join a dangerous verdict', () => {
   const v = compose({ texture: 'oppressive', shadeLevel: 'dangerous', sunLevel: 'dangerous', ...day, alert: 'alert' });
   assert.ok(v.sentences.some((s) => s.kind === 'alert'));
   assert.ok(v.sentences.length <= 3);
+});
+
+test('cool damp air reads as damp, not as crisp and dry', () => {
+  // Tirana on a foggy winter morning: 6 °C, 95 % humidity, dew point in the dry band.
+  const fog = compose({ texture: 'dry', shadeLevel: 'none', sunLevel: 'none', ...day, air: { t: 6, rh: 95 } });
+  assert.equal(fog.headline, 'Cold and damp');
+  assert.equal(fog.blurb, 'Damp air, but too cool to feel sticky.');
+  const mist = compose({ texture: 'comfortable', shadeLevel: 'none', sunLevel: 'none', isDay: false, sunKnown: true, air: { t: 17, rh: 92 } });
+  assert.equal(mist.headline, 'Cool and damp');
+  assert.equal(mist.blurb, 'A damp night, but too cool to feel sticky.');
+  // Drier cool air keeps its old headline, without sweat talk.
+  const crisp = compose({ texture: 'dry', shadeLevel: 'none', sunLevel: 'none', ...day, air: { t: 12, rh: 55 } });
+  assert.equal(crisp.headline, 'Crisp and dry');
+  assert.equal(crisp.blurb, 'Dry air, nothing sticky about it.');
+  // Any heat at all and the damp-cool wording steps aside.
+  assert.equal(compose({ texture: 'comfortable', shadeLevel: 'easy', sunLevel: 'easy', ...day, air: { t: 17, rh: 92 } }).headline, 'Fresh and easy');
+});
+
+test('hot dry air is never called fresh', () => {
+  // Kuwait City at 03:00: 34 °C, 27 % humidity, dew point in the comfortable band.
+  const v = compose({ texture: 'comfortable', shadeLevel: 'noticeable', sunLevel: 'noticeable', isDay: false, sunKnown: true, air: { t: 34, rh: 27 } });
+  assert.equal(v.headline, 'Hot but not sticky');
+  assert.ok(!/fresh/i.test(`${v.headline} ${v.blurb}`), v.blurb);
+  assert.equal(compose({ texture: 'dry', shadeLevel: 'noticeable', sunLevel: 'noticeable', ...day, air: { t: 38, rh: 12 } }).headline, 'Hot, dry air');
+  assert.equal(compose({ texture: 'dry', shadeLevel: 'noticeable', sunLevel: 'noticeable', ...day, air: { t: 26, rh: 30 } }).headline, 'Warm, dry air');
+  for (const texture of ['dry', 'comfortable']) {
+    for (const level of ['noticeable', 'realWork', 'hard']) {
+      const hot = compose({ texture, shadeLevel: level, sunLevel: level, ...day, air: { t: 36, rh: 20 } });
+      assert.ok(!/fresh/i.test(hot.blurb), `${texture}/${level}: ${hot.blurb}`);
+    }
+  }
+});
+
+test('the headline never repeats its air word as the blurb\'s first words', () => {
+  for (const texture of ['dry', 'comfortable']) {
+    for (const level of ['easy', 'noticeable', 'realWork', 'hard']) {
+      const v = compose({ texture, shadeLevel: level, sunLevel: level, ...day, air: { t: 27, rh: 40 } });
+      assert.ok(!/^(Dry air|Fresh air)\b/.test(v.blurb), `${v.headline} | ${v.blurb}`);
+    }
+  }
+});
+
+test('the Why sheet describes the air with the same sentence as the verdict', () => {
+  const air = { t: 6, rh: 95 };
+  const v = compose({ texture: 'dry', shadeLevel: 'none', sunLevel: 'none', ...day, air });
+  assert.equal(textureSentence('dry', 'day', v.worst, air), v.sentences.find((s) => s.kind === 'texture').text);
+});
+
+test('hard is "hard going" whatever the air', () => {
+  for (const texture of ['humid', 'muggy', 'oppressive', 'miserable']) {
+    assert.match(compose({ texture, shadeLevel: 'hard', sunLevel: 'hard', ...day }).headline, /and hard going$/);
+  }
+});
+
+test('the headline and the air sentence always agree, with or without a load', () => {
+  for (const texture of ['dry', 'comfortable']) {
+    for (const shadeLevel of [null, 'none']) {
+      const v = compose({ texture, shadeLevel, sunLevel: shadeLevel, ...day, air: { t: 3, rh: 97 } });
+      assert.equal(v.headline, 'Cold and damp', `${texture}/${shadeLevel}`);
+      assert.match(v.blurb, /damp/i);
+    }
+  }
 });

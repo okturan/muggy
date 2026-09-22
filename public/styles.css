@@ -245,15 +245,6 @@ h1, h2, p { margin: 0; }
 .door .v { font-size: 19px; text-transform: uppercase; }
 .panel .txt { font-size: 15px; line-height: 1.45; font-weight: 700; color: var(--ink); }
 .panel.outin { gap: 10px; }
-.factors-lead { font-size: 13px; font-weight: 700; color: var(--muted); }
-.factors { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-.factor { display: grid; grid-template-columns: 62px minmax(0, 1fr) 104px; align-items: center; gap: 10px; }
-.factor .name { font-family: var(--display); font-weight: 700; font-size: 13px; letter-spacing: .5px; text-transform: uppercase; }
-.factor .track { position: relative; height: 14px; border: 2px solid var(--ink); background: var(--paper); }
-.factor .track::after { content: ''; position: absolute; left: 50%; top: -4px; bottom: -4px; width: 2px; margin-left: -1px; background: var(--ink); }
-.factor .fill { position: absolute; top: 0; bottom: 0; background: var(--accent); }
-.factor .fill.minus { background: #7FA7D1; }
-.factor .word { font-size: 13px; font-weight: 700; color: var(--ink-2); text-align: right; }
 
 /* "Why this verdict?" sheet */
 .why-sheet .sheet-inner { gap: 14px; }

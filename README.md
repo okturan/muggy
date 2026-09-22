@@ -100,13 +100,18 @@ minimum wind 0.13 m/s.
 
 ## The screen
 
-- **Headline and blurb**: the verdict, at most three sentences: air, body, then shade/sun or night.
-- **Why it feels like this**: two boxes, in the shade and in the sun, then one sentence naming the biggest cause ("Most of this is the sun. The dry air helps a little."); where the day is heading ("It gets to
-  tiring by 12:00"); the WBGT numbers in small print. **Why this verdict?** opens a plain-language sheet.
+- **Headline and blurb**: the verdict, at most three sentences: air, body, then shade/sun or night. The
+  air temperature and humidity only pick the wording: cool air near saturation reads "Cool and damp" instead
+  of "Crisp and dry", and hot dry air is never called fresh.
+- **Why it feels like this**: two boxes, in the shade and in the sun, when the two differ; one sentence
+  naming the biggest cause ("Most of this is the sun. The dry air helps a little."); where the day is
+  heading ("By 12:00 it's tiring."); the WBGT numbers in small print. **Why this verdict?** under the
+  headline opens a plain-language sheet.
 - **Is this normal?**: the current dew point against ten years of past hours at the **same time of day**
-  (±2 h) within a week of today's date. One statistic: *"stickier than 78% of mornings"*.
+  (±2 h) within a week of today's date. One statistic: *"stickier than 78% of mornings"*, or *"damper"*
+  for air that is not sticky at all.
 - **When will it get better?**: ranked like the verdict, load first and air second, so sunset counts as
-  relief: *"Easy from 21:00, once the sun is down."*
+  relief: *"Easy from 21:00, once the sun is down."* Hidden when the air is already dry or fresh and easy.
 - **Next hours / This week**: stickiness timelines by band.
 
 ## Where the data comes from

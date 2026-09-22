@@ -8,7 +8,7 @@ import { wbgtInterval, rhFromDewPoint } from './load.js';
 import { textureOf } from './texture.js';
 import { levelOf, alertMark } from './levels.js';
 import { compose } from './verdict.js';
-import { attribute } from './explain.js';
+import { attribute, factorSummary } from './explain.js';
 
 /** Sun choices: a clear sky with the sun at a fixed height. */
 export const SUN_OPTIONS = {
@@ -48,7 +48,12 @@ export function explore(opts) {
   const shadeLevel = levelOf(load.shade);
   const sunLevel = levelOf(load.sun);
   const worstValue = isDay ? Math.max(load.shade, load.sun) : load.shade;
-  const verdict = compose({ texture, shadeLevel, sunLevel, isDay, sunKnown: true, alert: alertMark(worstValue) });
+  const verdict = compose({
+    texture, shadeLevel, sunLevel, isDay, sunKnown: true, alert: alertMark(worstValue),
+    air: { t: inputs.tair, rh: inputs.rh },
+  });
   const a = attribute(inputs, isDay ? 'sun' : 'shade');
-  return { texture, dewPoint, load, shadeLevel, sunLevel, verdict, factors: a.factors, words: a.words, reference: a.reference };
+  // The same sentence as the app's "Why it feels like this" card.
+  const summary = verdict.worst === 'none' ? '' : factorSummary(a.factors, { wind10: inputs.wind10 });
+  return { texture, dewPoint, load, shadeLevel, sunLevel, verdict, factors: a.factors, words: a.words, reference: a.reference, summary };
 }

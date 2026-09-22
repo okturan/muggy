@@ -32,7 +32,7 @@ test('drier air counts as relief', () => {
   const w = findRelief(current, hs);
   assert.equal(w.open.time, '2026-08-01T22:00');
   assert.equal(w.cause, 'drier');
-  assert.match(describeRelief(w).note, /Humid air from 22:00 as it dries out/);
+  assert.equal(describeRelief(w).note, 'The air dries out a little from 22:00.');
 });
 
 test('easy load: texture alone ranks relief', () => {
@@ -56,7 +56,7 @@ test('night hours extend but never open a window, and the window reports where i
   assert.equal(w.deepens, true);
   assert.equal(w.bottom.time, '2026-08-02T02:00');
   const d = describeRelief(w);
-  assert.match(d.note, /Easing to easy by 02:00/);
+  assert.match(d.note, /By 02:00 it's down to easy\./);
 
   // Relief that exists only between 00:00 and 05:59 is not offered.
   const onlyNight = hours('2026-08-01T20:00', (h) => ({ texture: 'muggy', shadeLevel: h < 6 ? 'easy' : 'realWork', sunLevel: h < 6 ? 'easy' : 'realWork', sunUp: false }));
@@ -71,16 +71,28 @@ test('a window that bottoms out at None never says "easing to none"', () => {
       : { texture: 'dry', shadeLevel: 'none', sunLevel: 'none', sunUp: false }));
   const d = describeRelief(findRelief(current, hs));
   assert.ok(!/\bnone\b/i.test(d.note), d.note);
-  assert.match(d.note, /out of the picture by 21:00/);
+  assert.match(d.note, /By 21:00 the heat is out of the picture\./);
 });
 
-test('no relief: wording depends on whether the air is already easy', () => {
-  const easy = { time: '2026-08-01T09:00', texture: 'comfortable', shadeLevel: 'easy', sunLevel: 'easy', sunUp: true };
-  const same = hours('2026-08-01T09:00', () => ({ texture: 'comfortable', shadeLevel: 'easy', sunLevel: 'easy', sunUp: true }));
-  assert.match(describeRelief(findRelief(easy, same)).sub, /as good as it gets/);
+test('dry or fresh air at an easy load has nothing to wait for, so there is no card', () => {
+  for (const texture of ['dry', 'comfortable']) {
+    for (const level of ['none', 'easy']) {
+      const now = { time: '2026-08-01T09:00', texture, shadeLevel: level, sunLevel: level, sunUp: true };
+      const later = hours('2026-08-01T09:00', (h) => ({ texture: h > 20 ? 'dry' : texture, shadeLevel: 'none', sunLevel: 'none', sunUp: h < 19 }));
+      assert.equal(describeRelief(findRelief(now, later)), null, `${texture}/${level}`);
+    }
+  }
+});
+
+test('no relief never answers "When will it get better?" with "Right now"', () => {
+  const muggy = { time: '2026-08-01T09:00', texture: 'muggy', shadeLevel: 'easy', sunLevel: 'easy', sunUp: true };
+  const same = hours('2026-08-01T09:00', () => ({ texture: 'muggy', shadeLevel: 'easy', sunLevel: 'easy', sunUp: true }));
+  assert.deepEqual(describeRelief(findRelief(muggy, same)), { when: 'Stays muggy', sub: 'next 24 hours', note: "The air doesn't get any drier before this time tomorrow.", tint: 'muggy' });
   const heavy = { time: '2026-08-01T09:00', texture: 'miserable', shadeLevel: 'hard', sunLevel: 'hard', sunUp: true };
   const worse = hours('2026-08-01T09:00', () => ({ texture: 'miserable', shadeLevel: 'hard', sunLevel: 'hard', sunUp: true }));
-  assert.match(describeRelief(findRelief(heavy, worse)).sub, /no real relief/);
+  const d = describeRelief(findRelief(heavy, worse));
+  assert.equal(d.when, 'No relief yet');
+  assert.equal(d.sub, 'next 24 hours');
 });
 
 test('every level named in relief wording carries a time', () => {
@@ -104,19 +116,43 @@ test('at an easy load, heavier hours are never offered as relief even if the air
 
 test('a window only spans consecutive hours; a missing hour ends it', () => {
   const current = { time: '2026-08-01T20:30', texture: 'muggy', shadeLevel: 'noticeable', sunLevel: 'noticeable', sunUp: false };
-  const all = hours('2026-08-01T20:00', (h) => ({ texture: h === 21 || h === 23 ? 'humid' : 'muggy', shadeLevel: 'noticeable', sunLevel: 'noticeable', sunUp: false }));
+  const all = hours('2026-08-01T20:00', (h) => ({ texture: 'muggy', shadeLevel: h === 21 || h === 23 ? 'easy' : 'noticeable', sunLevel: h === 21 || h === 23 ? 'easy' : 'noticeable', sunUp: false }));
   const gap = all.filter((h) => h.time !== '2026-08-01T22:00');
   const w = findRelief(current, gap);
   assert.equal(w.open.time, '2026-08-01T21:00');
   assert.equal(w.len, 1);
-  assert.equal(describeRelief(w).when, 'From 21:00');
+  // One better hour between worse ones is a dip, so it is "around", not "from".
+  assert.equal(describeRelief(w).when, 'Around 21:00');
+  assert.match(describeRelief(w).note, /around 21:00/);
+});
+
+test('a window that runs to the end of the forecast has no end time', () => {
+  const current = { time: '2026-08-01T12:30', texture: 'muggy', shadeLevel: 'realWork', sunLevel: 'realWork', sunUp: true };
+  const hs = hours('2026-08-01T12:00', (h, i) => (i >= 22
+    ? { texture: 'muggy', shadeLevel: 'easy', sunLevel: 'easy', sunUp: h >= 6 && h < 19 }
+    : { texture: 'muggy', shadeLevel: 'realWork', sunLevel: 'realWork', sunUp: h >= 6 && h < 19 })).slice(0, 26);
+  const w = findRelief(current, hs);
+  assert.equal(w.openEnded, true);
+  assert.match(describeRelief(w).when, /^Tomorrow, from 10:00$/);
+});
+
+test('sunset only explains a window that opens in the evening', () => {
+  // Hot all night; the load only drops at dawn. That is cooling, not sunset.
+  const current = { time: '2026-08-01T15:00', texture: 'muggy', shadeLevel: 'hard', sunLevel: 'hard', sunUp: true };
+  const hs = hours('2026-08-01T15:00', (h) => (h >= 6 && h < 10
+    ? { texture: 'muggy', shadeLevel: 'noticeable', sunLevel: 'noticeable', sunUp: h >= 7 }
+    : { texture: 'muggy', shadeLevel: 'hard', sunLevel: 'hard', sunUp: h >= 7 && h < 19 }));
+  const w = findRelief(current, hs);
+  assert.equal(w.open.time, '2026-08-02T06:00');
+  assert.equal(w.cause, 'cooler');
+  assert.match(describeRelief(w).note, /^Noticeable from 06:00 as it cools off\./);
 });
 
 test('when only the air dries within a window, the card says so instead of repeating the level', () => {
   const current = { time: '2026-08-01T18:30', texture: 'muggy', shadeLevel: 'easy', sunLevel: 'noticeable', sunUp: true };
   const hs = hours('2026-08-01T18:00', (h) => ({ texture: h >= 22 || h < 6 ? 'humid' : 'muggy', shadeLevel: 'easy', sunLevel: 'easy', sunUp: h >= 6 && h < 19 }));
   const d = describeRelief(findRelief(current, hs));
-  assert.match(d.note, /^Easy from 19:00, once the sun is down\. Humid air by 22:00\.$/);
+  assert.match(d.note, /^Easy from 19:00, once the sun is down\. The air is drier still by 22:00\.$/);
 });
 
 test('a relief hour at level None is described without the word "none"', () => {
@@ -127,4 +163,12 @@ test('a relief hour at level None is described without the word "none"', () => {
   const d = describeRelief(findRelief(current, hs));
   assert.ok(!/\bnone\b/i.test(d.note), d.note);
   assert.match(d.note, /^The heat is out of the picture from 19:00, once the sun is down\./);
+});
+
+test('a lone hour of slightly drier air is forecast wobble, not relief', () => {
+  const current = { time: '2026-08-01T14:30', texture: 'oppressive', shadeLevel: 'realWork', sunLevel: 'realWork', sunUp: true };
+  const hs = hours('2026-08-01T14:00', (h) => ({ texture: h === 16 ? 'muggy' : h >= 20 && h < 23 ? 'muggy' : 'oppressive', shadeLevel: 'realWork', sunLevel: 'realWork', sunUp: h >= 6 && h < 19 }));
+  const w = findRelief(current, hs);
+  assert.equal(w.open.time, '2026-08-01T20:00');
+  assert.equal(describeRelief(w).when, '20:00 – 23:00');
 });

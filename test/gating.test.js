@@ -58,10 +58,15 @@ test('the reachability sweep covered the engine broadly', () => {
 
 test('every reachable combination composes and passes every gating rule', () => {
   const failures = [];
+  // The air only changes wording (damp cool, hot and dry), so every tuple is
+  // also composed in fog, crisp cold, mild, and desert heat.
+  const airs = [null, { t: 5, rh: 96 }, { t: 14, rh: 60 }, { t: 24, rh: 55 }, { t: 38, rh: 15 }];
   for (const t of tuples) {
-    const v = compose(t);
-    const bad = violations(v, t);
-    if (bad.length) failures.push(`${JSON.stringify(t)} → ${v.headline} | ${v.blurb} :: ${bad.join('; ')}`);
+    for (const air of airs) {
+      const v = compose({ ...t, air });
+      const bad = violations(v, t);
+      if (bad.length) failures.push(`${JSON.stringify({ ...t, air })} → ${v.headline} | ${v.blurb} :: ${bad.join('; ')}`);
+    }
   }
   assert.deepEqual(failures, []);
 });

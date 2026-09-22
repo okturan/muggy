@@ -301,6 +301,7 @@ export function previewVerdict(data, nowMs = Date.now()) {
     isDay,
     sunKnown: load ? load.sunKnown : false,
     alert: worst != null ? alertMark(worst) : null,
+    air: { t: cur.temperature_2m, rh: cur.relative_humidity_2m },
   });
   return { cur, texture, verdict };
 }

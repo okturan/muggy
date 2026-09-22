@@ -120,6 +120,9 @@ try {
     check(fx.name, 'no double spaces in the blurb', !/\s{2,}/.test(s.blurb), s.blurb);
     if (e.sunUp === false || e.sunKnown === false) check(fx.name, 'no sun or shade words without a known daytime sun', !s.verdictClasses.includes('sunShade'), `${s.headline} | ${s.blurb}`);
     if (e.relief) check(fx.name, 'relief card matches the shared relief', s.reliefVisible && s.reliefWhen === e.relief.when && s.reliefNote === e.relief.note, `${s.reliefWhen} | ${s.reliefNote}`);
+    else check(fx.name, 'no relief card when there is nothing to wait for', !s.reliefVisible, s.reliefWhen);
+    check(fx.name, 'the doors only open onto a real choice', s.doors === null || s.doors.split(' / ')[0] !== s.doors.split(' / ')[1], s.doors);
+    check(fx.name, 'no card answers "When will it get better?" with "Right now"', s.reliefWhen !== 'Right now', s.reliefWhen);
     if (s.normalVisible) {
       const pcts = [...new Set(`${s.normalSub} ${s.normalNote}`.match(/\d+%/g) || [])].map((p) => parseInt(p, 10));
       check(fx.name, 'normals: one statistic (and its complement) only', pcts.length <= 2 && (pcts.length < 2 || pcts[0] + pcts[1] === 100), `${s.normalSub} | ${s.normalNote}`);

@@ -42,4 +42,10 @@ The hours strip and the week view SHALL colour each cell by texture band. Their 
 
 #### Scenario: Hours sub-heading
 - **WHEN** the hours strip renders
-- **THEN** its sub-heading names the stickiest hour and its band, and contains no load-level word
+- **THEN** its sub-heading names the first hour in the stickiest band shown and that band, and contains no load-level word
+
+The stickiest hour SHALL be judged by band, the grain the cells show. It SHALL read "right now" when the current hour is in that band, "tonight" for hours after midnight and before 06:00, and "tomorrow" for later hours of the next day. When no hour is stickier than comfortable, the sub-heading SHALL read "nothing sticky". The week sub-heading SHALL count days that reach muggy or worse, and read "no muggy days ahead" when there are none, so it never contradicts a humid headline.
+
+#### Scenario: Nothing sticky
+- **WHEN** every hour in the strip is dry or comfortable
+- **THEN** the sub-heading reads "nothing sticky" and names no band

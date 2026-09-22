@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { attribute, wordFor, factorSummary } from '../public/lib/explain.js';
+import { factorSentence } from '../public/lib/copy.js';
 
 const base = (over = {}) => ({
   endMs: Date.parse('2026-08-01T03:00:00Z'), minutes: 60, lat: 35.68, lon: 139.69,
@@ -66,4 +67,29 @@ test('the summary names the biggest cause first and drops what does nothing', ()
   assert.equal(factorSummary({ damp: 2.2, sun: 2.0, breeze: -1.8 }), 'The damp and the sun share this about equally. The breeze helps.');
   assert.equal(factorSummary({ damp: 0.2, breeze: 0.1 }), 'This is mostly just the air temperature.');
   assert.equal(factorSummary({ damp: 3.1, sun: 1.2, breeze: 2 }, { windKnown: false }), 'Most of this is the damp, with a little from the sun.');
+});
+
+test('the summary names the wind by what it is doing, and lists three causes with commas', () => {
+  // A breeze share above zero is too little wind in light air, and the wind itself when it blows.
+  assert.equal(factorSummary({ damp: 1, sun: 1, breeze: 0.8 }, { wind10: 0.5 }), 'The damp, the sun and the lack of wind share this about equally.');
+  assert.equal(factorSummary({ sun: 3, breeze: 1 }, { wind10: 0.5 }), 'Most of this is the sun, with a little from the lack of wind.');
+  assert.equal(factorSummary({ sun: 3, breeze: 1 }, { wind10: 6 }), 'Most of this is the sun, with a little from the wind.');
+  assert.equal(factorSummary({ sun: 3, damp: -0.8, breeze: -0.9 }, { wind10: 6 }), 'Most of this is the sun. The breeze and the dry air both help a little.');
+  assert.equal(factorSummary({ sun: 3, breeze: -0.9 }, { wind10: 0.5 }), 'Most of this is the sun. The calm air helps a little.');
+  for (const s of [factorSummary({ damp: 2, breeze: 2, sun: 1 }, { wind10: 0.5 }), factorSummary({ damp: 2, breeze: 2, sun: 1.2 })]) {
+    assert.ok(!/ and .* and /.test(s), s);
+    assert.ok(!/is still air/.test(s), s);
+  }
+});
+
+test('the Why sheet never says "makes it makes it"', () => {
+  for (const name of ['damp', 'sun', 'breeze']) {
+    for (const c of [-3, -1, -0.2, 0.2, 1, 2, 4]) {
+      for (const wind10 of [0.5, 5]) {
+        const s = factorSentence(name, c, wordFor(c, name), { wind10 });
+        assert.ok(!/makes it makes it/.test(s), s);
+        assert.ok(!/black globe/.test(s), s);
+      }
+    }
+  }
 });

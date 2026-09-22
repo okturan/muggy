@@ -14,7 +14,8 @@ test('the explorer runs the same engine and verdict as the app', () => {
     const e = explore(opts);
     const load = wbgtInterval(explorerInputs(opts).inputs);
     assert.equal(e.load.shade, load.shade);
-    const v = compose({ texture: e.texture, shadeLevel: levelOf(load.shade), sunLevel: levelOf(load.sun), isDay: opts.sun !== 'none', sunKnown: true, alert: e.verdict.sentences.some((s) => s.kind === 'alert') ? 'alert' : null });
+    const { inputs } = explorerInputs(opts);
+    const v = compose({ texture: e.texture, shadeLevel: levelOf(load.shade), sunLevel: levelOf(load.sun), isDay: opts.sun !== 'none', sunKnown: true, alert: e.verdict.sentences.some((s) => s.kind === 'alert') ? 'alert' : null, air: { t: inputs.tair, rh: inputs.rh } });
     assert.equal(e.verdict.headline, v.headline, JSON.stringify(opts));
   }
 });
@@ -37,4 +38,12 @@ test('factor shares add up to the difference from the reference', () => {
   const e = explore({ tair: 33, texture: 'muggy', sun: 'some', wind: 'windy' });
   const sum = Object.values(e.factors).reduce((a, b) => a + b, 0);
   assert.ok(Math.abs(sum - (e.load.sun - e.reference)) < 1e-9);
+});
+
+test('the explorer shows the same cause sentence as the app card, and none when there is no heat', () => {
+  const hot = explore({ tair: 33, texture: 'muggy', sun: 'full', wind: 'still' });
+  assert.match(hot.summary, /^(Most of this is|The .* share this)/);
+  const cool = explore({ tair: 10, texture: 'dry', sun: 'none', wind: 'breeze' });
+  assert.equal(cool.summary, '');
+  assert.equal(cool.verdict.headline, 'Cool and damp');
 });

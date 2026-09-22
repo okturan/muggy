@@ -25,21 +25,43 @@ const DANGER = 'Dangerous heat';
 export const HEADLINES = {
   dry: { none: 'Crisp and dry', easy: 'Dry and easy', noticeable: 'Warm, dry air', realWork: 'Tiring, dry heat', hard: 'Hard, dry heat', dangerous: DANGER },
   comfortable: { none: 'Perfect air', easy: 'Fresh and easy', noticeable: 'Warm but fresh', realWork: 'Hot and tiring', hard: 'Hard heat', dangerous: DANGER },
-  humid: { none: 'A little sticky', easy: 'A little sticky, still easy', noticeable: 'Sticky and warm', realWork: 'Sticky and tiring', hard: 'Sticky and hard', dangerous: DANGER },
+  humid: { none: 'A little sticky', easy: 'A little sticky, still easy', noticeable: 'Sticky and warm', realWork: 'Sticky and tiring', hard: 'Sticky and hard going', dangerous: DANGER },
   muggy: { none: "It's muggy out", easy: 'Muggy but mild', noticeable: 'Muggy and warm', realWork: 'Muggy and tiring', hard: 'Muggy and hard going', dangerous: DANGER },
-  oppressive: { none: 'Oppressive air', easy: 'Oppressive but mild', noticeable: 'Oppressive air', realWork: 'Oppressive and tiring', hard: 'Oppressive and hard', dangerous: DANGER },
-  miserable: { none: 'Miserable air', easy: 'Miserable air', noticeable: 'Miserable air', realWork: 'Miserable and tiring', hard: 'Miserable and hard', dangerous: DANGER },
+  oppressive: { none: 'Oppressive air', easy: 'Oppressive but mild', noticeable: 'Oppressive air', realWork: 'Oppressive and tiring', hard: 'Oppressive and hard going', dangerous: DANGER },
+  miserable: { none: 'Miserable air', easy: 'Miserable air', noticeable: 'Miserable air', realWork: 'Miserable and tiring', hard: 'Miserable and hard going', dangerous: DANGER },
 };
 
-/** What the moisture does. Skin, sweat, the feel of the air; at night, sleep. Never what to do. */
+/** From this air temperature, "warm" undersells a noticeable load in dry air. */
+export const HOT_MIN_C = 30;
+export const HOT_HEADLINES = { dry: { noticeable: 'Hot, dry air' }, comfortable: { noticeable: 'Hot but not sticky' } };
+
+/**
+ * Cool air close to saturation. The dew point band calls it dry or
+ * comfortable, because cold air holds little water, but fog and drizzle feel
+ * damp. Below DAMP_COOL_MAX_C nobody is sweating, so stickiness is beside the
+ * point and the humidity is what you notice.
+ */
+export const DAMP_COOL_MAX_C = 18;
+export const DAMP_COOL_MIN_RH = 80;
+export const COLD_MAX_C = 8;
+export const DAMP_COOL = {
+  headline: { cool: 'Cool and damp', cold: 'Cold and damp' },
+  sentence: { day: 'Damp air, but too cool to feel sticky.', night: 'A damp night, but too cool to feel sticky.' },
+};
+
+/**
+ * What the moisture does, once there is heat to sweat about. Skin, sweat, the
+ * feel of the air. Never what to do. The headline already names dry and fresh
+ * air, so those sentences start with what it means.
+ */
 export const TEXTURE_SENTENCE = {
   dry: {
-    day: 'Dry air. Sweat dries before you notice it, so keep drinking.',
-    night: 'Dry air. Your lips will feel it by morning.',
+    day: 'Sweat dries before you notice it, so keep drinking.',
+    night: 'Your lips will feel the dry air by morning.',
   },
   comfortable: {
-    day: 'Fresh air. Sweat dries as fast as it comes.',
-    night: 'Fresh air, even after dark.',
+    day: 'Sweat dries as fast as it comes.',
+    night: 'Sweat still dries after dark.',
   },
   humid: {
     day: 'A little damp. You feel it on your skin.',
@@ -47,16 +69,22 @@ export const TEXTURE_SENTENCE = {
   },
   muggy: {
     day: 'Shirts stick and sweat is slow to dry.',
-    night: 'The sheets feel damp and sweat is slow to dry.',
+    night: 'The air stays sticky after dark and sweat is slow to dry.',
   },
   oppressive: {
     day: 'Sweat barely dries, so it stops cooling you.',
-    night: "Sweat won't dry even after dark. Sleep comes slowly.",
+    night: "Sweat won't dry, even after dark.",
   },
   miserable: {
     day: 'The air is soaked. Sweat pours and does almost nothing.',
-    night: "The air is soaked. Sweat won't dry at all tonight.",
+    night: "The air is soaked. Sweat won't dry at all.",
   },
+};
+
+/** Dry and fresh air when heat is not a factor: nobody is sweating, so no sweat talk. */
+export const TEXTURE_SENTENCE_NO_HEAT = {
+  dry: { day: 'Dry air, nothing sticky about it.', night: 'Dry air tonight, nothing sticky about it.' },
+  comfortable: { day: 'Fresh air, nothing sticky about it.', night: 'Fresh air tonight, nothing sticky about it.' },
 };
 
 /** What the load means for a body, when it applies everywhere. */
@@ -68,7 +96,7 @@ export const LOAD_SENTENCE = {
   },
   noticeable: {
     day: 'A hill or a fast walk will remind you. Keep the pace easy.',
-    night: 'Warm enough to notice tonight. Moving air helps with sleep.',
+    night: 'Moving air helps with sleep tonight.',
   },
   realWork: {
     day: 'Anything strenuous costs more than usual. Take regular breaks and keep water close.',
@@ -121,12 +149,14 @@ export function factorSentence(name, c, w, { wind10 = 2 } = {}) {
     return { damp: 'The humidity makes no real difference here.', sun: 'The sun adds little right now.', breeze: 'The wind makes no real difference.' }[name];
   }
   if (name === 'damp') return c > 0 ? `The damp makes it ${w}. Sweat can't dry fast enough to cool you.` : 'The dry air makes it easier. Sweat dries quickly.';
-  if (name === 'sun') return `The sun makes it ${w}. Direct light heats you the way it heats a black globe.`;
-  // breeze
-  if (c < 0) return 'The breeze helps by carrying heat away from you.';
+  if (name === 'sun') return `The sun makes it ${w}. Direct sunlight adds its own heat on top of the air's.`;
+  // breeze, against a light 2 m/s wind. In the sun, less wind leaves more heat
+  // on you. The other two cases (calm helping, wind hurting) are rare and
+  // small, so they get no explanation they could not back up.
+  if (c < 0) return wind10 < 2 ? 'The calm air helps a little.' : 'The breeze helps by carrying heat away from you.';
   return wind10 < 2
     ? `Still air makes it ${w}. There is little breeze to carry heat away.`
-    : `The wind makes it ${w}. The air it brings is close to skin temperature.`;
+    : `The wind makes it ${w}.`;
 }
 
 /** Japan MOE's alert marks within Dangerous. */

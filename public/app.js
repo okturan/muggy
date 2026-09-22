@@ -1,13 +1,13 @@
 /* Muggy — how the outside air treats you, with a cloud who feels it. */
 import { interpolateNow } from './lib/interp.js';
-import { textureOf } from './lib/texture.js';
+import { textureOf, TEXTURE_RANK } from './lib/texture.js';
 import { loadAt, loadSeries, readingNow, intervalInputs, isSunUp } from './lib/load.js';
 import { levelOf, alertMark, createHysteresis, roundHalfUp, LEVELS, LEVEL_MIN } from './lib/levels.js';
-import { compose } from './lib/verdict.js';
+import { compose, textureSentence, isDampCool } from './lib/verdict.js';
 import { attribute, peakAndTrend, factorSummary, REFERENCE_WIND_MS } from './lib/explain.js';
 import { findRelief, describeRelief, forecastHours } from './lib/relief.js';
 import { describe as describeNormals, barSegments, hasHourLadders } from './lib/normals.js';
-import { TEXTURE_SENTENCE, LEVEL_GUIDE, LEVEL_PHRASE, factorSentence } from './lib/copy.js';
+import { LEVEL_GUIDE, LEVEL_PHRASE, factorSentence } from './lib/copy.js';
 
 const DEFAULT_PLACE = { name: 'Tirana', lat: 41.33, lon: 19.82 };
 
@@ -26,7 +26,7 @@ const els = {
   windowCard: $('windowCard'), windowSub: $('windowSub'), windowWhen: $('windowWhen'), windowNote: $('windowNote'),
   strainCard: $('strainCard'), strainSub: $('strainSub'), strainNote: $('strainNote'),
   factorsText: $('factorsText'), doors: $('doors'), doorShade: $('doorShade'), doorSun: $('doorSun'),
-  whyBtn: $('whyBtn'), whyCardBtn: $('whyCardBtn'), whySheet: $('whySheet'), whyBody: $('whyBody'), whyClose: $('whyClose'),
+  whyBtn: $('whyBtn'), whySheet: $('whySheet'), whyBody: $('whyBody'), whyClose: $('whyClose'),
 };
 
 const prefs = (() => {
@@ -115,9 +115,10 @@ function render() {
   const isDay = isSunUp(nowMs, data.latitude, data.longitude);
   const sunInPlay = !!(isDay && load && load.sunUp && load.sunKnown);
   const worstValue = load ? (sunInPlay ? Math.max(load.sun, load.shade) : load.shade) : null;
+  const air = { t: cur.temperature_2m, rh: cur.relative_humidity_2m };
   const verdict = compose({
     texture, shadeLevel, sunLevel, isDay, sunKnown: load ? load.sunKnown : false,
-    alert: worstValue != null ? alertMark(worstValue) : null,
+    alert: worstValue != null ? alertMark(worstValue) : null, air,
   });
   const series = loadSeries(data);
   // Forecast hours levelled relative to the held current levels (see relief.js).
@@ -128,7 +129,7 @@ function render() {
   const slot = h.time.findIndex((t) => t.slice(0, 13) === cur.time.slice(0, 13));
   const trend = slot > 0 && hourValue(series[slot]) != null && hourValue(series[slot - 1]) != null
     ? hourValue(series[slot]) - hourValue(series[slot - 1]) : 0;
-  now = { cur, texture, reading, load, shadeLevel, sunLevel, isDay, sunInPlay, worstValue, verdict, series, hours, trend };
+  now = { cur, texture, reading, load, shadeLevel, sunLevel, isDay, sunInPlay, worstValue, verdict, series, hours, trend, air };
 
   const named = currentPlace && currentPlace.name && currentPlace.name !== 'My location';
   document.title = named ? `${verdict.headline} in ${currentPlace.name} · muggy.fyi` : `Muggy · ${verdict.headline}`;
@@ -160,14 +161,27 @@ function renderHours(cur, h) {
   }
   // The "now" cell must be the same now as every card above it.
   if (slice.length) slice[0] = { t: cur.time, dp: cur.dew_point_2m, temp: cur.temperature_2m };
+  // The stickiest hour by band, the same grain as the dots: the first hour in
+  // the worst band shown. Sub-band differences the dots can't show don't count.
   const valid = slice.filter((x) => x.dp != null);
-  const peak = valid.reduce((a, b) => (b.dp > a.dp ? b : a), valid[0]);
+  const bandRank = (x) => TEXTURE_RANK[textureOf(x.dp)];
+  const top = valid.length ? Math.max(...valid.map(bandRank)) : -1;
+  const peak = valid.find((x) => bandRank(x) === top);
   els.hours.innerHTML = slice.map((x, i) => {
     const lv = x.dp == null ? 'comfortable' : textureOf(x.dp);
     return `<div class="hour${i === 0 ? ' is-now' : ''}" data-level="${lv}" title="${lv}">
       <span class="t">${i === 0 ? 'now' : `${hourLabel(x.t)}:00`}</span><span class="dot"></span><span class="d">${fmtTemp(x.temp)}</span></div>`;
   }).join('');
-  els.hoursSub.textContent = peak ? `stickiest around ${hourLabel(peak.t)}:00 (${textureOf(peak.dp)})` : '';
+  let sub = '';
+  if (peak && top <= TEXTURE_RANK.comfortable) sub = 'nothing sticky';
+  else if (peak && peak === slice[0]) sub = `stickiest right now (${textureOf(peak.dp)})`;
+  else if (peak) {
+    // After midnight but before six is still tonight in speech; later is tomorrow.
+    const nextDay = peak.t.slice(0, 10) !== cur.time.slice(0, 10);
+    const when = !nextDay ? '' : Number(hourLabel(peak.t)) < 6 ? 'tonight ' : 'tomorrow ';
+    sub = `stickiest ${when}around ${hourLabel(peak.t)}:00 (${textureOf(peak.dp)})`;
+  }
+  els.hoursSub.textContent = sub;
 }
 
 function renderWeek(cur, h) {
@@ -196,7 +210,7 @@ function renderWeek(cur, h) {
   }).join('');
   els.weekSub.textContent = stickyDays
     ? `${stickyDays} of ${rows.length} day${rows.length === 1 ? '' : 's'} muggy or worse`
-    : 'nothing sticky ahead';
+    : 'no muggy days ahead';
 }
 
 // ---------- out in it ----------
@@ -217,14 +231,16 @@ function renderOutInIt() {
   const worst = n.verdict.worst;
   if (!n.load || !worst || worst === 'none') { els.strainCard.hidden = true; return; }
 
-  // The two doors: the choice you actually make outside. Only when the sun is in play.
-  els.doors.hidden = !n.sunInPlay;
-  if (n.sunInPlay) {
+  // The two doors: the choice you actually make outside. Only when the sun is
+  // in play and the choice changes something.
+  const doorsShown = n.sunInPlay && n.shadeLevel !== n.sunLevel;
+  els.doors.hidden = !doorsShown;
+  if (doorsShown) {
     els.doorShade.textContent = phrase(n.shadeLevel);
     els.doorSun.textContent = phrase(n.sunLevel);
   }
-  const { a } = factorsFor(n);
-  els.factorsText.textContent = factorSummary(a.factors, { windKnown: n.load.windKnown });
+  const { a, inputs } = factorsFor(n);
+  els.factorsText.textContent = factorSummary(a.factors, { windKnown: n.load.windKnown, wind10: inputs.wind10 });
 
   // Where the day is heading; any other level carries its time.
   const today = n.cur.time.slice(0, 10);
@@ -232,6 +248,7 @@ function renderOutInIt() {
     .filter((x) => x.time.slice(0, 10) === today)
     .map((x) => ({ time: x.time, level: x.sunUp && x.sunKnown !== false && LEVELS.indexOf(x.sunLevel) > LEVELS.indexOf(x.shadeLevel) ? x.sunLevel : x.shadeLevel }));
   els.strainNote.textContent = peakAndTrend({ nowLevel: worst, now: n.cur.time, hours, trend: n.trend }).join(' ');
+  els.strainNote.hidden = !els.strainNote.textContent;
 
   const shade = `WBGT ${shownWbgt(n.load.shade, n.shadeLevel)} shade`;
   const sun = n.sunInPlay ? ` · ${shownWbgt(n.load.sun, n.sunLevel)} sun` : '';
@@ -256,7 +273,9 @@ function renderRelief() {
 // ---------- is this normal? ----------
 function renderNormals() {
   if (!normals || !data) { els.normalCard.hidden = true; return; }
-  const d = describeNormals(normals, data.current.dew_point_2m, Number(data.current.time.slice(11, 13)));
+  const n = now;
+  const feelsDamp = !!(n && isDampCool(n.texture, n.verdict.worst, n.air));
+  const d = describeNormals(normals, data.current.dew_point_2m, Number(data.current.time.slice(11, 13)), { feelsDamp });
   if (!d) { els.normalCard.hidden = true; return; }
   els.normalVerdict.textContent = d.verdict;
   els.normalSub.textContent = d.sub;
@@ -293,26 +312,30 @@ function openWhy(opener) {
   const { verdict, texture, load, isDay } = n;
   const parts = [];
   parts.push(section('The verdict', `<p><strong>${esc(verdict.headline)}.</strong> ${esc(verdict.blurb)}</p>`));
-  parts.push(section('The air', `<p>The air is <strong>${esc(texture)}</strong>. ${esc(TEXTURE_SENTENCE[texture][isDay ? 'day' : 'night'])}</p>
-    <p class="small">That comes from the dew point, which is how much water the air already holds. It decides how well sweat can dry.</p>`));
+  parts.push(section('The air', `<p>${esc(textureSentence(texture, isDay ? 'day' : 'night', verdict.worst, n.air))}</p>
+    <p class="small">${isDampCool(texture, verdict.worst, n.air)
+    ? `Muggy's band for it is still <strong>${esc(texture)}</strong>, because cool air holds little water even when it is close to saturated.`
+    : `Muggy calls this air <strong>${esc(texture)}</strong>.`} That comes from the dew point, which is how much water the air already holds. It decides how well sweat can dry.</p>`));
 
   if (load && verdict.worst) {
     if (verdict.worst !== 'none') {
       const { a, entries, inputs } = factorsFor(n);
       const lines = entries.map(([name, c]) => `<p>${esc(factorSentence(name, c, a.words[name], { wind10: inputs.wind10 }))}</p>`).join('');
-      parts.push(section('Why it feels like this', `<p>Compared with a dry, shady ${esc(fmtTemp(n.cur.temperature_2m))} in a light wind.</p>${lines}`));
+      const ref = n.sunInPlay ? 'in dry shade and a light wind' : 'in dry air and a light wind';
+      parts.push(section('Why it feels like this', `<p>Compared with the same ${esc(fmtTemp(n.cur.temperature_2m))} ${ref}.</p>${lines}`));
     }
     if (verdict.split) {
-      parts.push(section('Shade and sun', `<p>Under cover it is <strong>${esc(phrase(n.shadeLevel))}</strong>. Standing in the sun it is <strong>${esc(phrase(n.sunLevel))}</strong>. The sun heats you directly, the way it heats a black globe.</p>`));
+      parts.push(section('Shade and sun', `<p>Under cover it is <strong>${esc(phrase(n.shadeLevel))}</strong>. Standing in the sun it is <strong>${esc(phrase(n.sunLevel))}</strong>. The sun heats you directly, on top of the air.</p>`));
     }
-    parts.push(section(verdict.worst === 'none' ? 'The heat load' : `What ${phrase(verdict.worst)} means`, `<p>${esc(LEVEL_GUIDE[verdict.worst])}</p>
-      <p class="small">Paraphrased from the Japanese Society of Biometeorology's daily-life guideline and Japan's Ministry of the Environment. Age, fitness, clothing and how used you are to the heat all change your own risk.</p>`));
+    const guideSource = verdict.worst === 'none' ? '' : `
+      <p class="small">Paraphrased from the Japanese Society of Biometeorology's daily-life guideline and Japan's Ministry of the Environment. Age, fitness, clothing and how used you are to the heat all change your own risk.</p>`;
+    parts.push(section(verdict.worst === 'none' ? 'The heat load' : `What ${phrase(verdict.worst)} means`, `<p>${esc(LEVEL_GUIDE[verdict.worst])}</p>${guideSource}`));
     const nums = `WBGT ${load.shade.toFixed(1)} °C in the shade${n.sunInPlay ? ` and ${load.sun.toFixed(1)} °C in the sun` : ''}.`;
     const held = levelOf(load.shade) !== n.shadeLevel || (n.sunInPlay && levelOf(load.sun) !== n.sunLevel);
     const onLine = held
       ? ' That is right on the line between two levels. Muggy keeps the earlier one until the reading clearly crosses.'
       : '';
-    parts.push(section('Where the numbers come from', `<p>${nums}${onLine} WBGT, wet-bulb globe temperature, blends a wet thermometer (how well sweat can cool you), a black globe (how much sun and warm surroundings load you) and the air temperature, the way Japan's Ministry of the Environment publishes it.</p>
+    parts.push(section('Where the numbers come from', `<p>${nums}${onLine} WBGT, wet-bulb globe temperature, blends a wet thermometer (how well sweat can cool you), a black globe (how much the sun and warm surroundings heat you) and the air temperature, the way Japan's Ministry of the Environment publishes it.</p>
       <p class="small">Muggy models it from the forecast for your area, not your street, and checks the model against dozens of stations that measure it. <a href="/about#wbgt">How Muggy works →</a></p>`));
   } else {
     parts.push(section('Heat load', '<p>No temperature is available right now, so Muggy only describes the air.</p>'));
@@ -325,7 +348,6 @@ function openWhy(opener) {
 }
 
 els.whyBtn.addEventListener('click', (e) => openWhy(e.currentTarget));
-els.whyCardBtn.addEventListener('click', (e) => openWhy(e.currentTarget));
 els.whyClose.addEventListener('click', () => els.whySheet.close());
 els.whySheet.addEventListener('click', (e) => { if (e.target === els.whySheet) els.whySheet.close(); });
 els.whySheet.addEventListener('close', () => { if (whyOpener) whyOpener.focus(); whyOpener = null; });
@@ -390,7 +412,7 @@ async function load(place, { push } = {}) {
     console.error(err);
     app.dataset.state = 'error';
     els.title.textContent = 'Could not read the sky.';
-    els.blurb.textContent = 'The weather service did not answer. Pull down or try again in a moment.';
+    els.blurb.textContent = 'The weather service did not answer. Try again in a moment.';
     toast('Weather service unavailable');
   }
 }

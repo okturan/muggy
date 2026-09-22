@@ -9,25 +9,53 @@
  */
 import { LEVELS } from './levels.js';
 import {
-  HEADLINES, TEXTURE_SENTENCE, LOAD_SENTENCE, LOAD_SUN_SENTENCE, SHADE_QUALIFIER, ALERT_SENTENCE,
-  LEVEL_PHRASE, TEXTURE_KICKER,
+  HEADLINES, TEXTURE_SENTENCE, TEXTURE_SENTENCE_NO_HEAT, LOAD_SENTENCE, LOAD_SUN_SENTENCE, SHADE_QUALIFIER, ALERT_SENTENCE,
+  LEVEL_PHRASE, TEXTURE_KICKER, HOT_HEADLINES, HOT_MIN_C, DAMP_COOL, DAMP_COOL_MAX_C, DAMP_COOL_MIN_RH, COLD_MAX_C,
 } from './copy.js';
 
 const rank = (level) => LEVELS.indexOf(level);
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
 /**
- * compose({ texture, shadeLevel, sunLevel, isDay, sunKnown, alert })
+ * Cool air near saturation, with no heat to speak of. air: { t, rh } in °C
+ * and %, or null when unknown. worst: the verdict's level, null without a load.
+ */
+export function isDampCool(texture, worst, air) {
+  return (worst == null || worst === 'none') && (texture === 'dry' || texture === 'comfortable')
+    && !!air && Number.isFinite(air.t) && Number.isFinite(air.rh) && air.t < DAMP_COOL_MAX_C && air.rh >= DAMP_COOL_MIN_RH;
+}
+
+/**
+ * The texture sentence for this moment. Shared by the verdict and the Why
+ * sheet, so the two can never describe the air differently.
+ */
+export function textureSentence(texture, period, worst, air = null) {
+  if (isDampCool(texture, worst, air)) return DAMP_COOL.sentence[period];
+  if ((worst == null || worst === 'none') && TEXTURE_SENTENCE_NO_HEAT[texture]) return TEXTURE_SENTENCE_NO_HEAT[texture][period];
+  return TEXTURE_SENTENCE[texture][period];
+}
+
+/** worst null (no load) takes the texture-only headline. */
+function headlineFor(texture, worst, air) {
+  if (isDampCool(texture, worst, air)) return air.t < COLD_MAX_C ? DAMP_COOL.headline.cold : DAMP_COOL.headline.cool;
+  const hot = air && Number.isFinite(air.t) && air.t >= HOT_MIN_C && HOT_HEADLINES[texture] && HOT_HEADLINES[texture][worst];
+  return hot || HEADLINES[texture][worst || 'none'];
+}
+
+/**
+ * compose({ texture, shadeLevel, sunLevel, isDay, sunKnown, alert, air })
  * shadeLevel null means the load is unavailable (no temperature).
+ * air: { t, rh } at the minute, optional. It only picks the wording for cool
+ * damp air and hot dry air; the levels never depend on it.
  * Returns { headline, sentences: [{ text, kind, scope }], blurb, split, worst }.
  * kind: texture | load | qualifier | alert; scope: all | sun | shade.
  */
-export function compose({ texture, shadeLevel, sunLevel, isDay, sunKnown = true, alert = null }) {
+export function compose({ texture, shadeLevel, sunLevel, isDay, sunKnown = true, alert = null, air = null }) {
   const period = isDay ? 'day' : 'night';
 
   if (shadeLevel == null) {
-    const text = TEXTURE_SENTENCE[texture][period];
-    return { headline: HEADLINES[texture].none, sentences: [{ text, kind: 'texture', scope: 'all' }], blurb: text, split: false, worst: null };
+    const text = textureSentence(texture, period, null, air);
+    return { headline: headlineFor(texture, null, air), sentences: [{ text, kind: 'texture', scope: 'all' }], blurb: text, split: false, worst: null };
   }
 
   const sun = isDay && sunKnown && sunLevel != null ? sunLevel : shadeLevel;
@@ -39,7 +67,7 @@ export function compose({ texture, shadeLevel, sunLevel, isDay, sunKnown = true,
 
   let headline;
   if (!split) {
-    headline = HEADLINES[texture][worst];
+    headline = headlineFor(texture, worst, air);
   } else if (sun === 'dangerous') {
     headline = `Dangerous in the sun, ${LEVEL_PHRASE[shadeLevel]} in the shade`;
   } else {
@@ -50,7 +78,7 @@ export function compose({ texture, shadeLevel, sunLevel, isDay, sunKnown = true,
 
   const sentences = [];
   // Safety first: at Dangerous the texture sentence gives way.
-  if (worst !== 'dangerous') sentences.push({ text: TEXTURE_SENTENCE[texture][period], kind: 'texture', scope: 'all' });
+  if (worst !== 'dangerous') sentences.push({ text: textureSentence(texture, period, worst, air), kind: 'texture', scope: 'all' });
   if (split) {
     sentences.push({ text: LOAD_SUN_SENTENCE[sun], kind: 'load', scope: 'sun' });
     sentences.push({ text: SHADE_QUALIFIER[shadeLevel], kind: 'qualifier', scope: 'shade' });

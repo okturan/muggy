@@ -32,9 +32,18 @@ The breakdown SHALL attribute the difference between the displayed WBGT and a re
 - **THEN** the breeze factor is not described as helping if its contribution is positive
 
 ### Requirement: Peak and trend sentences are level-gated
-- Peak and trend sentences SHALL NOT appear when the headline level is Easy, unless a higher level is forecast later today. In that case one sentence SHALL name that level and the time it is first reached.
-- "About as heavy as today gets" wording SHALL only appear at Noticeable or above.
+- Peak and trend sentences SHALL NOT appear when the headline level is Easy, unless a higher level is forecast later today. In that case one sentence SHALL name that level and the time it is first reached ("By 14:00 it's hard.").
+- "It doesn't get worse than this today" wording SHALL only appear at Noticeable or above.
 - Any level named for a time other than now SHALL carry that time.
+- The card SHALL make one statement about the rest of today. The hourly trend ("It has been easing over the past hour") SHALL only be added when now is today's peak level and the load fell by at least 1 °C over the last hour. A rise inside the current level SHALL NOT be mentioned, so no sentence contradicts another.
+
+#### Scenario: Easing is said once
+- **WHEN** the load was Hard at 12:00, is Tiring at 17:05, and fell 1.3 °C over the last hour
+- **THEN** the card says it was hard around 12:00 and has eased since, and nothing more
+
+#### Scenario: No contradiction after the peak
+- **WHEN** the load was Dangerous at 14:00 and is Tiring at 23:45, and rose 1.4 °C over the last hour
+- **THEN** the card says it has eased since 14:00 and does not say it is still climbing
 
 #### Scenario: Quiet morning ahead of a hard afternoon
 - **WHEN** it is 10:30, the headline level is Easy, and Hard is forecast from 14:00
@@ -44,10 +53,21 @@ The breakdown SHALL attribute the difference between the displayed WBGT and a re
 - **WHEN** the headline level is Easy and now is today's peak
 - **THEN** the card does not say this is as heavy as today gets
 
+### Requirement: The cause in one sentence
+The card SHALL state the breakdown as one or two sentences: the biggest cause first ("Most of this is the sun"), causes more than half its size as sharing it ("The damp and the sun share this about equally"), smaller ones "with a little from", and helpers after. Lists of three SHALL use commas ("The damp, the sun and the lack of wind"). A positive breeze share SHALL be named "the lack of wind" when the wind is light and "the wind" when it blows; a negative one "the breeze" or, in light wind, "the calm air". The two shade and sun boxes SHALL only show when the two levels differ.
+
+#### Scenario: Three causes
+- **WHEN** the damp, the sun and too little wind each add about the same load
+- **THEN** the card reads "The damp, the sun and the lack of wind share this about equally."
+
+#### Scenario: Equal levels
+- **WHEN** the sun is up and the shade and sun levels are both Tiring
+- **THEN** the two boxes are hidden
+
 ### Requirement: "Why this verdict?" sheet
-Tapping the headline or a "Why?" control on the "Why it feels like this" card SHALL open a sheet explaining, in plain language and without jargon before the final section:
+Tapping the "Why this verdict?" control under the headline SHALL open a sheet explaining, in plain language and without jargon before the final section:
 1. The verdict in one sentence.
-2. What the air is (texture) and what that does to sweat.
+2. What the air is (texture), in the same sentence the verdict uses, and what that does to sweat.
 3. The factor breakdown with a sentence per factor.
 4. Shade versus sun, when they differ.
 5. What the level means for different activities, paraphrasing the published guidance.

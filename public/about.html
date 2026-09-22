@@ -50,11 +50,11 @@
     .explorer input:focus-visible, .explorer select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
   </style>
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
-    {"@type":"Question","name":"Why does Muggy use dew point instead of temperature or humidity?","acceptedAnswer":{"@type":"Answer","text":"Temperature does not say how the air feels: 30° in dry air is pleasant, 27° in soaked air is a slog. The dew point measures how much water the air already carries, which decides how well sweat can evaporate and cool you. Relative humidity alone cannot tell you this: fog on a cold morning is 100% humidity and nobody calls it muggy."}},
+    {"@type":"Question","name":"Why does Muggy use dew point instead of temperature or humidity?","acceptedAnswer":{"@type":"Answer","text":"Temperature does not say how the air feels. 30° in dry air is pleasant, and 27° in soaked air is a slog. The dew point measures how much water the air already carries, which decides how well sweat can evaporate and cool you. Relative humidity alone cannot tell you this. Fog on a cold morning is 100% humidity and nobody calls it muggy."}},
     {"@type":"Question","name":"What are the six air bands?","acceptedAnswer":{"@type":"Answer","text":"Dry (dew point below 12.8°C), comfortable (12.8 to 15.6), humid (15.6 to 18.3), muggy (18.3 to 21.1), oppressive (21.1 to 23.9) and miserable (23.9 and up). These are the thresholds WeatherSpark made familiar, converted from Fahrenheit. They describe what the moisture does to skin and sweat, not what to do."}},
-    {"@type":"Question","name":"What is WBGT and why does Muggy use it?","acceptedAnswer":{"@type":"Answer","text":"WBGT, wet-bulb globe temperature, is one number for how heavily heat, damp, sun and wind sit on a body. Muggy computes it the way Japan's Ministry of the Environment publishes it: 70% a wet thermometer, 20% a black globe in the sun, 10% the air temperature. It is calculated twice, in the shade and in the sun, because the sun alone can move you a whole level."}},
-    {"@type":"Question","name":"What do Muggy's heat levels mean?","acceptedAnswer":{"@type":"Answer","text":"None below WBGT 18; Easy 18 to 20; Noticeable 21 to 24; Tiring 25 to 27, when moderate or heavy activity needs regular rest; Hard 28 to 30, when everyone should avoid direct sun and heavy exercise; Dangerous 31 and up, when outdoor activity should be avoided. The ranges follow the Japanese Society of Biometeorology and Japan's Ministry of the Environment."}},
-    {"@type":"Question","name":"How accurate is Muggy's heat load?","acceptedAnswer":{"@type":"Answer","text":"Checked against 47 Japanese stations that measure WBGT with a black globe, using the same kind of forecast data the app uses, and predicting each station with settings chosen without it: the mean error is 0.79°C, and 99.8% of hours land on the measured level or the one next to it."}},
+    {"@type":"Question","name":"What is WBGT and why does Muggy use it?","acceptedAnswer":{"@type":"Answer","text":"WBGT, wet-bulb globe temperature, is one number for how heavily heat, damp, sun and wind sit on a body. Muggy computes it the way Japan's Ministry of the Environment publishes it, as 70% a wet thermometer, 20% a black globe in the sun and 10% the air temperature. It is calculated twice, in the shade and in the sun, because the sun alone can move you a whole level."}},
+    {"@type":"Question","name":"What do Muggy's heat levels mean?","acceptedAnswer":{"@type":"Answer","text":"None is below WBGT 18. Easy is 18 to 20. Noticeable is 21 to 24. Tiring is 25 to 27, when moderate or heavy activity needs regular rest. Hard is 28 to 30, when everyone should avoid direct sun and heavy exercise. Dangerous is 31 and up, when outdoor activity should be avoided. The ranges follow the Japanese Society of Biometeorology and Japan's Ministry of the Environment."}},
+    {"@type":"Question","name":"How accurate is Muggy's heat load?","acceptedAnswer":{"@type":"Answer","text":"Checked against 47 Japanese stations that measure WBGT with a black globe, using the same kind of forecast data the app uses, and predicting each station with settings chosen without it. The mean error is 0.79°C, and 99.8% of hours land on the measured level or the one next to it."}},
     {"@type":"Question","name":"How does Muggy decide whether the air is normal?","acceptedAnswer":{"@type":"Answer","text":"It compares the current dew point with ten years of past hours from the same place, within a week of today's date and two hours of the current time of day, and states one number, such as stickier than 78% of mornings."}}
   ]}</script>
 </head>
@@ -90,6 +90,7 @@
       <h2>The six air bands</h2>
       <p>Your body cools itself by sweating, and sweat only cools you if it can evaporate. The <strong>dew point</strong> measures how much water the air already carries. It is the temperature the air would have to cool to before that water starts condensing. The higher it is, the worse sweat works. Relative humidity can't tell you this on its own. Fog on a cold morning is 100% humidity, and nobody calls fog muggy.</p>
       <p>Muggy sorts the dew point into the bands <a href="https://weatherspark.com" rel="noopener">WeatherSpark</a> made familiar, converted from Fahrenheit. You see the band, never the number.</p>
+      <p>Sweat only matters once it's warm. Below 18° Muggy says whether the air feels damp or dry instead, because a foggy morning and a crisp one land in the same band. Cold air holds so little water that its dew point is always low.</p>
       <div class="scroll">
         <table class="bands">
           <tr><th>Air</th><th>Dew point</th><th>What the moisture does</th></tr>
@@ -171,7 +172,7 @@
           <h3 class="display" id="xHeadline">…</h3>
           <p id="xBlurb"></p>
           <p class="small" id="xLevels"></p>
-          <ul class="factors" id="xFactors"></ul>
+          <p id="xFactors"></p>
         </div>
       </form>
     </section>
@@ -195,7 +196,7 @@
 
     <section id="better">
       <h2>"When will it get better?"</h2>
-      <p>"Better" means what the headline means. Less heat first, then drier air. So sunset counts as relief, not only a change of air, as in "Easy from 21:00, once the sun is down." Hours between midnight and six can extend a stretch of relief but never start one, because nobody plans around 03:00. When nothing better is coming, it says so.</p>
+      <p>"Better" means what the headline means. Less heat first, then drier air. So sunset counts as relief, not only a change of air, as in "Easy from 21:00, once the sun is down." Hours between midnight and six can extend a stretch of relief but never start one, because nobody plans around 03:00. When nothing better is coming, it says so. When the air is already dry or fresh and the heat is easy, there is nothing to wait for, so the card stays away.</p>
     </section>
 
     <section id="technical">
@@ -230,8 +231,6 @@
     import { LEVEL_NAMES, roundHalfUp } from '/lib/levels.js';
 
     const $ = (id) => document.getElementById(id);
-    const label = { damp: 'Damp', sun: 'Sun', breeze: 'Breeze' };
-    const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
     function update() {
       const opts = {
@@ -248,13 +247,8 @@
         ? `WBGT ${roundHalfUp(r.load.shade)}, which is ${LEVEL_NAMES[r.shadeLevel].toLowerCase()}.`
         : `WBGT ${roundHalfUp(r.load.shade)} in the shade (${LEVEL_NAMES[r.shadeLevel].toLowerCase()}) and ${roundHalfUp(r.load.sun)} in the sun (${LEVEL_NAMES[r.sunLevel].toLowerCase()}).`;
       $('xLevels').textContent = `${levels}${r.texture !== opts.texture ? ` The air can't be ${opts.texture} at ${opts.tair}°, so it's ${r.texture}.` : ''}`;
-      const scale = Math.max(3, ...Object.values(r.factors).map(Math.abs));
-      $('xFactors').innerHTML = Object.entries(r.factors).map(([name, c]) => {
-        const width = Math.min(50, (Math.abs(c) / scale) * 50);
-        const pos = c < 0 ? `right:50%;width:${width}%` : `left:50%;width:${width}%`;
-        return `<li class="factor" aria-label="${label[name]}: ${esc(r.words[name])}"><span class="name">${label[name]}</span>
-          <span class="track" aria-hidden="true"><i class="fill${c < 0 ? ' minus' : ''}" style="${pos}"></i></span><span class="word">${esc(r.words[name])}</span></li>`;
-      }).join('');
+      $('xFactors').textContent = r.summary;
+      $('xFactors').hidden = !r.summary;
     }
     $('explorer').addEventListener('input', update);
     $('explorer').addEventListener('change', update);

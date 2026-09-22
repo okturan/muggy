@@ -9,7 +9,7 @@ The card SHALL compare the current dew point with past hourly dew points from th
 
 #### Scenario: Heading and body agree
 - **WHEN** the current dew point is stickier than 89 % of the comparison set
-- **THEN** the sub-heading and the body both state 89 %, or the complementary 11 % explicitly framed as the share that was stickier, and no other percentage appears on the card
+- **THEN** the sub-heading states 89 %, and the body adds context without a second percentage
 
 ### Requirement: Time-of-day wording
 Percentages SHALL name the part of the day the comparison covers: morning (05:00–11:59), afternoon (12:00–16:59), evening (17:00–21:59) or night (22:00–04:59), for example "stickier than 89% of mornings around this date".
@@ -19,11 +19,17 @@ Percentages SHALL name the part of the day the comparison covers: morning (05:00
 - **THEN** the statistic refers to mornings
 
 ### Requirement: Verdict wording and extremes
-The card verdict SHALL be "Way stickier than usual" at or above the 90th percentile, "Stickier than usual" at 70–89, "About normal" at 31–69, "Drier than usual" at 11–30 and "Way drier than usual" at 10 or below. At or above the 99th percentile the statistic SHALL say nothing comparable has been recorded, and at or below the 1st it SHALL say the same for dry air.
+The card verdict SHALL be "Way stickier than usual" at or above the 90th percentile, "Stickier than usual" at 70–89, "About normal" at 31–69, "Drier than usual" at 11–30 and "Way drier than usual" at 10 or below. Dry and comfortable air is not sticky at any percentile, so for those bands "stickier" SHALL read "damper". At or above the 99th percentile the statistic SHALL name the stickiest (or dampest) such hours on record, and at or below the 1st the driest.
+
+The body SHALL describe a rare band by how it feels ("Air this dry is rare here at this time of year"), never by its band name, which reads as a claim about the place. When the headline calls cool air damp and the verdict is drier than usual, the body SHALL say the air holds less water than usual even though it feels damp.
 
 #### Scenario: Record-level stickiness
 - **WHEN** the current dew point exceeds every value in the comparison set
-- **THEN** the card says nothing stickier has been recorded around this date and time of day
+- **THEN** the sub-heading names the stickiest hours of that part of the day on record
+
+#### Scenario: Winter air
+- **WHEN** the band is dry and the dew point is above 90 % of the comparison set
+- **THEN** the verdict reads "Way damper than usual" and the card never says "sticky"
 
 ### Requirement: Climate bar on the same basis
 The climate bar SHALL size each band segment by that band's share of the comparison set. The marker SHALL sit at the current percentile, so it falls inside the current band.
