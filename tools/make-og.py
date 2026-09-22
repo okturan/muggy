@@ -45,26 +45,32 @@ def base(tint):
     # The character carries the band colour itself, so the plate behind it is
     # panel white, same as the app's hero card. A matching tint washed the
     # pink and red characters out and read as a keying mistake.
-    d.rectangle([742, 96, 1116, 536], fill=INK)
-    d.rectangle([730, 84, 1104, 524], fill=PANEL, outline=INK, width=6)
+    d.rectangle([742, 76, 1116, 516], fill=INK)
+    d.rectangle([730, 64, 1104, 504], fill=PANEL, outline=INK, width=6)
     return im, d
 
 
-def wordmark(d):
-    d.rectangle([64, 516, 322, 578], fill=INK)
-    d.text((84, 524), 'muggy.fyi', font=small, fill=PAPER)
+# X lays the link title over the bottom-left of large image cards, roughly
+# the lowest 14 % of the image. Nothing may sit below SAFE_BOTTOM.
+SAFE_BOTTOM = 520
+
+
+def wordmark(d, top):
+    assert top + 62 <= SAFE_BOTTOM, top
+    d.rectangle([64, top, 322, top + 62], fill=INK)
+    d.text((84, top + 8), 'muggy.fyi', font=small, fill=PAPER)
 
 
 def character(im, level, size=380):
     spr = Image.open(f'design/cloud-{level}.png').convert('RGBA')
     s = spr.resize((size, round(size * spr.height / spr.width)), Image.LANCZOS)
-    im.paste(s, (730 + (374 - s.width) // 2, 524 - 24 - s.height), s)
+    im.paste(s, (730 + (374 - s.width) // 2, 504 - 24 - s.height), s)
 
 
 for level in LEVELS:
     im, d = base(TINT[level])
     character(im, level)
-    d.text((64, 110), 'RIGHT NOW:', font=mid, fill=(122, 127, 140))
+    d.text((64, 70), 'RIGHT NOW:', font=mid, fill=(122, 127, 140))
     # headline, wrapped by hand at the widest word
     words = WORD[level].split(' ')
     lines, cur = [], ''
@@ -75,22 +81,22 @@ for level in LEVELS:
         else:
             cur = t
     lines.append(cur)
-    y = 170
+    y = 130
     for ln in lines:
         d.text((60, y), ln, font=big, fill=INK)
         y += 104
     d.text((64, y + 18), 'How sticky is it out there?', font=mid, fill=(74, 79, 92))
-    wordmark(d)
+    wordmark(d, y + 100)
     im.save(f'public/og/{level}.png', optimize=True)
 
 # default: the muggy character with the app's own question
 im, d = base(TINT['muggy'])
 character(im, 'muggy')
-d.text((60, 140), 'HOW STICKY', font=big, fill=INK)
-d.text((60, 244), 'IS IT OUT', font=big, fill=INK)
-d.text((60, 348), 'THERE?', font=big, fill=INK)
-d.text((64, 474), 'The band, the odds, and when it eases', font=tiny, fill=(74, 79, 92))
-wordmark(d)
+d.text((60, 70), 'HOW STICKY', font=big, fill=INK)
+d.text((60, 174), 'IS IT OUT', font=big, fill=INK)
+d.text((60, 278), 'THERE?', font=big, fill=INK)
+d.text((64, 400), 'The band, the odds, and when it eases', font=tiny, fill=(74, 79, 92))
+wordmark(d, 456)
 im.save('public/og/default.png', optimize=True)
 
 for f in sorted(os.listdir('public/og')):
