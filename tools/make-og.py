@@ -14,8 +14,12 @@ TINT = {
     'dry': (220, 227, 236), 'comfortable': (205, 232, 184), 'humid': (245, 239, 168),
     'muggy': (246, 198, 168), 'oppressive': (247, 154, 192), 'miserable': (240, 117, 91),
 }
+# One banner per band, so its word has to be true whatever the heat. "Crisp
+# and dry" was printed over foggy mornings and 45 °C deserts alike, and
+# "Perfect air" over Dubai at 40 °C. Dry and comfortable air are both, at
+# least, not sticky.
 WORD = {
-    'dry': 'CRISP AND DRY', 'comfortable': 'PERFECT AIR', 'humid': 'A LITTLE STICKY',
+    'dry': 'NOT STICKY', 'comfortable': 'NOT STICKY', 'humid': 'A LITTLE STICKY',
     'muggy': "IT'S MUGGY OUT", 'oppressive': 'OPPRESSIVE', 'miserable': 'MISERABLE',
 }
 LEVELS = list(TINT)

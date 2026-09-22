@@ -68,11 +68,3 @@ test('bar segments are in band order', () => {
   assert.deepEqual(barSegments({ muggy: 0.3, comfortable: 0.7 }).map((s) => s.band), ['comfortable', 'muggy']);
 });
 
-test('cool air that feels damp but holds little water says both', () => {
-  const winter = { hours: Array.from({ length: 24 }, () => ({ q: Array.from({ length: 101 }, (_, i) => -5 + i * 0.15), mix: { dry: 1 }, n: 700 })) };
-  const d = describe(winter, -3, 22, { feelsDamp: true });
-  assert.equal(d.verdict, 'Drier than usual');
-  assert.equal(d.note, 'The air holds less water than usual, even though it feels damp.');
-  // About normal needs no explanation.
-  assert.notEqual(describe(winter, 0, 22, { feelsDamp: true }).note, d.note);
-});

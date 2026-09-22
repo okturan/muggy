@@ -21,7 +21,7 @@ Percentages SHALL name the part of the day the comparison covers: morning (05:00
 ### Requirement: Verdict wording and extremes
 The card verdict SHALL be "Way stickier than usual" at or above the 90th percentile, "Stickier than usual" at 70–89, "About normal" at 31–69, "Drier than usual" at 11–30 and "Way drier than usual" at 10 or below. Dry and comfortable air is not sticky at any percentile, so for those bands "stickier" SHALL read "damper". At or above the 99th percentile the statistic SHALL name the stickiest (or dampest) such hours on record, and at or below the 1st the driest.
 
-The body SHALL describe a rare band by how it feels ("Air this dry is rare here at this time of year"), never by its band name, which reads as a claim about the place. When the headline calls cool air damp and the verdict is drier than usual, the body SHALL say the air holds less water than usual even though it feels damp.
+The body SHALL describe a rare band by how it feels ("Air this dry is rare here at this time of year"), never by its band name, which reads as a claim about the place. When the headline calls cool air damp, the card SHALL be hidden: a stickiness comparison says nothing when it is too cool to feel sticky, and it could only name the dry band beside a damp headline.
 
 #### Scenario: Record-level stickiness
 - **WHEN** the current dew point exceeds every value in the comparison set

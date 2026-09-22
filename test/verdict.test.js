@@ -1,7 +1,7 @@
 // Composition scenarios from the comfort-verdict spec.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { compose, textureSentence } from '../public/lib/verdict.js';
+import { compose, textureSentence, airWord } from '../public/lib/verdict.js';
 import { classesIn } from '../public/lib/lexicon.js';
 
 const day = { isDay: true, sunKnown: true };
@@ -147,4 +147,20 @@ test('the headline and the air sentence always agree, with or without a load', (
       assert.match(v.blurb, /damp/i);
     }
   }
+});
+
+test('the air word never contradicts the headline', () => {
+  // Fog: the band is dry, the air is damp.
+  assert.equal(airWord('dry', 'none', { t: 6, rh: 95 }), 'damp');
+  assert.equal(airWord('comfortable', 'none', { t: 15, rh: 88 }), 'damp');
+  // Crisp cold air keeps its band name.
+  assert.equal(airWord('dry', 'none', { t: 6, rh: 60 }), 'dry');
+  // Nothing is comfortable in real heat.
+  for (const level of ['noticeable', 'realWork', 'hard', 'dangerous']) assert.equal(airWord('comfortable', level, { t: 38, rh: 20 }), 'not sticky');
+  assert.equal(airWord('comfortable', 'easy', { t: 24, rh: 60 }), 'comfortable');
+  // Hot dry air is still dry; sticky bands keep their names.
+  assert.equal(airWord('dry', 'hard', { t: 45, rh: 8 }), 'dry');
+  for (const band of ['humid', 'muggy', 'oppressive', 'miserable']) assert.equal(airWord(band, 'hard', { t: 32, rh: 70 }), band);
+  // No load, no temperature: the band.
+  assert.equal(airWord('comfortable', null, null), 'comfortable');
 });

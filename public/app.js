@@ -3,7 +3,7 @@ import { interpolateNow } from './lib/interp.js';
 import { textureOf, TEXTURE_RANK } from './lib/texture.js';
 import { loadAt, loadSeries, readingNow, intervalInputs, isSunUp } from './lib/load.js';
 import { levelOf, alertMark, createHysteresis, roundHalfUp, LEVELS, LEVEL_MIN } from './lib/levels.js';
-import { compose, textureSentence, isDampCool } from './lib/verdict.js';
+import { compose, textureSentence, isDampCool, airWord } from './lib/verdict.js';
 import { attribute, peakAndTrend, factorSummary, REFERENCE_WIND_MS } from './lib/explain.js';
 import { findRelief, describeRelief, forecastHours } from './lib/relief.js';
 import { describe as describeNormals, barSegments, hasHourLadders } from './lib/normals.js';
@@ -98,7 +98,6 @@ function render() {
   const texture = textureOf(cur.dew_point_2m);
   app.dataset.level = texture;
   app.dataset.state = 'ready';
-  els.levelName.textContent = texture;
   els.timeChip.textContent = `now · ${cur.time.slice(11, 16)}`;
 
   // The heat-load work (current reading, 7-day series, breakdown) is measured
@@ -138,8 +137,11 @@ function render() {
   els.whyBtn.hidden = !load;
   els.temp.textContent = fmtTemp(cur.temperature_2m);
   els.hum.textContent = cur.relative_humidity_2m == null ? '–' : `${Math.round(cur.relative_humidity_2m)}%`;
-  els.comfort.textContent = texture;
-  els.comfort.classList.toggle('long', texture.length > 8);
+  // The chip and the tile name the air in words that agree with the headline.
+  const word = airWord(texture, verdict.worst, air);
+  els.levelName.textContent = word;
+  els.comfort.textContent = word;
+  els.comfort.classList.toggle('long', word.length > 8);
 
   renderHours(cur, h);
   renderWeek(cur, h);
@@ -273,9 +275,11 @@ function renderRelief() {
 // ---------- is this normal? ----------
 function renderNormals() {
   if (!normals || !data) { els.normalCard.hidden = true; return; }
+  // A stickiness comparison says nothing when it is too cool to feel sticky,
+  // and in fog it could only name the dry band beside a damp headline.
   const n = now;
-  const feelsDamp = !!(n && isDampCool(n.texture, n.verdict.worst, n.air));
-  const d = describeNormals(normals, data.current.dew_point_2m, Number(data.current.time.slice(11, 13)), { feelsDamp });
+  if (n && isDampCool(n.texture, n.verdict.worst, n.air)) { els.normalCard.hidden = true; return; }
+  const d = describeNormals(normals, data.current.dew_point_2m, Number(data.current.time.slice(11, 13)));
   if (!d) { els.normalCard.hidden = true; return; }
   els.normalVerdict.textContent = d.verdict;
   els.normalSub.textContent = d.sub;
@@ -304,6 +308,15 @@ async function loadNormals(place, superseded = () => false) {
 
 // ---------- why this verdict? ----------
 let whyOpener = null;
+
+/** Names the band, and says why the screen used a different word for it. */
+function bandNote(texture, worst, air) {
+  const word = airWord(texture, worst, air);
+  const band = `<strong>${esc(texture)}</strong>`;
+  if (word === 'damp') return `Muggy's band for it is still ${band}, because cool air holds little water even when it is close to saturated.`;
+  if (word !== texture) return `Muggy's band for it is ${band}. That describes the moisture only, and in this heat it just means sweat still dries.`;
+  return `Muggy calls this air ${band}.`;
+}
 const section = (title, body) => `<section><h3>${esc(title)}</h3>${body}</section>`;
 
 function openWhy(opener) {
@@ -313,9 +326,7 @@ function openWhy(opener) {
   const parts = [];
   parts.push(section('The verdict', `<p><strong>${esc(verdict.headline)}.</strong> ${esc(verdict.blurb)}</p>`));
   parts.push(section('The air', `<p>${esc(textureSentence(texture, isDay ? 'day' : 'night', verdict.worst, n.air))}</p>
-    <p class="small">${isDampCool(texture, verdict.worst, n.air)
-    ? `Muggy's band for it is still <strong>${esc(texture)}</strong>, because cool air holds little water even when it is close to saturated.`
-    : `Muggy calls this air <strong>${esc(texture)}</strong>.`} That comes from the dew point, which is how much water the air already holds. It decides how well sweat can dry.</p>`));
+    <p class="small">${bandNote(texture, verdict.worst, n.air)} That comes from the dew point, which is how much water the air already holds. It decides how well sweat can dry.</p>`));
 
   if (load && verdict.worst) {
     if (verdict.worst !== 'none') {

@@ -26,6 +26,19 @@ export function isDampCool(texture, worst, air) {
 }
 
 /**
+ * The word the screen shows for the air: the band's name, unless that name
+ * would contradict the headline. Cool air near saturation is "damp", whatever
+ * its band. Comfortable air under a real heat load is "not sticky", because
+ * nothing is comfortable at 35 °C. The band itself, and everything drawn from
+ * it (colour, character, timelines), stays as it is.
+ */
+export function airWord(texture, worst, air = null) {
+  if (isDampCool(texture, worst, air)) return 'damp';
+  if (texture === 'comfortable' && worst != null && rank(worst) >= rank('noticeable')) return 'not sticky';
+  return texture;
+}
+
+/**
  * The texture sentence for this moment. Shared by the verdict and the Why
  * sheet, so the two can never describe the air differently.
  */

@@ -65,7 +65,7 @@ const snapshot = (page) => page.evaluate(async () => {
   const text = (id) => (document.getElementById(id) || {}).textContent || '';
   const visible = (id) => !document.getElementById(id).hidden;
   const out = {
-    headline: text('title'), blurb: text('blurb'), air: text('comfort'), airLabel: document.querySelector('.stat.comfort .k').textContent,
+    headline: text('title'), blurb: text('blurb'), air: text('comfort'), chip: text('levelName'), airLabel: document.querySelector('.stat.comfort .k').textContent,
     strainVisible: visible('strainCard'), strainSub: text('strainSub'), strainNote: text('strainNote'),
     factorsText: text('factorsText'), doors: visible('doors') ? `${text('doorShade')} / ${text('doorSun')}` : null,
     normalVisible: visible('normalCard'), normalSub: text('normalSub'), normalNote: text('normalNote'), normalVerdict: text('normalVerdict'),
@@ -109,7 +109,8 @@ try {
     check(fx.name, 'no console errors', problems.length === 0, problems.join(' | '));
     check(fx.name, 'headline equals the shared verdict', s.headline === e.headline, `${s.headline} vs ${e.headline}`);
     check(fx.name, 'blurb equals the shared verdict', s.blurb === e.blurb, `${s.blurb} vs ${e.blurb}`);
-    check(fx.name, 'tile labelled Air shows the texture', s.airLabel === 'Air' && s.air === e.texture, `${s.airLabel}: ${s.air}`);
+    check(fx.name, 'tile labelled Air names the air in words that agree with the headline', s.airLabel === 'Air' && s.air === e.airWord, `${s.airLabel}: ${s.air} vs ${e.airWord}`);
+    check(fx.name, 'the chip on the cloud says the same word as the tile', s.chip === s.air, `${s.chip} vs ${s.air}`);
     const slows = s.blurbClasses.some((b) => b.c.includes('pace') || b.c.includes('avoidExertion'));
     const bareReassure = s.blurbClasses.some((b) => b.c.includes('reassurance') && !/^Under cover/.test(b.s));
     check(fx.name, 'no advice to slow down beside unqualified reassurance', !(slows && bareReassure), s.blurb);
@@ -157,6 +158,17 @@ try {
     if (fx.name === 'missing-radiation') {
       check(fx.name, 'no split and no sun small print', !/in the sun/.test(s.headline) && !/sun/.test(s.strainSub), `${s.headline} | ${s.strainSub}`);
       check(fx.name, 'no doors without a known sun', s.doors === null, s.doors);
+    }
+    if (fx.name === 'foggy-winter') {
+      check(fx.name, 'fog reads cold and damp, and the tile says damp', s.headline === 'Cold and damp' && s.air === 'damp', `${s.headline} | ${s.air}`);
+      check(fx.name, 'no word "dry" anywhere in the verdict, tile or chip', !/\bdry\b/i.test(`${s.headline} ${s.blurb} ${s.air} ${s.chip}`), `${s.headline} | ${s.blurb}`);
+      check(fx.name, 'no stickiness comparison when it is too cool to feel sticky', !s.normalVisible, s.normalSub);
+      check(fx.name, 'no relief card and no heat card in fog', !s.reliefVisible && !s.strainVisible);
+      const w = await whySheet(page);
+      check(fx.name, 'the Why sheet explains why the band is still dry', /band for it is still dry/.test(w.open.text), w.open.text.slice(0, 200));
+    }
+    if (fx.name === 'hot-not-sticky') {
+      check(fx.name, 'real heat never shows "comfortable"', s.air === 'not sticky' && !/comfortable/i.test(`${s.headline} ${s.blurb} ${s.chip}`), `${s.headline} | ${s.air} | ${s.chip}`);
     }
     if (fx.name === 'no-temperature') {
       check(fx.name, 'texture-only; Out in it and Why hidden', !s.strainVisible && !s.whyVisible, `${s.strainVisible} ${s.whyVisible}`);

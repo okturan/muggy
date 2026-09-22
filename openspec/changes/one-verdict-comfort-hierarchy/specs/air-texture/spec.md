@@ -24,14 +24,26 @@ Texture wording (texture headlines, texture sentences in the blurb, band descrip
 - **THEN** none contains activity-advice terms, apart from hydration terms in the dry band
 
 ### Requirement: Air tile
-The stat tile that shows the texture band SHALL be labelled "Air" and show the band name.
+The stat tile that shows the texture band SHALL be labelled "Air". The tile and the chip on the character SHALL show the band name, except where the name would contradict the headline: cool air near saturation (below 18 °C, 80 % humidity or more, no heat load, dry or comfortable band) SHALL read "damp", and comfortable air at Noticeable or above SHALL read "not sticky". Colour, character and timelines SHALL still follow the band.
+
+#### Scenario: Fog
+- **WHEN** it is 5 °C at 95 % humidity and the band is dry
+- **THEN** the headline reads "Cold and damp", the tile and chip read "damp", and the tint stays the dry band's
+
+#### Scenario: Real heat in air that is not humid
+- **WHEN** the band is comfortable and the load is Hard
+- **THEN** the tile and chip read "not sticky"
 
 #### Scenario: Tile label
 - **WHEN** the main screen renders
 - **THEN** the three stat tiles read Temp, Humidity and Air
 
 ### Requirement: Character, colour and banner follow texture
-The cloud character's sprite, the screen's colour tint, the level chip and the link-preview banner image SHALL be chosen by texture band.
+The cloud character's sprite, the screen's colour tint, the level chip's colour and the link-preview banner image SHALL be chosen by texture band. Because one banner serves a band in every weather, its word SHALL be true whatever the heat and humidity: the dry and comfortable banners read "NOT STICKY".
+
+#### Scenario: Banner in fog and in desert heat
+- **WHEN** the link preview title is "Cool and damp" or "Tiring, dry heat"
+- **THEN** the banner does not say "dry", "crisp" or "perfect"
 
 #### Scenario: Sprite by band
 - **WHEN** texture is oppressive and the load level is Easy

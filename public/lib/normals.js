@@ -49,12 +49,10 @@ export const VERDICTS = [
 ];
 
 /**
- * describe(normals, dewPointC, localHour, { feelsDamp }) →
+ * describe(normals, dewPointC, localHour) →
  * { pct, verdict, sub, note, mix, band, usualBand } or null when normals are unusable.
- * feelsDamp: the headline calls cool, near-saturated air damp; a low dew point
- * then needs saying in words, or "drier than usual" reads as a contradiction.
  */
-export function describe(normals, dewPointC, localHour, { feelsDamp = false } = {}) {
+export function describe(normals, dewPointC, localHour) {
   if (!hasHourLadders(normals) || dewPointC == null) return null;
   const hour = normals.hours[localHour];
   const pct = percentileOf(hour.q, dewPointC);
@@ -77,9 +75,7 @@ export function describe(normals, dewPointC, localHour, { feelsDamp = false } = 
   const share = hour.mix[band] || 0;
   const likeThis = `Air this ${pct >= 50 ? (sticky ? 'sticky' : 'damp') : 'dry'}`;
   let note;
-  // Only when the verdict itself says drier; "About normal" needs no excuse.
-  if (feelsDamp && pct <= 30) note = 'The air holds less water than usual, even though it feels damp.';
-  else if (!record && share === 0) note = `${likeThis} has not been recorded here at this time of year.`;
+  if (!record && share === 0) note = `${likeThis} has not been recorded here at this time of year.`;
   else if (!record && share < 0.05) note = `${likeThis} is rare here at this time of year.`;
   else if (band !== usualBand) note = `Usually it is ${usualBand} at this time of day.`;
   else if (pct >= 65) note = `Still the usual ${band} air, at the ${wetter} end of it.`;

@@ -12,7 +12,7 @@ import { interpolateNow } from '../public/lib/interp.js';
 import { textureOf } from '../public/lib/texture.js';
 import { loadNow, loadSeries, rhFromDewPoint, isSunUp } from '../public/lib/load.js';
 import { levelOf, alertMark } from '../public/lib/levels.js';
-import { compose } from '../public/lib/verdict.js';
+import { compose, airWord, isDampCool } from '../public/lib/verdict.js';
 import { findRelief, describeRelief, forecastHours } from '../public/lib/relief.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -94,7 +94,8 @@ function expected(data, nowMs) {
   const series = loadSeries(data);
   const hours = load ? forecastHours(data.hourly, series, shadeLevel, sunLevel) : [];
   const relief = load ? describeRelief(findRelief({ time: cur.time, texture, shadeLevel, sunLevel, sunUp: isDay, sunKnown: load.sunKnown }, hours)) : null;
-  return { texture, shadeLevel, sunLevel, sunUp: load ? isDay : null, sunKnown: load ? load.sunKnown : null, headline: verdict.headline, blurb: verdict.blurb, split: verdict.split, worst: verdict.worst, relief, shade: load && load.shade, sun: load && load.sun };
+  const air = { t: cur.temperature_2m, rh: cur.relative_humidity_2m };
+  return { texture, airWord: airWord(texture, verdict.worst, air), dampCool: isDampCool(texture, verdict.worst, air), shadeLevel, sunLevel, sunUp: load ? isDay : null, sunKnown: load ? load.sunKnown : null, headline: verdict.headline, blurb: verdict.blurb, split: verdict.split, worst: verdict.worst, relief, shade: load && load.shade, sun: load && load.sun };
 }
 
 const normalsFixture = {
@@ -137,6 +138,12 @@ const fixtures = [
     (e) => e.sunKnown === false && e.split === false),
   scenario('no-temperature', [{ date: '2026-09-13', now: '10:30', temperature: false, profile: (h) => ({ T: diurnal(22.5, 4.5, h), Td: 18.5, wind: 7 }) }],
     (e) => e.shadeLevel === null && e.headline === "It's muggy out"),
+  // A foggy winter morning: the dew point band is dry, the air is damp.
+  scenario('foggy-winter', range(3, 7, 0.5).map((T) => ({ date: '2026-01-15', now: '08:30', profile: (h) => ({ T: diurnal(T, 1.5, h), Td: T - 0.8, wind: 2 }) })),
+    (e) => e.dampCool && e.headline === 'Cold and damp'),
+  // Real heat in air that is not humid: never "comfortable".
+  scenario('hot-not-sticky', range(33, 40, 0.5).map((T) => ({ date: '2026-07-20', now: '14:30', profile: (h) => ({ T: diurnal(T, 5, h), Td: 14, wind: 6 }) })),
+    (e) => e.texture === 'comfortable' && e.airWord === 'not sticky'),
 ];
 
 // A reading that hovers on the Easy/Noticeable line at night: the rounded
